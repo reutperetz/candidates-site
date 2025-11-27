@@ -1,0 +1,23 @@
+.app-container {
+  background-color: #ffffff;
+  padding: 24px;
+  border-radius: 10px;
+  box-shadow: 0px 0px 15px rgba(0, 0, 0, 0.08);
+  border: 1px solid #e0e0e0;
+
+  /* center alignment */
+  text-align: center;
+}
+
+/* Main Title */
+.app-container h1 {
+  color: #2e7d32;   /* Green */
+  font-size: 28px;  /* smaller */
+  margin-bottom: 12px;
+}
+
+/* Paragraphs */
+.app-container p {
+  font-size: 18px;
+  color: #444;
+}
