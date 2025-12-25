@@ -1,5 +1,5 @@
-// src/Header.tsx
-import { useState } from "react";
+// src/components/Header.tsx
+import { useMemo, useState } from "react";
 import {
   AppBar,
   Toolbar,
@@ -14,7 +14,7 @@ import {
   Stack,
 } from "@mui/material";
 import MenuIcon from "@mui/icons-material/Menu";
-import { useNavigate, useLocation } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 
 type UserMode = "candidate" | "admin";
 
@@ -22,17 +22,10 @@ const candidateNav = [
   { label: "Home / מסך הבית", path: "/" },
   { label: "Forms / טפסים", path: "/forms" },
   { label: "Courses / קורסים", path: "/courses" },
-  {
-    label: "Admission Calculator / מחשבון סיכוי קבלה",
-    path: "/admission-calculator",
-  },
-  {
-    label: "Admission Requirements / תנאי קבלה",
-    path: "/admission-requirements",
-  },
+  { label: "Admission Calculator / מחשבון סיכוי קבלה", path: "/admission-calculator" },
+  { label: "Admission Requirements / תנאי קבלה", path: "/admission-requirements" },
   { label: "Help / עזרה", path: "/help" },
   { label: "Login / התחברות", path: "/login" },
-
 ];
 
 const adminNav = [
@@ -40,10 +33,7 @@ const adminNav = [
   { label: "System Users / משתמשי מערכת", path: "/admin/users" },
   { label: "Candidates / מועמדים", path: "/admin/candidates" },
   { label: "Courses / קורסים", path: "/admin/courses" },
-  {
-    label: "Admission Requirements / תנאי קבלה",
-    path: "/admin/admission-requirements",
-  },
+  { label: "Admission Requirements / תנאי קבלה", path: "/admin/admission-requirements" },
   { label: "Notifications / הודעות", path: "/admin/notifications" },
   { label: "FAQ / שאלות נפוצות", path: "/admin/faq" },
   { label: "Help / עזרה", path: "/admin/help" },
@@ -59,7 +49,9 @@ function Header({ userMode, onChangeMode }: HeaderProps) {
   const navigate = useNavigate();
   const location = useLocation();
 
-  const navItems = userMode === "admin" ? adminNav : candidateNav;
+  const navItems = useMemo(() => {
+    return userMode === "admin" ? adminNav : candidateNav;
+  }, [userMode]);
 
   const handleOpenDrawer = () => setDrawerOpen(true);
   const handleCloseDrawer = () => setDrawerOpen(false);
@@ -70,8 +62,10 @@ function Header({ userMode, onChangeMode }: HeaderProps) {
   };
 
   const toggleMode = () => {
-    onChangeMode(userMode === "candidate" ? "admin" : "candidate");
-    navigate(userMode === "candidate" ? "/admin" : "/");
+    const nextMode: UserMode = userMode === "candidate" ? "admin" : "candidate";
+    onChangeMode(nextMode);
+    navigate(nextMode === "admin" ? "/admin" : "/");
+    setDrawerOpen(false);
   };
 
   return (
@@ -83,14 +77,15 @@ function Header({ userMode, onChangeMode }: HeaderProps) {
           boxShadow: "0 2px 8px rgba(0,0,0,0.15)",
         }}
       >
-        <Toolbar>
-          {/* אייקון ☰ */}
+        {/* RTL כדי שהאייקון והטקסט יתיישרו נכון */}
+        <Toolbar sx={{ direction: "rtl" }}>
+          {/* ☰ בצד ימין */}
           <IconButton
             edge="start"
             onClick={handleOpenDrawer}
-            sx={{ mr: 2 }}
             color="inherit"
             aria-label="menu"
+            sx={{ ml: 1 }}
           >
             <MenuIcon />
           </IconButton>
@@ -98,15 +93,15 @@ function Header({ userMode, onChangeMode }: HeaderProps) {
           {/* כותרת האתר */}
           <Typography
             variant="h6"
-            onClick={() =>
-              handleNavigate(userMode === "admin" ? "/admin" : "/")
-            }
+            onClick={() => handleNavigate(userMode === "admin" ? "/admin" : "/")}
             sx={{
               flexGrow: 1,
               color: "white",
               fontWeight: 700,
               cursor: "pointer",
               letterSpacing: "0.5px",
+              userSelect: "none",
+              textAlign: "right",
             }}
           >
             Ono Academic College – Candidates Site
@@ -140,9 +135,14 @@ function Header({ userMode, onChangeMode }: HeaderProps) {
         </Toolbar>
       </AppBar>
 
-      {/* Drawer למובייל */}
-      <Drawer anchor="left" open={drawerOpen} onClose={handleCloseDrawer}>
-        <Box sx={{ width: 260 }} role="presentation">
+      {/* Drawer נפתח מאותו צד של האייקון (ימין) */}
+      <Drawer
+        anchor="right"
+        open={drawerOpen}
+        onClose={handleCloseDrawer}
+        PaperProps={{ sx: { direction: "rtl" } }}
+      >
+        <Box sx={{ width: 280 }} role="presentation" dir="rtl">
           <List>
             {navItems.map((item) => (
               <ListItemButton
@@ -150,17 +150,16 @@ function Header({ userMode, onChangeMode }: HeaderProps) {
                 selected={location.pathname === item.path}
                 onClick={() => handleNavigate(item.path)}
               >
-                <ListItemText primary={item.label} />
+                <ListItemText
+                  primary={item.label}
+                  primaryTypographyProps={{ sx: { textAlign: "right" } }}
+                />
               </ListItemButton>
             ))}
           </List>
+
           <Box sx={{ p: 2 }}>
-            <Button
-              fullWidth
-              variant="outlined"
-              onClick={toggleMode}
-              size="small"
-            >
+            <Button fullWidth variant="outlined" onClick={toggleMode} size="small">
               מעבר ל־{userMode === "candidate" ? "מצב Admin" : "מצב מועמד"}
             </Button>
           </Box>
@@ -171,9 +170,3 @@ function Header({ userMode, onChangeMode }: HeaderProps) {
 }
 
 export default Header;
-
-
-
-
-
-
