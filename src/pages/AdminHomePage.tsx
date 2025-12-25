@@ -1,51 +1,72 @@
 // src/pages/AdminHomePage.tsx
-import {
-  Box,
-  Container,
-  Typography,
-  Grid,
-  Card,
-  CardContent,
-  Paper,
-} from "@mui/material";
+import { Box, Container, Typography, Grid, Card, CardContent, Paper } from "@mui/material";
 import NotificationsNoneIcon from "@mui/icons-material/NotificationsNone";
 import MenuBookIcon from "@mui/icons-material/MenuBook";
 import GroupOutlinedIcon from "@mui/icons-material/GroupOutlined";
 import PersonOutlineIcon from "@mui/icons-material/PersonOutline";
+import { useNavigate } from "react-router-dom";
+
+type QuickCard = {
+  title: string;
+  subtitle: string;
+  icon: React.ReactNode;
+  to: string;
+};
 
 const AdminHomePage = () => {
+  const navigate = useNavigate();
+
+  const cards: QuickCard[] = [
+    {
+      title: "ניהול הודעות",
+      subtitle: "יצירה, עריכה ומחיקה של הודעות",
+      icon: <NotificationsNoneIcon color="success" sx={{ fontSize: 34 }} />,
+      to: "/admin/notifications",
+    },
+    {
+      title: "ניהול קורסים",
+      subtitle: "רשימת קורסים והוספת קורס חדש",
+      icon: <MenuBookIcon color="success" sx={{ fontSize: 34 }} />,
+      to: "/admin/courses",
+    },
+    {
+      title: "ניהול מועמדים",
+      subtitle: "צפייה ועדכון סטטוס מועמדים",
+      icon: <PersonOutlineIcon color="success" sx={{ fontSize: 34 }} />,
+      to: "/admin/candidates",
+    },
+    {
+      title: "משתמשי מערכת",
+      subtitle: "ניהול משתמשים (מנהל/מזכירות וכו')",
+      icon: <GroupOutlinedIcon color="success" sx={{ fontSize: 34 }} />,
+      to: "/admin/users",
+    },
+  ];
+
+  const handleGo = (to: string) => navigate(to);
+
   return (
     <Box dir="rtl">
       <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
-        {/* כותרת עליונה כמו באתר אונו */}
-        <Typography
-          variant="h6"
-          align="center"
-          fontWeight={700}
-          color="success.main"
-        >
+        {/* כותרת עליונה */}
+        <Typography variant="h6" align="center" fontWeight={700} color="success.main">
           המחלקה למדעי המחשב
         </Typography>
-        <Typography
-          variant="body2"
-          align="center"
-          color="text.secondary"
-          mb={3}
-        >
+        <Typography variant="body2" align="center" color="text.secondary" mb={3}>
           מערכת ניהול – משתמשים, מועמדים, קורסים ותנאי קבלה
         </Typography>
 
-        {/* מסגרת ראשית של מסך הבית */}
+        {/* מסגרת ראשית */}
         <Paper
           elevation={3}
           sx={{
             borderRadius: 3,
             overflow: "hidden",
             bgcolor: "#f7fbf7",
-            p: 3,
+            p: { xs: 2, md: 3 },
           }}
         >
-          {/* באנר ירוק – שלום מנהל/ת */}
+          {/* באנר ירוק */}
           <Box
             sx={{
               bgcolor: "success.main",
@@ -64,115 +85,47 @@ const AdminHomePage = () => {
             </Typography>
           </Box>
 
-          {/* כרטיסי סטטיסטיקה – 4 קוביות כמו בוירפריים */}
+          {/* ריבועים (ללא מספרים) */}
           <Grid container spacing={2} justifyContent="center">
-            {/* הודעות */} 
-            <Grid item xs={12} sm={6} md={3}>
-              <Card
-                sx={{
-                  borderRadius: 3,
-                  boxShadow: "0 2px 6px rgba(0,0,0,0.06)",
-                  bgcolor: "white",
-                }}
-              >
-                <CardContent sx={{ textAlign: "center" }}>
-                  <Box mb={1}>
-                    <NotificationsNoneIcon color="success" />
-                  </Box>
-                  <Typography
-                    variant="body2"
-                    color="text.secondary"
-                    mb={0.5}
-                  >
-                    מספר הודעות פעילות
-                  </Typography>
-                  <Typography variant="h5" fontWeight={700}>
-                    1
-                  </Typography>
-                </CardContent>
-              </Card>
-            </Grid>
+            {cards.map((item) => (
+              <Grid item xs={12} sm={6} md={3} key={item.to}>
+                <Card
+                  role="button"
+                  tabIndex={0}
+                  onClick={() => handleGo(item.to)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" || e.key === " ") handleGo(item.to);
+                  }}
+                  sx={{
+                    borderRadius: 3,
+                    bgcolor: "white",
+                    cursor: "pointer",
+                    boxShadow: "0 2px 6px rgba(0,0,0,0.06)",
+                    transition: "0.2s",
+                    outline: "none",
+                    "&:hover": {
+                      boxShadow: "0 6px 16px rgba(0,0,0,0.12)",
+                      transform: "translateY(-2px)",
+                    },
+                    "&:focus-visible": {
+                      boxShadow: "0 0 0 3px rgba(46,125,50,0.25)",
+                    },
+                  }}
+                >
+                  <CardContent sx={{ textAlign: "center", py: 3 }}>
+                    <Box mb={1}>{item.icon}</Box>
 
-            {/* קורסים פעילים */}
-            <Grid item xs={12} sm={6} md={3}>
-              <Card
-                sx={{
-                  borderRadius: 3,
-                  boxShadow: "0 2px 6px rgba(0,0,0,0.06)",
-                  bgcolor: "white",
-                }}
-              >
-                <CardContent sx={{ textAlign: "center" }}>
-                  <Box mb={1}>
-                    <MenuBookIcon color="success" />
-                  </Box>
-                  <Typography
-                    variant="body2"
-                    color="text.secondary"
-                    mb={0.5}
-                  >
-                    מספר קורסים פעילים
-                  </Typography>
-                  <Typography variant="h5" fontWeight={700}>
-                    4
-                  </Typography>
-                </CardContent>
-              </Card>
-            </Grid>
+                    <Typography variant="subtitle1" fontWeight={800} sx={{ mb: 0.5 }}>
+                      {item.title}
+                    </Typography>
 
-            {/* מועמדים במערכת */}
-            <Grid item xs={12} sm={6} md={3}>
-              <Card
-                sx={{
-                  borderRadius: 3,
-                  boxShadow: "0 2px 6px rgba(0,0,0,0.06)",
-                  bgcolor: "white",
-                }}
-              >
-                <CardContent sx={{ textAlign: "center" }}>
-                  <Box mb={1}>
-                    <PersonOutlineIcon color="success" />
-                  </Box>
-                  <Typography
-                    variant="body2"
-                    color="text.secondary"
-                    mb={0.5}
-                  >
-                    מספר מועמדים במערכת
-                  </Typography>
-                  <Typography variant="h5" fontWeight={700}>
-                    0
-                  </Typography>
-                </CardContent>
-              </Card>
-            </Grid>
-
-            {/* משתמשי מערכת */}
-            <Grid item xs={12} sm={6} md={3}>
-              <Card
-                sx={{
-                  borderRadius: 3,
-                  boxShadow: "0 2px 6px rgba(0,0,0,0.06)",
-                  bgcolor: "white",
-                }}
-              >
-                <CardContent sx={{ textAlign: "center" }}>
-                  <Box mb={1}>
-                    <GroupOutlinedIcon color="success" />
-                  </Box>
-                  <Typography
-                    variant="body2"
-                    color="text.secondary"
-                    mb={0.5}
-                  >
-                    מספר משתמשי מערכת
-                  </Typography>
-                  <Typography variant="h5" fontWeight={700}>
-                    0
-                  </Typography>
-                </CardContent>
-              </Card>
-            </Grid>
+                    <Typography variant="body2" color="text.secondary">
+                      {item.subtitle}
+                    </Typography>
+                  </CardContent>
+                </Card>
+              </Grid>
+            ))}
           </Grid>
         </Paper>
       </Container>
@@ -181,4 +134,6 @@ const AdminHomePage = () => {
 };
 
 export default AdminHomePage;
+
+
 

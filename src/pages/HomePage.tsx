@@ -1,4 +1,5 @@
 // src/pages/HomePage.tsx
+import { useEffect, useMemo, useState } from "react";
 import {
   Box,
   Container,
@@ -9,21 +10,171 @@ import {
   Button,
   TextField,
   MenuItem,
+  Snackbar,
+  Alert,
 } from "@mui/material";
 
 import NotificationsActiveIcon from "@mui/icons-material/NotificationsActive";
 import AssignmentTurnedInIcon from "@mui/icons-material/AssignmentTurnedIn";
 import MenuBookIcon from "@mui/icons-material/MenuBook";
 import AssessmentIcon from "@mui/icons-material/Assessment";
+import { useLocation, useNavigate } from "react-router-dom";
 
-import { useNavigate } from "react-router-dom";
+type RegisterForm = {
+  fullName: string;
+  idNumber: string;
+  phone: string;
+  email: string;
+  password: string;
+  confirmPassword: string;
+  studyTrack: "" | "morning" | "evening";
+  plannedYear: "" | "2025" | "2026" | "2027";
+  notes: string;
+};
+
+const initialRegister: RegisterForm = {
+  fullName: "",
+  idNumber: "",
+  phone: "",
+  email: "",
+  password: "",
+  confirmPassword: "",
+  studyTrack: "",
+  plannedYear: "",
+  notes: "",
+};
+
+function isValidIsraeliID(id: string) {
+  // בסיסי: רק 9 ספרות (לא אלגוריתם ספרת ביקורת כדי לא להכביד)
+  return /^\d{9}$/.test(id);
+}
+
+function isValidPhone(phone: string) {
+  // בסיסי ישראלי: 05X + 7 ספרות (מאפשר גם מקפים/רווחים אם תרצי להרחיב)
+  return /^05\d{8}$/.test(phone);
+}
+
+function isValidEmail(email: string) {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+}
 
 function HomePage() {
   const navigate = useNavigate();
+  const location = useLocation();
+
+  const [toastOpen, setToastOpen] = useState(false);
+  const [toastText, setToastText] = useState("התחברת בהצלחה");
+  const [form, setForm] = useState<RegisterForm>(initialRegister);
+  const [errors, setErrors] = useState<Partial<Record<keyof RegisterForm, string>>>({});
+
+  const state = (location.state || {}) as any;
+
+  // הודעת התחברות + גלילה להרשמה
+  useEffect(() => {
+    if (state?.loginSuccess) {
+      setToastText(state?.isGuest ? "התחברת בהצלחה (אורח)" : "התחברת בהצלחה");
+      setToastOpen(true);
+
+      // ננקה state כדי שלא יקפוץ שוב ברענון/ניווט
+      navigate(location.pathname, { replace: true, state: {} });
+    }
+  }, [state?.loginSuccess]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  useEffect(() => {
+    if (state?.scrollTo === "register") {
+      // נותן רגע לרינדור ואז גולל
+      setTimeout(() => {
+        document.getElementById("register-form")?.scrollIntoView({
+          behavior: "smooth",
+          block: "start",
+        });
+      }, 50);
+
+      navigate(location.pathname, { replace: true, state: {} });
+    }
+  }, [state?.scrollTo]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const handleChange =
+    (key: keyof RegisterForm) => (e: React.ChangeEvent<HTMLInputElement>) => {
+      const value = e.target.value;
+      setForm((prev) => ({ ...prev, [key]: value }));
+      setErrors((prev) => ({ ...prev, [key]: "" }));
+    };
+
+  const validateRegister = useMemo(() => {
+    return () => {
+      const nextErrors: Partial<Record<keyof RegisterForm, string>> = {};
+
+      if (!form.fullName.trim() || form.fullName.trim().split(" ").length < 2) {
+        nextErrors.fullName = "נא להזין שם מלא (לפחות שתי מילים).";
+      }
+      if (!isValidIsraeliID(form.idNumber)) {
+        nextErrors.idNumber = "תעודת זהות חייבת להכיל 9 ספרות.";
+      }
+      if (!isValidPhone(form.phone)) {
+        nextErrors.phone = "טלפון חייב להיות בפורמט 05XXXXXXXX.";
+      }
+      if (!isValidEmail(form.email)) {
+        nextErrors.email = "נא להזין אימייל תקין.";
+      }
+      if (form.password.length < 6) {
+        nextErrors.password = "סיסמה חייבת להכיל לפחות 6 תווים.";
+      }
+      if (form.confirmPassword !== form.password) {
+        nextErrors.confirmPassword = "אימות סיסמה לא תואם לסיסמה.";
+      }
+      if (!form.studyTrack) {
+        nextErrors.studyTrack = "נא לבחור מסלול לימודים מועדף.";
+      }
+      if (!form.plannedYear) {
+        nextErrors.plannedYear = "נא לבחור שנת התחלה מתוכננת.";
+      }
+
+      setErrors(nextErrors);
+      return Object.keys(nextErrors).length === 0;
+    };
+  }, [form]);
+
+  const handleRegisterSubmit = () => {
+    if (!validateRegister()) return;
+
+    // דמו: שומרים משתמש מקומי ומראים הודעה
+    localStorage.setItem(
+      "registered_candidate",
+      JSON.stringify({
+        fullName: form.fullName.trim(),
+        idNumber: form.idNumber,
+        phone: form.phone,
+        email: form.email.trim(),
+        studyTrack: form.studyTrack,
+        plannedYear: form.plannedYear,
+      })
+    );
+
+    setToastText("נרשמת בהצלחה! ניתן כעת להתחבר.");
+    setToastOpen(true);
+    setForm(initialRegister);
+  };
+
+  const handleReset = () => {
+    setForm(initialRegister);
+    setErrors({});
+  };
 
   return (
     <Container maxWidth="lg" sx={{ mt: 6, mb: 6 }} dir="rtl">
-      {/* כרטיס ברוכים הבאים – הירוק הגדול למעלה */}
+      <Snackbar
+        open={toastOpen}
+        autoHideDuration={2500}
+        onClose={() => setToastOpen(false)}
+        anchorOrigin={{ vertical: "top", horizontal: "center" }}
+      >
+        <Alert onClose={() => setToastOpen(false)} severity="success" sx={{ width: "100%" }}>
+          {toastText}
+        </Alert>
+      </Snackbar>
+
+      {/* כרטיס ברוכים הבאים */}
       <Card
         sx={{
           mb: 4,
@@ -33,19 +184,8 @@ function HomePage() {
           color: "white",
         }}
       >
-        <CardContent
-          sx={{
-            py: 4,
-            textAlign: "center",
-          }}
-        >
-          <Typography
-            variant="h4"
-            sx={{
-              fontWeight: 700,
-              mb: 1,
-            }}
-          >
+        <CardContent sx={{ py: 4, textAlign: "center" }}>
+          <Typography variant="h4" sx={{ fontWeight: 700, mb: 1 }}>
             ברוכים הבאים!
           </Typography>
           <Typography variant="body1">
@@ -55,9 +195,8 @@ function HomePage() {
         </CardContent>
       </Card>
 
-      {/* ארבעת הכרטיסים – הודעות / סטטוס הרשמה / קורסים / בדיקת סיכוי קבלה */}
+      {/* ארבעת הכרטיסים */}
       <Grid container spacing={3} mb={4}>
-        {/* הודעות חשובות */}
         <Grid item xs={12} md={6}>
           <Card
             sx={{
@@ -69,11 +208,7 @@ function HomePage() {
             onClick={() => navigate("/help")}
           >
             <CardContent
-              sx={{
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "space-between",
-              }}
+              sx={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}
             >
               <Box sx={{ textAlign: "right" }}>
                 <Typography variant="subtitle1" fontWeight={700}>
@@ -83,14 +218,11 @@ function HomePage() {
                   עדכונים ומידע חדש מהמכללה
                 </Typography>
               </Box>
-              <NotificationsActiveIcon
-                sx={{ fontSize: 36, color: "#2e7d32", ml: 1 }}
-              />
+              <NotificationsActiveIcon sx={{ fontSize: 36, color: "#2e7d32", ml: 1 }} />
             </CardContent>
           </Card>
         </Grid>
 
-        {/* סטטוס הרשמה */}
         <Grid item xs={12} md={6}>
           <Card
             sx={{
@@ -102,11 +234,7 @@ function HomePage() {
             onClick={() => navigate("/forms")}
           >
             <CardContent
-              sx={{
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "space-between",
-              }}
+              sx={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}
             >
               <Box sx={{ textAlign: "right" }}>
                 <Typography variant="subtitle1" fontWeight={700}>
@@ -116,14 +244,11 @@ function HomePage() {
                   בדיקת מצב הבקשה שלך להרשמה
                 </Typography>
               </Box>
-              <AssignmentTurnedInIcon
-                sx={{ fontSize: 36, color: "#2e7d32", ml: 1 }}
-              />
+              <AssignmentTurnedInIcon sx={{ fontSize: 36, color: "#2e7d32", ml: 1 }} />
             </CardContent>
           </Card>
         </Grid>
 
-        {/* קורסים שמתאימים עבורך */}
         <Grid item xs={12} md={6}>
           <Card
             sx={{
@@ -135,11 +260,7 @@ function HomePage() {
             onClick={() => navigate("/management")}
           >
             <CardContent
-              sx={{
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "space-between",
-              }}
+              sx={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}
             >
               <Box sx={{ textAlign: "right" }}>
                 <Typography variant="subtitle1" fontWeight={700}>
@@ -149,14 +270,11 @@ function HomePage() {
                   צפייה בקורסים ונתוני המסלול במחלקה
                 </Typography>
               </Box>
-              <MenuBookIcon
-                sx={{ fontSize: 36, color: "#2e7d32", ml: 1 }}
-              />
+              <MenuBookIcon sx={{ fontSize: 36, color: "#2e7d32", ml: 1 }} />
             </CardContent>
           </Card>
         </Grid>
 
-        {/* בדיקת סיכוי קבלה */}
         <Grid item xs={12} md={6}>
           <Card
             sx={{
@@ -165,14 +283,10 @@ function HomePage() {
               cursor: "pointer",
               "&:hover": { boxShadow: "0 4px 12px rgba(0,0,0,0.12)" },
             }}
-            onClick={() => navigate("/forms")}
+            onClick={() => navigate("/admission-calculator")}
           >
             <CardContent
-              sx={{
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "space-between",
-              }}
+              sx={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}
             >
               <Box sx={{ textAlign: "right" }}>
                 <Typography variant="subtitle1" fontWeight={700}>
@@ -182,92 +296,19 @@ function HomePage() {
                   הערכת סיכויי הקבלה על בסיס הנתונים שלך
                 </Typography>
               </Box>
-              <AssessmentIcon
-                sx={{ fontSize: 36, color: "#2e7d32", ml: 1 }}
-              />
-            </CardContent>
-          </Card>
-        </Grid>
-      </Grid>
-
-      {/* כותרת "מידע מהיר" */}
-      <Box mb={2}>
-        <Typography variant="h6" sx={{ fontWeight: 700, color: "#2e7d32" }}>
-          מידע מהיר
-        </Typography>
-      </Box>
-
-      {/* כרטיסי מידע מהיר – תואר / שנות לימוד / פסיכומטרי */}
-      <Grid container spacing={3} mb={6}>
-        <Grid item xs={12} md={4}>
-          <Card
-            sx={{
-              borderRadius: 3,
-              boxShadow: "0 2px 8px rgba(0,0,0,0.08)",
-              textAlign: "center",
-            }}
-          >
-            <CardContent>
-              <Typography variant="h5" sx={{ fontWeight: 700, mb: 1 }}>
-                B.Sc
-              </Typography>
-              <Typography variant="body2" color="text.secondary">
-                סוג התואר – תואר ראשון במדעי המחשב
-              </Typography>
-            </CardContent>
-          </Card>
-        </Grid>
-
-        <Grid item xs={12} md={4}>
-          <Card
-            sx={{
-              borderRadius: 3,
-              boxShadow: "0 2px 8px rgba(0,0,0,0.08)",
-              textAlign: "center",
-            }}
-          >
-            <CardContent>
-              <Typography variant="h5" sx={{ fontWeight: 700, mb: 1 }}>
-                3
-              </Typography>
-              <Typography variant="body2" color="text.secondary">
-                שנות לימוד לתואר (בדרך כלל)
-              </Typography>
-            </CardContent>
-          </Card>
-        </Grid>
-
-        <Grid item xs={12} md={4}>
-          <Card
-            sx={{
-              borderRadius: 3,
-              boxShadow: "0 2px 8px rgba(0,0,0,0.08)",
-              textAlign: "center",
-            }}
-          >
-            <CardContent>
-              <Typography variant="h5" sx={{ fontWeight: 700, mb: 1 }}>
-                650
-              </Typography>
-              <Typography variant="body2" color="text.secondary">
-                דוגמה לסף פסיכומטרי משוער לקבלה (אפשר להתאים לדרישות המרצה)
-              </Typography>
+              <AssessmentIcon sx={{ fontSize: 36, color: "#2e7d32", ml: 1 }} />
             </CardContent>
           </Card>
         </Grid>
       </Grid>
 
       {/* ------- טופס הרשמה מרכזי ------- */}
-      <Box mb={2} textAlign="center">
-        <Typography
-          variant="h5"
-          sx={{ fontWeight: 700, color: "#2e7d32", mb: 1 }}
-        >
+      <Box id="register-form" mb={2} textAlign="center">
+        <Typography variant="h5" sx={{ fontWeight: 700, color: "#2e7d32", mb: 1 }}>
           טופס הרשמה לתואר במדעי המחשב
         </Typography>
         <Typography variant="body2" color="text.secondary">
-          המידע שימולא כאן הוא דוגמה לטופס הרשמה ויזואלי בלבד, בהתאם לתכנון
-          הפרויקט.
+          הרשמה למועמד/ת – נדרשים פרטים אישיים + יצירת סיסמה.
         </Typography>
       </Box>
 
@@ -283,23 +324,14 @@ function HomePage() {
         <CardContent>
           <Typography
             variant="h6"
-            sx={{
-              fontWeight: 700,
-              mb: 3,
-              textAlign: "center",
-              color: "#2e7d32",
-            }}
+            sx={{ fontWeight: 700, mb: 3, textAlign: "center", color: "#2e7d32" }}
           >
             טופס הרשמה
           </Typography>
 
           <Grid container spacing={2}>
-            {/* פרטים אישיים */}
             <Grid item xs={12}>
-              <Typography
-                variant="subtitle2"
-                sx={{ fontWeight: 700, mb: 0.5 }}
-              >
+              <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 0.5 }}>
                 פרטים אישיים
               </Typography>
             </Grid>
@@ -309,85 +341,79 @@ function HomePage() {
                 fullWidth
                 size="small"
                 label="שם מלא"
-                variant="outlined"
+                value={form.fullName}
+                onChange={handleChange("fullName")}
+                error={!!errors.fullName}
+                helperText={errors.fullName}
               />
             </Grid>
+
             <Grid item xs={12} md={6}>
               <TextField
                 fullWidth
                 size="small"
-                label="תעודת זהות"
-                variant="outlined"
+                label="תעודת זהות (9 ספרות)"
+                value={form.idNumber}
+                onChange={handleChange("idNumber")}
+                inputProps={{ inputMode: "numeric", pattern: "[0-9]*", maxLength: 9 }}
+                error={!!errors.idNumber}
+                helperText={errors.idNumber}
               />
             </Grid>
+
             <Grid item xs={12} md={6}>
               <TextField
                 fullWidth
                 size="small"
-                label="טלפון נייד"
-                variant="outlined"
+                label="טלפון נייד (05XXXXXXXX)"
+                value={form.phone}
+                onChange={handleChange("phone")}
+                inputProps={{ inputMode: "numeric", pattern: "[0-9]*", maxLength: 10 }}
+                error={!!errors.phone}
+                helperText={errors.phone}
               />
             </Grid>
+
             <Grid item xs={12} md={6}>
               <TextField
                 fullWidth
                 size="small"
                 label="אימייל"
-                variant="outlined"
+                value={form.email}
+                onChange={handleChange("email")}
+                error={!!errors.email}
+                helperText={errors.email}
               />
             </Grid>
 
-            {/* נתונים אקדמיים */}
+            <Grid item xs={12} md={6}>
+              <TextField
+                fullWidth
+                size="small"
+                label="סיסמה (לפחות 6 תווים)"
+                type="password"
+                value={form.password}
+                onChange={handleChange("password")}
+                error={!!errors.password}
+                helperText={errors.password}
+              />
+            </Grid>
+
+            <Grid item xs={12} md={6}>
+              <TextField
+                fullWidth
+                size="small"
+                label="אימות סיסמה"
+                type="password"
+                value={form.confirmPassword}
+                onChange={handleChange("confirmPassword")}
+                error={!!errors.confirmPassword}
+                helperText={errors.confirmPassword}
+              />
+            </Grid>
+
             <Grid item xs={12} mt={1}>
-              <Typography
-                variant="subtitle2"
-                sx={{ fontWeight: 700, mb: 0.5 }}
-              >
-                נתונים אקדמיים
-              </Typography>
-            </Grid>
-
-            <Grid item xs={12} md={6}>
-              <TextField
-                fullWidth
-                size="small"
-                label="ציון פסיכומטרי"
-                variant="outlined"
-              />
-            </Grid>
-            <Grid item xs={12} md={6}>
-              <TextField
-                fullWidth
-                size="small"
-                label="ממוצע בגרות"
-                variant="outlined"
-              />
-            </Grid>
-            <Grid item xs={12} md={6}>
-              <TextField
-                fullWidth
-                size="small"
-                type="number"
-                label="יחידות במתמטיקה"
-                variant="outlined"
-              />
-            </Grid>
-            <Grid item xs={12} md={6}>
-              <TextField
-                fullWidth
-                size="small"
-                type="number"
-                label="יחידות באנגלית"
-                variant="outlined"
-              />
-            </Grid>
-
-            {/* העדפות לימוד */}
-            <Grid item xs={12} mt={1}>
-              <Typography
-                variant="subtitle2"
-                sx={{ fontWeight: 700, mb: 0.5 }}
-              >
+              <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 0.5 }}>
                 העדפות לימוד
               </Typography>
             </Grid>
@@ -398,7 +424,10 @@ function HomePage() {
                 fullWidth
                 size="small"
                 label="מסלול לימודים מועדף"
-                defaultValue=""
+                value={form.studyTrack}
+                onChange={handleChange("studyTrack")}
+                error={!!errors.studyTrack}
+                helperText={errors.studyTrack}
               >
                 <MenuItem value="">
                   <em>לא נבחר</em>
@@ -414,7 +443,10 @@ function HomePage() {
                 fullWidth
                 size="small"
                 label="שנת התחלה מתוכננת"
-                defaultValue=""
+                value={form.plannedYear}
+                onChange={handleChange("plannedYear")}
+                error={!!errors.plannedYear}
+                helperText={errors.plannedYear}
               >
                 <MenuItem value="">
                   <em>לא נבחר</em>
@@ -430,39 +462,25 @@ function HomePage() {
                 fullWidth
                 size="small"
                 label="הערות נוספות (לא חובה)"
-                variant="outlined"
+                value={form.notes}
+                onChange={handleChange("notes")}
                 multiline
                 minRows={2}
               />
             </Grid>
           </Grid>
 
-          {/* כפתורים */}
-          <Box
-            mt={3}
-            display="flex"
-            justifyContent="space-between"
-            flexWrap="wrap"
-            gap={1}
-          >
-            <Button variant="text" color="inherit">
+          <Box mt={3} display="flex" justifyContent="space-between" flexWrap="wrap" gap={1}>
+            <Button variant="text" color="inherit" onClick={handleReset}>
               נקה טופס
             </Button>
 
             <Box display="flex" gap={1}>
-              <Button
-                variant="outlined"
-                color="success"
-                onClick={() => navigate("/forms")}
-              >
+              <Button variant="outlined" color="success" onClick={() => navigate("/forms")}>
                 מעבר למסך הטפסים
               </Button>
-              <Button
-                variant="contained"
-                color="success"
-                sx={{ px: 4 }}
-              >
-                שמירה / שליחה
+              <Button variant="contained" color="success" sx={{ px: 4 }} onClick={handleRegisterSubmit}>
+                הרשמה
               </Button>
             </Box>
           </Box>
@@ -473,4 +491,3 @@ function HomePage() {
 }
 
 export default HomePage;
-

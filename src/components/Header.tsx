@@ -1,5 +1,5 @@
 // src/components/Header.tsx
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   AppBar,
   Toolbar,
@@ -12,6 +12,7 @@ import {
   Box,
   Button,
   Stack,
+  Chip,
 } from "@mui/material";
 import MenuIcon from "@mui/icons-material/Menu";
 import { useLocation, useNavigate } from "react-router-dom";
@@ -46,8 +47,20 @@ interface HeaderProps {
 
 function Header({ userMode, onChangeMode }: HeaderProps) {
   const [drawerOpen, setDrawerOpen] = useState(false);
+  const [authUser, setAuthUser] = useState<string | null>(localStorage.getItem("authUser"));
+
   const navigate = useNavigate();
   const location = useLocation();
+
+  useEffect(() => {
+    const sync = () => setAuthUser(localStorage.getItem("authUser"));
+    window.addEventListener("auth-changed", sync);
+    window.addEventListener("storage", sync);
+    return () => {
+      window.removeEventListener("auth-changed", sync);
+      window.removeEventListener("storage", sync);
+    };
+  }, []);
 
   const navItems = useMemo(() => {
     return userMode === "admin" ? adminNav : candidateNav;
@@ -68,6 +81,14 @@ function Header({ userMode, onChangeMode }: HeaderProps) {
     setDrawerOpen(false);
   };
 
+  const handleLogout = () => {
+    localStorage.removeItem("authUser");
+    localStorage.removeItem("authRole");
+    setAuthUser(null);
+    window.dispatchEvent(new Event("auth-changed"));
+    navigate("/login");
+  };
+
   return (
     <>
       <AppBar
@@ -77,9 +98,7 @@ function Header({ userMode, onChangeMode }: HeaderProps) {
           boxShadow: "0 2px 8px rgba(0,0,0,0.15)",
         }}
       >
-        {/* RTL כדי שהאייקון והטקסט יתיישרו נכון */}
         <Toolbar sx={{ direction: "rtl" }}>
-          {/* ☰ בצד ימין */}
           <IconButton
             edge="start"
             onClick={handleOpenDrawer}
@@ -90,7 +109,6 @@ function Header({ userMode, onChangeMode }: HeaderProps) {
             <MenuIcon />
           </IconButton>
 
-          {/* כותרת האתר */}
           <Typography
             variant="h6"
             onClick={() => handleNavigate(userMode === "admin" ? "/admin" : "/")}
@@ -107,7 +125,27 @@ function Header({ userMode, onChangeMode }: HeaderProps) {
             Ono Academic College – Candidates Site
           </Typography>
 
-          {/* כפתורי מצב משתמש בדסקטופ */}
+          {/* אינדיקציה שהמשתמש מחובר + התנתקות */}
+          <Stack direction="row" spacing={1} alignItems="center" sx={{ mr: 1 }}>
+            {authUser && (
+              <>
+                <Chip
+                  label={`מחובר/ת: ${authUser}`}
+                  size="small"
+                  sx={{ bgcolor: "rgba(255,255,255,0.18)", color: "white" }}
+                />
+                <Button
+                  variant="outlined"
+                  color="secondary"
+                  size="small"
+                  onClick={handleLogout}
+                >
+                  התנתקות
+                </Button>
+              </>
+            )}
+          </Stack>
+
           <Stack direction="row" spacing={1} sx={{ display: { xs: "none", md: "flex" } }}>
             <Button
               variant={userMode === "candidate" ? "contained" : "outlined"}
@@ -135,7 +173,6 @@ function Header({ userMode, onChangeMode }: HeaderProps) {
         </Toolbar>
       </AppBar>
 
-      {/* Drawer נפתח מאותו צד של האייקון (ימין) */}
       <Drawer
         anchor="right"
         open={drawerOpen}
@@ -150,18 +187,21 @@ function Header({ userMode, onChangeMode }: HeaderProps) {
                 selected={location.pathname === item.path}
                 onClick={() => handleNavigate(item.path)}
               >
-                <ListItemText
-                  primary={item.label}
-                  primaryTypographyProps={{ sx: { textAlign: "right" } }}
-                />
+                <ListItemText primary={item.label} primaryTypographyProps={{ sx: { textAlign: "right" } }} />
               </ListItemButton>
             ))}
           </List>
 
-          <Box sx={{ p: 2 }}>
+          <Box sx={{ p: 2, display: "grid", gap: 1 }}>
             <Button fullWidth variant="outlined" onClick={toggleMode} size="small">
               מעבר ל־{userMode === "candidate" ? "מצב Admin" : "מצב מועמד"}
             </Button>
+
+            {authUser && (
+              <Button fullWidth variant="outlined" color="secondary" onClick={handleLogout} size="small">
+                התנתקות
+              </Button>
+            )}
           </Box>
         </Box>
       </Drawer>

@@ -1,46 +1,263 @@
+// src/pages/FormsPage.tsx
+import { useMemo, useState } from "react";
 import {
+  Alert,
   Box,
-  Container,
-  Typography,
-  Grid,
+  Button,
   Card,
   CardContent,
-  List,
-  ListItem,
-  ListItemText,
-  Button,
-  Divider,
   Chip,
+  Container,
+  Divider,
+  Grid,
+  Snackbar,
   TextField,
+  Typography,
 } from "@mui/material";
 import AssignmentIcon from "@mui/icons-material/Assignment";
-import ManageAccountsIcon from "@mui/icons-material/ManageAccounts";
-import PeopleAltIcon from "@mui/icons-material/PeopleAlt";
+import PersonAddAlt1Icon from "@mui/icons-material/PersonAddAlt1";
 import MenuBookIcon from "@mui/icons-material/MenuBook";
 import RuleIcon from "@mui/icons-material/Rule";
-import CampaignIcon from "@mui/icons-material/Campaign";
 import HelpCenterIcon from "@mui/icons-material/HelpCenter";
-import HomeIcon from "@mui/icons-material/Home";
 import { useNavigate } from "react-router-dom";
+
+type CandidateForm = {
+  idNumber: string; // ת"ז
+  fullName: string;
+  phone: string;
+  email: string;
+
+  psychometric: string; // 200-800
+  bagrutAvg: string; // 0-120
+  mathUnits: string; // 3/4/5
+  mathGrade: string; // 0-100
+  englishUnits: string; // 3/4/5
+  englishGrade: string; // 0-100
+
+  preferredTrack: string; // מסלול מועדף
+};
+
+const ID_REGEX = /^\d{9}$/;
+const PHONE_REGEX = /^\d{9,10}$/; // ישראל לרוב 9-10 ספרות (כולל 0)
+const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+function clampNumberStr(value: string) {
+  // מאפשר ריק, אחרת רק ספרות
+  if (value === "") return "";
+  return value.replace(/[^\d]/g, "");
+}
 
 function FormsPage() {
   const navigate = useNavigate();
 
-  const cardBaseStyle = {
-    height: "100%",
-    boxShadow: "0 4px 12px rgba(0,0,0,0.08)",
-    borderRadius: 3,
-    overflow: "hidden",
-    backgroundColor: "#ffffff",
-  } as const;
+  const [form, setForm] = useState<CandidateForm>({
+    idNumber: "",
+    fullName: "",
+    phone: "",
+    email: "",
+    psychometric: "",
+    bagrutAvg: "",
+    mathUnits: "",
+    mathGrade: "",
+    englishUnits: "",
+    englishGrade: "",
+    preferredTrack: "",
+  });
+
+  const [touched, setTouched] = useState<Record<keyof CandidateForm, boolean>>({
+    idNumber: false,
+    fullName: false,
+    phone: false,
+    email: false,
+    psychometric: false,
+    bagrutAvg: false,
+    mathUnits: false,
+    mathGrade: false,
+    englishUnits: false,
+    englishGrade: false,
+    preferredTrack: false,
+  });
+
+  const [snack, setSnack] = useState<{
+    open: boolean;
+    type: "success" | "error";
+    message: string;
+  }>({ open: false, type: "success", message: "" });
+
+  const cardBaseStyle = useMemo(
+    () => ({
+      height: "100%",
+      boxShadow: "0 4px 12px rgba(0,0,0,0.08)",
+      borderRadius: 3,
+      overflow: "hidden",
+      backgroundColor: "#ffffff",
+    }),
+    []
+  );
+
+  const setField = (key: keyof CandidateForm, value: string) => {
+    setForm((prev) => ({ ...prev, [key]: value }));
+  };
+
+  const markTouched = (key: keyof CandidateForm) => {
+    setTouched((prev) => ({ ...prev, [key]: true }));
+  };
+
+  const errors = useMemo(() => {
+    const e: Partial<Record<keyof CandidateForm, string>> = {};
+
+    // ת"ז
+    if (!form.idNumber.trim()) e.idNumber = "שדה חובה";
+    else if (!ID_REGEX.test(form.idNumber)) e.idNumber = "תעודת זהות חייבת להיות 9 ספרות בלבד";
+
+    // שם מלא
+    if (!form.fullName.trim()) e.fullName = "שדה חובה";
+    else {
+      const words = form.fullName.trim().split(/\s+/);
+      if (words.length < 2) e.fullName = "יש להזין לפחות שתי מילים";
+      // רק עברית/אנגלית/רווחים/מקף/גרש — אם בא לך יותר קשוח תגידי
+      const nameOk = /^[A-Za-z\u0590-\u05FF\s'’-]+$/.test(form.fullName.trim());
+      if (!nameOk) e.fullName = "השם יכול להכיל אותיות ורווחים בלבד";
+    }
+
+    // טלפון
+    if (!form.phone.trim()) e.phone = "שדה חובה";
+    else if (!PHONE_REGEX.test(form.phone)) e.phone = "טלפון חייב להיות 9–10 ספרות בלבד";
+
+    // אימייל
+    if (!form.email.trim()) e.email = "שדה חובה";
+    else if (!EMAIL_REGEX.test(form.email.trim())) e.email = "אימייל לא תקין";
+
+    // פסיכומטרי 200-800
+    if (!form.psychometric.trim()) e.psychometric = "שדה חובה";
+    else {
+      const n = Number(form.psychometric);
+      if (Number.isNaN(n)) e.psychometric = "מספר לא תקין";
+      else if (n < 200 || n > 800) e.psychometric = "הטווח הוא 200–800";
+    }
+
+    // ממוצע בגרות 0-120
+    if (!form.bagrutAvg.trim()) e.bagrutAvg = "שדה חובה";
+    else {
+      const n = Number(form.bagrutAvg);
+      if (Number.isNaN(n)) e.bagrutAvg = "מספר לא תקין";
+      else if (n < 0 || n > 120) e.bagrutAvg = "הטווח הוא 0–120";
+    }
+
+    // יחידות מתמטיקה 3/4/5
+    if (!form.mathUnits.trim()) e.mathUnits = "שדה חובה";
+    else if (!["3", "4", "5"].includes(form.mathUnits)) e.mathUnits = "אפשר לבחור רק 3 / 4 / 5";
+
+    // ציון מתמטיקה 0-100
+    if (!form.mathGrade.trim()) e.mathGrade = "שדה חובה";
+    else {
+      const n = Number(form.mathGrade);
+      if (Number.isNaN(n)) e.mathGrade = "מספר לא תקין";
+      else if (n < 0 || n > 100) e.mathGrade = "הטווח הוא 0–100";
+    }
+
+    // יחידות אנגלית 3/4/5
+    if (!form.englishUnits.trim()) e.englishUnits = "שדה חובה";
+    else if (!["3", "4", "5"].includes(form.englishUnits)) e.englishUnits = "אפשר לבחור רק 3 / 4 / 5";
+
+    // ציון אנגלית 0-100
+    if (!form.englishGrade.trim()) e.englishGrade = "שדה חובה";
+    else {
+      const n = Number(form.englishGrade);
+      if (Number.isNaN(n)) e.englishGrade = "מספר לא תקין";
+      else if (n < 0 || n > 100) e.englishGrade = "הטווח הוא 0–100";
+    }
+
+    // מסלול מועדף
+    if (!form.preferredTrack.trim()) e.preferredTrack = "שדה חובה";
+
+    return e;
+  }, [form]);
+
+  const isValid = Object.keys(errors).length === 0;
+
+  const onSubmit = () => {
+    // נוגעים בהכל כדי שיראו הודעות
+    setTouched({
+      idNumber: true,
+      fullName: true,
+      phone: true,
+      email: true,
+      psychometric: true,
+      bagrutAvg: true,
+      mathUnits: true,
+      mathGrade: true,
+      englishUnits: true,
+      englishGrade: true,
+      preferredTrack: true,
+    });
+
+    if (!isValid) {
+      setSnack({
+        open: true,
+        type: "error",
+        message: "יש לתקן את השדות המסומנים לפני השליחה.",
+      });
+      return;
+    }
+
+    // סטטוס לא נבחר ע"י מועמד — נקבע אוטומטית
+    const payload = {
+      ...form,
+      status: "חדש",
+      createdAt: new Date().toISOString(),
+    };
+
+    const key = "candidate_submissions";
+    const existing = localStorage.getItem(key);
+    const arr = existing ? (JSON.parse(existing) as any[]) : [];
+    arr.push(payload);
+    localStorage.setItem(key, JSON.stringify(arr));
+
+    setSnack({
+      open: true,
+      type: "success",
+      message: "המועמדות נשלחה בהצלחה ✅ נחזור אלייך בהקדם.",
+    });
+
+    // אופציונלי: איפוס
+    setForm({
+      idNumber: "",
+      fullName: "",
+      phone: "",
+      email: "",
+      psychometric: "",
+      bagrutAvg: "",
+      mathUnits: "",
+      mathGrade: "",
+      englishUnits: "",
+      englishGrade: "",
+      preferredTrack: "",
+    });
+    setTouched({
+      idNumber: false,
+      fullName: false,
+      phone: false,
+      email: false,
+      psychometric: false,
+      bagrutAvg: false,
+      mathUnits: false,
+      mathGrade: false,
+      englishUnits: false,
+      englishGrade: false,
+      preferredTrack: false,
+    });
+  };
+
+  const showError = (key: keyof CandidateForm) => touched[key] && !!errors[key];
 
   return (
     <Box sx={{ backgroundColor: "#f5f5f5", py: 6 }}>
       <Container maxWidth="lg" dir="rtl">
-        {/* כותרת ראשית */}
+        {/* כותרת */}
         <Box textAlign="center" mb={4}>
           <Chip
-            label="טפסי הזנת מידע"
+            label="הגשת מועמדות"
             sx={{
               mb: 2,
               bgcolor: "#e8f5e9",
@@ -53,472 +270,302 @@ function FormsPage() {
             component="h1"
             sx={{ color: "#2e7d32", fontWeight: 700, mb: 1 }}
           >
-            Forms – מסכי טפסים
+            טפסים – Forms
           </Typography>
           <Typography variant="body1" sx={{ maxWidth: 900, mx: "auto" }}>
-            מסך זה מרכז טפסים לדוגמה להזנת מידע עבור ישויות המערכת בהתאם
-            לתכנון הפרויקט: משתמשי מערכת, מועמדים, קורסים, תנאי קבלה, הודעות
-            ושאלות נפוצות. המיקוד כאן הוא בתצוגה ויזואלית של הטפסים ולא
-            בהתחברות לשרת.
+            כאן אפשר להגיש מועמדות ללימודים, לעיין בקורסים ובתנאי הקבלה, ולקבל עזרה במידת הצורך.
           </Typography>
         </Box>
 
-        {/* אזור 1 – טפסי ניהול משתמשים ומועמדים (ממש טפסים) */}
-        <Box
-          sx={{
-            mb: 4,
-            p: 2.5,
-            borderRadius: 3,
-            background:
-              "linear-gradient(135deg, rgba(46,125,50,0.08), rgba(96,125,139,0.08))",
-          }}
-        >
-          <Box
-            display="flex"
-            justifyContent="space-between"
-            alignItems="center"
-            mb={2}
-          >
-            <Typography variant="h6" sx={{ fontWeight: 700, color: "#2e7d32" }}>
-              טפסי ניהול משתמשים ומועמדים
+        {/* טופס מועמדות */}
+        <Card sx={{ ...cardBaseStyle, borderTop: "4px solid #2e7d32", mb: 4 }}>
+          <CardContent sx={{ direction: "rtl", textAlign: "right" }}>
+            <Box display="flex" alignItems="center" gap={1} mb={1.5}>
+              <PersonAddAlt1Icon sx={{ color: "#2e7d32" }} />
+              <Typography variant="h6" fontWeight={700}>
+                טופס הגשת מועמדות
+              </Typography>
+            </Box>
+
+            <Typography variant="body2" sx={{ mb: 3, color: "#455a64" }}>
+              כל השדות חובה. לאחר השליחה תקבלי אישור, והמערכת תסמן את המועמדות כ״חדש״.
             </Typography>
-            <Typography variant="body2" sx={{ color: "#455a64" }}>
-              דוגמאות לטפסים כפי שהוגדרו במסכי הזנת המידע בתכנון הפרויקט.
-            </Typography>
-          </Box>
 
-          <Grid container spacing={3}>
-            {/* טופס משתמש מערכת – עם שדות קלט */}
-            <Grid item xs={12} md={6}>
-              <Card
-                sx={{
-                  ...cardBaseStyle,
-                  borderTop: "4px solid #2e7d32",
-                }}
-              >
-                <CardContent sx={{ direction: "rtl", textAlign: "right" }}>
-                  <Box display="flex" alignItems="center" mb={1.5} gap={1}>
-                    <ManageAccountsIcon sx={{ color: "#2e7d32" }} />
-                    <Typography variant="h6" fontWeight={600}>
-                      טופס משתמש מערכת
-                    </Typography>
-                  </Box>
-                  <Typography variant="body2" sx={{ mb: 2 }}>
-                    טופס לדוגמה להזנת משתמש מערכת חדש (למשל: מנהל מערכת, אנשי
-                    מזכירות). השדות מייצגים את הישויות שהוגדרו בתכנון.
-                  </Typography>
+            <Grid container spacing={2}>
+              <Grid item xs={12} md={4}>
+                <TextField
+                  fullWidth
+                  required
+                  label="תעודת זהות"
+                  value={form.idNumber}
+                  onChange={(e) => setField("idNumber", clampNumberStr(e.target.value))}
+                  onBlur={() => markTouched("idNumber")}
+                  error={showError("idNumber")}
+                  helperText={showError("idNumber") ? errors.idNumber : "9 ספרות בלבד"}
+                  inputProps={{ inputMode: "numeric" }}
+                />
+              </Grid>
 
-                  <Grid container spacing={2}>
-                    <Grid item xs={12} md={6}>
-                      <TextField
-                        fullWidth
-                        label="תעודת זהות"
-                        placeholder="9 ספרות"
-                      />
-                    </Grid>
-                    <Grid item xs={12} md={6}>
-                      <TextField
-                        fullWidth
-                        label="שם מלא"
-                        placeholder="לפחות שתי מילים"
-                      />
-                    </Grid>
-                    <Grid item xs={12} md={6}>
-                      <TextField fullWidth label="טלפון" />
-                    </Grid>
-                    <Grid item xs={12} md={6}>
-                      <TextField fullWidth label="אימייל" />
-                    </Grid>
-                    <Grid item xs={12} md={6}>
-                      <TextField
-                        fullWidth
-                        label="סיסמה"
-                        type="password"
-                        autoComplete="new-password"
-                      />
-                    </Grid>
-                    <Grid item xs={12} md={6}>
-                      <TextField
-                        fullWidth
-                        label="תפקיד במערכת"
-                        placeholder="מנהל מערכת / מזכירות / ..."
-                      />
-                    </Grid>
-                  </Grid>
+              <Grid item xs={12} md={4}>
+                <TextField
+                  fullWidth
+                  required
+                  label="שם מלא"
+                  value={form.fullName}
+                  onChange={(e) => setField("fullName", e.target.value)}
+                  onBlur={() => markTouched("fullName")}
+                  error={showError("fullName")}
+                  helperText={showError("fullName") ? errors.fullName : "לפחות שתי מילים"}
+                />
+              </Grid>
 
-                  <Box mt={2} textAlign="left">
-                    <Button variant="contained" sx={{ bgcolor: "#2e7d32" }}>
-                      שמירת משתמש
-                    </Button>
-                  </Box>
-                </CardContent>
-              </Card>
+              <Grid item xs={12} md={4}>
+                <TextField
+                  fullWidth
+                  required
+                  label="טלפון"
+                  value={form.phone}
+                  onChange={(e) => setField("phone", clampNumberStr(e.target.value))}
+                  onBlur={() => markTouched("phone")}
+                  error={showError("phone")}
+                  helperText={showError("phone") ? errors.phone : "9–10 ספרות"}
+                  inputProps={{ inputMode: "numeric" }}
+                />
+              </Grid>
+
+              <Grid item xs={12} md={6}>
+                <TextField
+                  fullWidth
+                  required
+                  label="אימייל"
+                  value={form.email}
+                  onChange={(e) => setField("email", e.target.value)}
+                  onBlur={() => markTouched("email")}
+                  error={showError("email")}
+                  helperText={showError("email") ? errors.email : "לדוגמה: name@mail.com"}
+                />
+              </Grid>
+
+              <Grid item xs={12} md={6}>
+                <TextField
+                  fullWidth
+                  required
+                  label="מסלול מועדף"
+                  value={form.preferredTrack}
+                  onChange={(e) => setField("preferredTrack", e.target.value)}
+                  onBlur={() => markTouched("preferredTrack")}
+                  error={showError("preferredTrack")}
+                  helperText={showError("preferredTrack") ? errors.preferredTrack : "לדוגמה: מדעי המחשב (בוקר)"}
+                />
+              </Grid>
+
+              <Grid item xs={12} md={4}>
+                <TextField
+                  fullWidth
+                  required
+                  label="ציון פסיכומטרי כללי"
+                  value={form.psychometric}
+                  onChange={(e) => setField("psychometric", clampNumberStr(e.target.value))}
+                  onBlur={() => markTouched("psychometric")}
+                  error={showError("psychometric")}
+                  helperText={showError("psychometric") ? errors.psychometric : "200–800"}
+                  inputProps={{ inputMode: "numeric" }}
+                />
+              </Grid>
+
+              <Grid item xs={12} md={4}>
+                <TextField
+                  fullWidth
+                  required
+                  label="ממוצע בגרות"
+                  value={form.bagrutAvg}
+                  onChange={(e) => setField("bagrutAvg", clampNumberStr(e.target.value))}
+                  onBlur={() => markTouched("bagrutAvg")}
+                  error={showError("bagrutAvg")}
+                  helperText={showError("bagrutAvg") ? errors.bagrutAvg : "0–120"}
+                  inputProps={{ inputMode: "numeric" }}
+                />
+              </Grid>
+
+              <Grid item xs={12} md={4}>
+                <TextField
+                  fullWidth
+                  required
+                  label="יחידות מתמטיקה"
+                  value={form.mathUnits}
+                  onChange={(e) => setField("mathUnits", e.target.value.replace(/[^\d]/g, ""))}
+                  onBlur={() => markTouched("mathUnits")}
+                  error={showError("mathUnits")}
+                  helperText={showError("mathUnits") ? errors.mathUnits : "3 / 4 / 5"}
+                  inputProps={{ inputMode: "numeric" }}
+                />
+              </Grid>
+
+              <Grid item xs={12} md={4}>
+                <TextField
+                  fullWidth
+                  required
+                  label="ציון מתמטיקה"
+                  value={form.mathGrade}
+                  onChange={(e) => setField("mathGrade", clampNumberStr(e.target.value))}
+                  onBlur={() => markTouched("mathGrade")}
+                  error={showError("mathGrade")}
+                  helperText={showError("mathGrade") ? errors.mathGrade : "0–100"}
+                  inputProps={{ inputMode: "numeric" }}
+                />
+              </Grid>
+
+              <Grid item xs={12} md={4}>
+                <TextField
+                  fullWidth
+                  required
+                  label="יחידות אנגלית"
+                  value={form.englishUnits}
+                  onChange={(e) => setField("englishUnits", e.target.value.replace(/[^\d]/g, ""))}
+                  onBlur={() => markTouched("englishUnits")}
+                  error={showError("englishUnits")}
+                  helperText={showError("englishUnits") ? errors.englishUnits : "3 / 4 / 5"}
+                  inputProps={{ inputMode: "numeric" }}
+                />
+              </Grid>
+
+              <Grid item xs={12} md={4}>
+                <TextField
+                  fullWidth
+                  required
+                  label="ציון אנגלית"
+                  value={form.englishGrade}
+                  onChange={(e) => setField("englishGrade", clampNumberStr(e.target.value))}
+                  onBlur={() => markTouched("englishGrade")}
+                  error={showError("englishGrade")}
+                  helperText={showError("englishGrade") ? errors.englishGrade : "0–100"}
+                  inputProps={{ inputMode: "numeric" }}
+                />
+              </Grid>
             </Grid>
 
-            {/* טופס מועמד – עם שדות קלט */}
-            <Grid item xs={12} md={6}>
-              <Card
-                sx={{
-                  ...cardBaseStyle,
-                  borderTop: "4px solid #388e3c",
-                }}
+            <Box mt={3} display="flex" justifyContent="flex-start" gap={1}>
+              <Button
+                variant="contained"
+                startIcon={<AssignmentIcon />}
+                sx={{ bgcolor: "#2e7d32" }}
+                onClick={onSubmit}
               >
-                <CardContent sx={{ direction: "rtl", textAlign: "right" }}>
-                  <Box display="flex" alignItems="center" mb={1.5} gap={1}>
-                    <PeopleAltIcon sx={{ color: "#388e3c" }} />
-                    <Typography variant="h6" fontWeight={600}>
-                      טופס מועמד
-                    </Typography>
-                  </Box>
-                  <Typography variant="body2" sx={{ mb: 2 }}>
-                    טופס לדוגמה להזנת/עדכון פרטי מועמד לתואר, כולל פרטים אישיים
-                    ונתוני קבלה, כפי שהוגדרו במסך הזנת מועמד.
+                שליחת מועמדות
+              </Button>
+              <Button variant="outlined" onClick={() => navigate("/admission-requirements")}>
+                תנאי קבלה
+              </Button>
+              <Button variant="outlined" onClick={() => navigate("/courses")}>
+                קורסים
+              </Button>
+            </Box>
+          </CardContent>
+        </Card>
+
+        {/* כרטיסי מידע שימושיים במקום "תכנון הפרויקט" */}
+        <Grid container spacing={3} sx={{ mb: 4 }}>
+          <Grid item xs={12} md={4}>
+            <Card sx={{ ...cardBaseStyle, borderTop: "4px solid #388e3c" }}>
+              <CardContent sx={{ direction: "rtl", textAlign: "right" }}>
+                <Box display="flex" alignItems="center" gap={1} mb={1.5}>
+                  <RuleIcon sx={{ color: "#388e3c" }} />
+                  <Typography variant="h6" fontWeight={700}>
+                    איך יודעים אם עומדים בתנאי קבלה?
                   </Typography>
-
-                  <Grid container spacing={2}>
-                    {/* פרטים אישיים */}
-                    <Grid item xs={12} md={6}>
-                      <TextField fullWidth label="תעודת זהות" />
-                    </Grid>
-                    <Grid item xs={12} md={6}>
-                      <TextField fullWidth label="שם מלא" />
-                    </Grid>
-                    <Grid item xs={12} md={6}>
-                      <TextField fullWidth label="טלפון" />
-                    </Grid>
-                    <Grid item xs={12} md={6}>
-                      <TextField fullWidth label="אימייל" />
-                    </Grid>
-
-                    {/* נתוני קבלה */}
-                    <Grid item xs={12} md={6}>
-                      <TextField
-                        fullWidth
-                        label="ציון פסיכומטרי כללי"
-                        type="number"
-                      />
-                    </Grid>
-                    <Grid item xs={12} md={6}>
-                      <TextField
-                        fullWidth
-                        label="ממוצע בגרות"
-                        type="number"
-                      />
-                    </Grid>
-                    <Grid item xs={12} md={6}>
-                      <TextField
-                        fullWidth
-                        label="יחידות מתמטיקה"
-                        placeholder='3 / 4 / 5'
-                      />
-                    </Grid>
-                    <Grid item xs={12} md={6}>
-                      <TextField
-                        fullWidth
-                        label="ציון מתמטיקה"
-                        type="number"
-                      />
-                    </Grid>
-                    <Grid item xs={12} md={6}>
-                      <TextField
-                        fullWidth
-                        label="יחידות אנגלית"
-                        placeholder='3 / 4 / 5'
-                      />
-                    </Grid>
-                    <Grid item xs={12} md={6}>
-                      <TextField
-                        fullWidth
-                        label="ציון אנגלית"
-                        type="number"
-                      />
-                    </Grid>
-
-                    {/* שדות נוספים */}
-                    <Grid item xs={12} md={6}>
-                      <TextField
-                        fullWidth
-                        label="מסלול מועדף"
-                        placeholder="למשל: מדעי המחשב בוקר"
-                      />
-                    </Grid>
-                    <Grid item xs={12} md={6}>
-                      <TextField
-                        fullWidth
-                        label="סטטוס הרשמה"
-                        placeholder="חדש / בטיפול / התקבל / נדחה"
-                      />
-                    </Grid>
-                  </Grid>
-
-                  <Box mt={2} textAlign="left">
-                    <Button variant="contained" sx={{ bgcolor: "#388e3c" }}>
-                      שמירת מועמד
-                    </Button>
-                  </Box>
-                </CardContent>
-              </Card>
-            </Grid>
+                </Box>
+                <Typography variant="body2" sx={{ color: "#455a64", mb: 2 }}>
+                  מומלץ לבדוק תנאי קבלה לפי המסלול המבוקש, ולהיעזר במחשבון הסיכוי.
+                </Typography>
+                <Button fullWidth variant="outlined" onClick={() => navigate("/admission-requirements")}>
+                  מעבר לתנאי קבלה
+                </Button>
+              </CardContent>
+            </Card>
           </Grid>
-        </Box>
 
-        {/* אזור 2 – טפסי קורסים ותנאי קבלה (הסבריים) */}
-        <Box
-          sx={{
-            mb: 4,
-            p: 2.5,
-            borderRadius: 3,
-            backgroundColor: "#ffffff",
-            border: "1px solid rgba(0,0,0,0.05)",
-          }}
-        >
-          <Typography
-            variant="h6"
-            sx={{ mb: 2, fontWeight: 700, color: "#2e7d32" }}
-          >
-            טפסי תוכן אקדמי ותנאי קבלה
-          </Typography>
-
-          <Grid container spacing={3}>
-            {/* טופס קורס */}
-            <Grid item xs={12} md={6}>
-              <Card
-                sx={{
-                  ...cardBaseStyle,
-                  borderTop: "4px solid #2e7d32",
-                }}
-              >
-                <CardContent sx={{ direction: "rtl", textAlign: "right" }}>
-                  <Box display="flex" alignItems="center" mb={2} gap={1}>
-                    <MenuBookIcon sx={{ color: "#2e7d32" }} />
-                    <Typography variant="h6" fontWeight={600}>
-                      טופס קורס
-                    </Typography>
-                  </Box>
-                  <Typography variant="body2" paragraph>
-                    טופס להזנת קורס חדש או עדכון קורס קיים: קוד קורס, שם, נק&quot;ז,
-                    סוג (חובה/בחירה), סמסטר, שנה ותיאור קצר.
+          <Grid item xs={12} md={4}>
+            <Card sx={{ ...cardBaseStyle, borderTop: "4px solid #2e7d32" }}>
+              <CardContent sx={{ direction: "rtl", textAlign: "right" }}>
+                <Box display="flex" alignItems="center" gap={1} mb={1.5}>
+                  <MenuBookIcon sx={{ color: "#2e7d32" }} />
+                  <Typography variant="h6" fontWeight={700}>
+                    הקורסים בתואר
                   </Typography>
-                  <List dense>
-                    <ListItem>
-                      <ListItemText
-                        primary="קוד ושם קורס"
-                        secondary='לדוגמה: 12345 – "מבוא למדעי המחשב".'
-                        sx={{ textAlign: "right" }}
-                      />
-                    </ListItem>
-                    <ListItem>
-                      <ListItemText
-                        primary='נק"ז, סוג וסמסטר'
-                        secondary="הגדרת מיקום הקורס בתואר לצורך תכנון מסלול."
-                        sx={{ textAlign: "right" }}
-                      />
-                    </ListItem>
-                  </List>
-                </CardContent>
-              </Card>
-            </Grid>
-
-            {/* טופס תנאי קבלה */}
-            <Grid item xs={12} md={6}>
-              <Card
-                sx={{
-                  ...cardBaseStyle,
-                  borderTop: "4px solid #388e3c",
-                }}
-              >
-                <CardContent sx={{ direction: "rtl", textAlign: "right" }}>
-                  <Box display="flex" alignItems="center" mb={2} gap={1}>
-                    <RuleIcon sx={{ color: "#388e3c" }} />
-                    <Typography variant="h6" fontWeight={600}>
-                      טופס תנאי קבלה
-                    </Typography>
-                  </Box>
-                  <Typography variant="body2" paragraph>
-                    טופס להזנת תנאי קבלה – מסלול פסיכומטרי ישיר ומסלול סכם משולב:
-                    ספי פסיכומטרי, סכם, ממוצע בגרות ויחידות מתמטיקה.
-                  </Typography>
-                  <List dense>
-                    <ListItem>
-                      <ListItemText
-                        primary="שם התנאי ותיאורו"
-                        secondary="לדוגמה: תנאי קבלה ראשי לתואר במדעי המחשב."
-                        sx={{ textAlign: "right" }}
-                      />
-                    </ListItem>
-                    <ListItem>
-                      <ListItemText
-                        primary="ערכי סף"
-                        secondary="הגדרת ספים שונים לכל מסלול, כפי שמתואר בתכנון."
-                        sx={{ textAlign: "right" }}
-                      />
-                    </ListItem>
-                  </List>
-                </CardContent>
-              </Card>
-            </Grid>
+                </Box>
+                <Typography variant="body2" sx={{ color: "#455a64", mb: 2 }}>
+                  אפשר לעיין ברשימת הקורסים ולבדוק אילו קורסים נלמדים בכל מסלול.
+                </Typography>
+                <Button fullWidth variant="outlined" onClick={() => navigate("/courses")}>
+                  מעבר לקורסים
+                </Button>
+              </CardContent>
+            </Card>
           </Grid>
-        </Box>
 
-        {/* אזור 3 – טפסי הודעות ושאלות נפוצות */}
-        <Box
-          sx={{
-            mb: 4,
-            p: 2.5,
-            borderRadius: 3,
-            background:
-              "linear-gradient(135deg, rgba(46,125,50,0.04), rgba(96,125,139,0.04))",
-          }}
-        >
-          <Typography
-            variant="h6"
-            sx={{ mb: 2, fontWeight: 700, color: "#2e7d32" }}
-          >
-            טפסי הודעות ושאלות נפוצות
-          </Typography>
-
-          <Grid container spacing={3}>
-            {/* טופס הודעה למועמדים */}
-            <Grid item xs={12} md={6}>
-              <Card
-                sx={{
-                  ...cardBaseStyle,
-                  borderTop: "4px solid #4caf50",
-                }}
-              >
-                <CardContent sx={{ direction: "rtl", textAlign: "right" }}>
-                  <Box display="flex" alignItems="center" mb={2} gap={1}>
-                    <CampaignIcon sx={{ color: "#4caf50" }} />
-                    <Typography variant="h6" fontWeight={600}>
-                      טופס הודעה למועמדים
-                    </Typography>
-                  </Box>
-                  <Typography variant="body2" paragraph>
-                    טופס להזנת הודעות שיוצגו במסך הבית/העזרה למועמדים: כותרת,
-                    תוכן ההודעה וסטטוס (פעיל/לא פעיל).
+          <Grid item xs={12} md={4}>
+            <Card sx={{ ...cardBaseStyle, borderTop: "4px solid #4caf50" }}>
+              <CardContent sx={{ direction: "rtl", textAlign: "right" }}>
+                <Box display="flex" alignItems="center" gap={1} mb={1.5}>
+                  <HelpCenterIcon sx={{ color: "#4caf50" }} />
+                  <Typography variant="h6" fontWeight={700}>
+                    צריכים עזרה?
                   </Typography>
-                  <List dense>
-                    <ListItem>
-                      <ListItemText
-                        primary="כותרת ותוכן הודעה"
-                        sx={{ textAlign: "right" }}
-                      />
-                    </ListItem>
-                    <ListItem>
-                      <ListItemText
-                        primary="סטטוס הודעה"
-                        secondary="האם ההודעה מוצגת כרגע למועמדים."
-                        sx={{ textAlign: "right" }}
-                      />
-                    </ListItem>
-                  </List>
-                </CardContent>
-              </Card>
-            </Grid>
-
-            {/* טופס שאלה נפוצה */}
-            <Grid item xs={12} md={6}>
-              <Card
-                sx={{
-                  ...cardBaseStyle,
-                  borderTop: "4px solid #2e7d32",
-                }}
-              >
-                <CardContent sx={{ direction: "rtl", textAlign: "right" }}>
-                  <Box display="flex" alignItems="center" mb={2} gap={1}>
-                    <HelpCenterIcon sx={{ color: "#2e7d32" }} />
-                    <Typography variant="h6" fontWeight={600}>
-                      טופס שאלה נפוצה
-                    </Typography>
-                  </Box>
-                  <Typography variant="body2" paragraph>
-                    טופס להזנת שאלה/תשובה שיוצגו במסך העזרה למועמדים, עם אפשרות
-                    לסיווג לפי נושא.
-                  </Typography>
-                  <List dense>
-                    <ListItem>
-                      <ListItemText
-                        primary="שאלה ותשובה"
-                        sx={{ textAlign: "right" }}
-                      />
-                    </ListItem>
-                    <ListItem>
-                      <ListItemText
-                        primary="נושא השאלה"
-                        secondary=" הרשמה, תנאי קבלה, מידע על התואר."
-                        sx={{ textAlign: "right" }}
-                      />
-                    </ListItem>
-                  </List>
-                </CardContent>
-              </Card>
-            </Grid>
+                </Box>
+                <Typography variant="body2" sx={{ color: "#455a64", mb: 2 }}>
+                  בעמוד העזרה תמצאי שאלות נפוצות ודרכי יצירת קשר.
+                </Typography>
+                <Button fullWidth variant="outlined" onClick={() => navigate("/help")}>
+                  מעבר לעזרה
+                </Button>
+              </CardContent>
+            </Card>
           </Grid>
-        </Box>
+        </Grid>
 
-        {/* אזור 4 – עקרונות עיצוב הטפסים */}
-        <Box
-          sx={{
-            mb: 4,
-            p: 2.5,
-            borderRadius: 3,
-            backgroundColor: "#ffffff",
-            border: "1px solid rgba(0,0,0,0.05)",
-          }}
-        >
-          
-        </Box>
-
-        {/* קישורים מהירים למטה */}
+        {/* קישורים מהירים */}
         <Box mt={2}>
           <Divider sx={{ mb: 3 }} />
-          <Typography
-            variant="h6"
-            sx={{
-              mb: 2,
-              fontWeight: 700,
-              color: "#2e7d32",
-            }}
-          >
-            קישורים מהירים למסכים עיקריים
+          <Typography variant="h6" sx={{ mb: 2, fontWeight: 700, color: "#2e7d32" }}>
+            קישורים מהירים
           </Typography>
           <Grid container spacing={2}>
             <Grid item xs={12} md={4}>
-              <Button
-                fullWidth
-                variant="outlined"
-                startIcon={<HomeIcon />}
-                onClick={() => navigate("/")}
-              >
-                מעבר למסך הבית
+              <Button fullWidth variant="outlined" onClick={() => navigate("/admission-calculator")}>
+                מחשבון סיכוי קבלה
               </Button>
             </Grid>
             <Grid item xs={12} md={4}>
-              <Button
-                fullWidth
-                variant="outlined"
-                startIcon={<ManageAccountsIcon />}
-                onClick={() => navigate("/management")}
-              >
-                מעבר למסכי ניהול
+              <Button fullWidth variant="outlined" onClick={() => navigate("/login")}>
+                התחברות
               </Button>
             </Grid>
             <Grid item xs={12} md={4}>
-              <Button
-                fullWidth
-                variant="outlined"
-                startIcon={<HelpCenterIcon />}
-                onClick={() => navigate("/help")}
-              >
-                מעבר למסך עזרה
+              <Button fullWidth variant="outlined" onClick={() => navigate("/help")}>
+                תמיכה ועזרה
               </Button>
             </Grid>
           </Grid>
         </Box>
+
+        <Snackbar
+          open={snack.open}
+          autoHideDuration={3500}
+          onClose={() => setSnack((s) => ({ ...s, open: false }))}
+          anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
+        >
+          <Alert
+            onClose={() => setSnack((s) => ({ ...s, open: false }))}
+            severity={snack.type}
+            variant="filled"
+            sx={{ width: "100%" }}
+          >
+            {snack.message}
+          </Alert>
+        </Snackbar>
       </Container>
     </Box>
   );
 }
 
 export default FormsPage;
-

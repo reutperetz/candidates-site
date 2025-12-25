@@ -17,15 +17,13 @@ type Requirement = {
 };
 
 const trackARequirements: Requirement[] = [
-  { label: "ציון פסיכומטרי מינימלי", value: "≥ 650" },
+  { label: "ציון פסיכומטרי מינימלי", value: "650 ומעלה" },
 ];
 
 const trackBRequirements: Requirement[] = [
-  { label: "ציון פסיכומטרי כמותי", value: "≥ 130" },
-  { label: "ציון כמותי", value: "≥ 75" },
-  { label: "ציון מתמטיקה", value: "≥ 85" },
-  { label: "ממוצע בגרות", value: "≥ 90" },
-  { label: "יחידות מתמטיקה", value: "5 יח״ל" },
+  { label: "ממוצע בגרות מינימלי", value: "100 ומעלה" },
+  { label: "מתמטיקה (5 יח״ל)", value: "ממוצע 75 ומעלה" },
+  { label: "מתמטיקה (4 יח״ל)", value: "ממוצע 95 ומעלה" },
 ];
 
 const AdmissionRequirementsPage = () => {
@@ -68,13 +66,8 @@ const AdmissionRequirementsPage = () => {
         >
           המחלקה למדעי המחשב
         </Typography>
-        <Typography
-          variant="body2"
-          align="center"
-          color="text.secondary"
-          mb={3}
-        >
-          מידע למועמדים – קבלה, מסלולים והודעות חשובות
+        <Typography variant="body2" align="center" color="text.secondary" mb={3}>
+          מידע למועמדים – תנאי קבלה והמסלולים האפשריים
         </Typography>
 
         {/* מסגרת כללית */}
@@ -114,10 +107,10 @@ const AdmissionRequirementsPage = () => {
           {/* מסלול ב' */}
           <Box sx={{ bgcolor: "#2e7d32", color: "white", p: 3, mt: 2 }}>
             <Typography variant="h6" fontWeight={700}>
-              מסלול ב׳ – סכום משולב
+              מסלול ב׳ – בגרות (כולל מתמטיקה)
             </Typography>
             <Typography variant="body2">
-              קבלה על בסיס שילוב ציונים
+              קבלה על בסיס נתוני בגרות + מתמטיקה (4/5 יח״ל)
             </Typography>
           </Box>
 
@@ -144,8 +137,8 @@ const AdmissionRequirementsPage = () => {
               }}
             >
               <Typography variant="body2" color="text.secondary">
-                נוסחת המסלול: שילוב של ציון פסיכומטרי כמותי, ממוצע בגרות,
-                ציון מתמטיקה וציון כמותי.
+                ניתן להתקבל גם לפי <b>שקלול</b> של בגרות ופסיכומטרי (לפי מדיניות
+                הקבלה של המחלקה).
               </Typography>
             </Paper>
           </Box>
