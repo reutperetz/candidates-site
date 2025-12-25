@@ -1,12 +1,12 @@
 // src/App.tsx
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Routes, Route } from "react-router-dom";
 import { Box } from "@mui/material";
 
-// שימי לב: כאן תיקנו ל־components/Header
+// Header
 import Header from "./components/Header";
 
-// עמודי מועמד
+// מועמד
 import HomePage from "./pages/HomePage";
 import FormsPage from "./pages/FormsPage";
 import HelpPage from "./pages/HelpPage";
@@ -15,8 +15,7 @@ import AdmissionCalculatorPage from "./pages/AdmissionCalculatorPage";
 import AdmissionRequirementsPage from "./pages/AdmissionRequirementsPage";
 import LoginPage from "./pages/LoginPage";
 
-
-// עמודי אדמין
+// אדמין
 import AdminHomePage from "./pages/AdminHomePage";
 import AdminCandidatesPage from "./pages/AdminCandidatesPage";
 import AdminCoursesPage from "./pages/AdminCoursesPage";
@@ -26,10 +25,18 @@ import AdminNotificationsManagerPage from "./pages/AdminNotificationsManager";
 import AdminFaqManagerPage from "./pages/AdminFaqManager";
 import AdminHelpPage from "./pages/AdminHelpPage";
 
+// 🔹 טעינה ראשונית ל-Local Storage
+import { initLocalStorage } from "./utils/initLocalStorage";
+
 type UserMode = "candidate" | "admin";
 
 function App() {
   const [userMode, setUserMode] = useState<UserMode>("candidate");
+
+  // 🚀 רץ פעם אחת בלבד בטעינת האפליקציה
+  useEffect(() => {
+    initLocalStorage();
+  }, []);
 
   return (
     <Box dir="rtl" sx={{ minHeight: "100vh", bgcolor: "#f5f5f5" }}>
@@ -37,7 +44,7 @@ function App() {
 
       <Box sx={{ p: 2 }}>
         <Routes>
-          {/* מועמד */}
+          {/* ===== מועמד ===== */}
           <Route path="/" element={<HomePage />} />
           <Route path="/forms" element={<FormsPage />} />
           <Route path="/help" element={<HelpPage />} />
@@ -51,8 +58,8 @@ function App() {
             element={<AdmissionRequirementsPage />}
           />
           <Route path="/login" element={<LoginPage />} />
-          
-          {/* אדמין */}
+
+          {/* ===== אדמין ===== */}
           <Route path="/admin" element={<AdminHomePage />} />
           <Route path="/admin/candidates" element={<AdminCandidatesPage />} />
           <Route path="/admin/courses" element={<AdminCoursesPage />} />
@@ -74,4 +81,3 @@ function App() {
 }
 
 export default App;
-
