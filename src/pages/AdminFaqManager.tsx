@@ -170,9 +170,13 @@ export default function AdminFaqManager() {
             value={tab}
             onChange={(_, v) => setTab(v)}
             centered
-            textColor="success"
-            indicatorColor="success"
-            sx={{ "& .MuiTab-root": { fontWeight: 600 } }}
+            textColor="primary"
+            indicatorColor="primary"
+            sx={{
+              "& .MuiTab-root": { fontWeight: 600 },
+              "& .MuiTab-root.Mui-selected": { color: "success.main" },
+              "& .MuiTabs-indicator": { backgroundColor: "success.main" },
+            }}
           >
             <Tab label="רשימת שאלות נפוצות" />
             <Tab label="יצירת שאלה נפוצה חדשה" />
