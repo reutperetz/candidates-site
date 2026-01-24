@@ -464,8 +464,8 @@ function FormsPage() {
             <Box mt={3} display="flex" justifyContent="flex-start" gap={1}>
               <Button
                 variant="contained"
+                color="success"
                 startIcon={<AssignmentIcon />}
-                sx={{ bgcolor: "success.main" }}
                 onClick={onSubmit}
               >
                 שליחת מועמדות

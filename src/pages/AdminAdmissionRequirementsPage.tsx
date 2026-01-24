@@ -235,6 +235,7 @@ const AdminAdmissionRequirementsPage = () => {
   const updateRequirements = (next: AdmissionRequirement[]) => {
     setRequirements(next);
     localStorage.setItem(REQUIREMENTS_KEY, JSON.stringify(next));
+    window.dispatchEvent(new Event("admission-requirements-changed"));
   };
 
   const nextId = useMemo(() => {
