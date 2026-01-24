@@ -20,6 +20,12 @@ import MenuBookIcon from "@mui/icons-material/MenuBook";
 import AssessmentIcon from "@mui/icons-material/Assessment";
 import { useLocation, useNavigate } from "react-router-dom";
 
+type HomeLocationState = {
+  loginSuccess?: boolean;
+  isGuest?: boolean;
+  scrollTo?: "register";
+};
+
 type RegisterForm = {
   fullName: string;
   idNumber: string;
@@ -67,7 +73,7 @@ function HomePage() {
   const [form, setForm] = useState<RegisterForm>(initialRegister);
   const [errors, setErrors] = useState<Partial<Record<keyof RegisterForm, string>>>({});
 
-  const state = (location.state || {}) as any;
+  const state = (location.state ?? {}) as HomeLocationState;
 
   // הודעת התחברות + גלילה להרשמה
   useEffect(() => {
