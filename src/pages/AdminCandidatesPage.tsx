@@ -30,157 +30,42 @@ import AddIcon from "@mui/icons-material/Add";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
 
+// Firestore
+import {
+  addDoc,
+  collection,
+  deleteDoc,
+  doc,
+  onSnapshot,
+  serverTimestamp,
+  updateDoc,
+  type Timestamp,
+} from "firebase/firestore";
+import { db } from "../firebase";
+
 type CandidateStatus = "accepted" | "pending" | "rejected";
 type PreferredTrack = "בוקר" | "ערב";
 type Units = 3 | 4 | 5;
 
 interface Candidate {
-  id: string; // ת.ז
+  docId: string; // Firestore Document ID
+  idNumber: string; // ת.ז (כשדה רגיל)
   fullName: string;
   psychometric: number; // 200-800
-  bagrutAverage: number; // 60-120 (אצלך זה בסגנון הזה)
+  bagrutAverage: number; // 60-120
   mathUnits: Units;
   englishUnits: Units;
   preferredTrack: PreferredTrack;
   status: CandidateStatus;
-  createdAt: string; // dd/mm/yyyy
+  createdAtText: string; // dd/mm/yyyy לתצוגה
+  createdAt?: Timestamp; // לשמירה/מיון (אופציונלי)
 }
-
-const LS_KEY = "candidates";
 
 const formatDateIL = (d: Date) => {
   const dd = String(d.getDate()).padStart(2, "0");
   const mm = String(d.getMonth() + 1).padStart(2, "0");
   const yyyy = String(d.getFullYear());
   return `${dd}/${mm}/${yyyy}`;
-};
-
-const seedCandidates = (): Candidate[] => [
-  {
-    id: "234567890",
-    fullName: "נועה לוי",
-    psychometric: 720,
-    bagrutAverage: 102,
-    mathUnits: 5,
-    englishUnits: 5,
-    preferredTrack: "בוקר",
-    status: "accepted",
-    createdAt: "30/11/2025",
-  },
-  {
-    id: "345678901",
-    fullName: "יואב כהן",
-    psychometric: 650,
-    bagrutAverage: 95,
-    mathUnits: 5,
-    englishUnits: 4,
-    preferredTrack: "ערב",
-    status: "pending",
-    createdAt: "01/12/2025",
-  },
-  {
-    id: "456789012",
-    fullName: "אורית ישראלי",
-    psychometric: 710,
-    bagrutAverage: 108,
-    mathUnits: 5,
-    englishUnits: 5,
-    preferredTrack: "בוקר",
-    status: "accepted",
-    createdAt: "02/12/2025",
-  },
-  {
-    id: "567890123",
-    fullName: "רועי ברק",
-    psychometric: 580,
-    bagrutAverage: 78,
-    mathUnits: 4,
-    englishUnits: 4,
-    preferredTrack: "ערב",
-    status: "rejected",
-    createdAt: "03/12/2025",
-  },
-  {
-    id: "123456782",
-    fullName: "מיה שמש",
-    psychometric: 690,
-    bagrutAverage: 100,
-    mathUnits: 5,
-    englishUnits: 5,
-    preferredTrack: "בוקר",
-    status: "pending",
-    createdAt: "04/12/2025",
-  },
-  {
-    id: "123456783",
-    fullName: "דניאל פרץ",
-    psychometric: 640,
-    bagrutAverage: 92,
-    mathUnits: 5,
-    englishUnits: 4,
-    preferredTrack: "ערב",
-    status: "pending",
-    createdAt: "05/12/2025",
-  },
-  {
-    id: "123456784",
-    fullName: "שחר מזרחי",
-    psychometric: 740,
-    bagrutAverage: 110,
-    mathUnits: 5,
-    englishUnits: 5,
-    preferredTrack: "בוקר",
-    status: "accepted",
-    createdAt: "06/12/2025",
-  },
-  {
-    id: "123456785",
-    fullName: "רוני כהן",
-    psychometric: 610,
-    bagrutAverage: 88,
-    mathUnits: 4,
-    englishUnits: 4,
-    preferredTrack: "ערב",
-    status: "rejected",
-    createdAt: "07/12/2025",
-  },
-  {
-    id: "123456786",
-    fullName: "איתי לוי",
-    psychometric: 670,
-    bagrutAverage: 96,
-    mathUnits: 5,
-    englishUnits: 4,
-    preferredTrack: "בוקר",
-    status: "pending",
-    createdAt: "08/12/2025",
-  },
-  {
-    id: "123456787",
-    fullName: "הילה ישראלי",
-    psychometric: 705,
-    bagrutAverage: 104,
-    mathUnits: 5,
-    englishUnits: 5,
-    preferredTrack: "בוקר",
-    status: "accepted",
-    createdAt: "09/12/2025",
-  },
-];
-
-const loadCandidates = (): Candidate[] => {
-  const raw = localStorage.getItem(LS_KEY);
-  if (!raw) return [];
-  try {
-    const parsed = JSON.parse(raw);
-    return Array.isArray(parsed) ? (parsed as Candidate[]) : [];
-  } catch {
-    return [];
-  }
-};
-
-const saveCandidates = (items: Candidate[]) => {
-  localStorage.setItem(LS_KEY, JSON.stringify(items));
 };
 
 const statusChip = (status: CandidateStatus) => {
@@ -217,7 +102,6 @@ const emptyForm: FormState = {
 };
 
 function isHebrewNameLike(fullName: string) {
-  // אותיות בעברית/אנגלית + רווחים, לפחות 2 מילים
   const trimmed = fullName.trim().replace(/\s+/g, " ");
   if (!trimmed) return false;
   const parts = trimmed.split(" ");
@@ -240,6 +124,19 @@ function inRange(n: number | null, min: number, max: number) {
   return n !== null && n >= min && n <= max;
 }
 
+function coerceUnits(v: unknown): Units {
+  const n = Number(v);
+  return (n === 3 || n === 4 || n === 5 ? n : 3) as Units;
+}
+
+function coerceStatus(v: unknown): CandidateStatus {
+  return v === "accepted" || v === "pending" || v === "rejected" ? v : "pending";
+}
+
+function coerceTrack(v: unknown): PreferredTrack {
+  return v === "בוקר" || v === "ערב" ? v : "בוקר";
+}
+
 const AdminCandidatesPage = () => {
   // 0 = רשימה, 1 = הוספה
   const [tab, setTab] = useState(0);
@@ -257,35 +154,65 @@ const AdminCandidatesPage = () => {
 
   // עריכה
   const [editOpen, setEditOpen] = useState(false);
-  const [editId, setEditId] = useState<string | null>(null);
+  const [editDocId, setEditDocId] = useState<string | null>(null);
   const [editForm, setEditForm] = useState<FormState>(emptyForm);
   const [editTouched, setEditTouched] = useState<Record<string, boolean>>({});
 
   // מחיקה
   const [deleteOpen, setDeleteOpen] = useState(false);
-  const [deleteId, setDeleteId] = useState<string | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<{ docId: string; idNumber: string } | null>(
+    null
+  );
 
+  // ===== Firestore: טעינה בזמן אמת =====
   useEffect(() => {
-    // טעינה ראשונית + Seed אם ריק
-    const current = loadCandidates();
-  if (current.length === 0) {
-    const seeded = seedCandidates();
-    saveCandidates(seeded);
-    queueMicrotask(() => setCandidates(seeded)); // או setTimeout(() =>..., 0)
-  } else {
-    queueMicrotask(() => setCandidates(current));
-  }
+    const unsub = onSnapshot(collection(db, "candidates"), (snap) => {
+      const items: Candidate[] = snap.docs.map((d) => {
+        const data = d.data() as any;
+
+        const createdAtTs: Timestamp | undefined = data.createdAt;
+        const createdAtText: string =
+          data.createdAtText ||
+          (createdAtTs?.toDate ? formatDateIL(createdAtTs.toDate()) : "");
+
+        return {
+          docId: d.id,
+          idNumber: String(data.idNumber ?? ""),
+          fullName: String(data.fullName ?? ""),
+          psychometric: Number(data.psychometric ?? 0),
+          bagrutAverage: Number(data.bagrutAverage ?? 0),
+          mathUnits: coerceUnits(data.mathUnits),
+          englishUnits: coerceUnits(data.englishUnits),
+          preferredTrack: coerceTrack(data.preferredTrack),
+          status: coerceStatus(data.status),
+          createdAtText,
+          createdAt: createdAtTs,
+        };
+      });
+
+      // מיון: חדשים למעלה (אם יש createdAt)
+      items.sort((a, b) => {
+        const at = a.createdAt?.toMillis?.() ?? 0;
+        const bt = b.createdAt?.toMillis?.() ?? 0;
+        return bt - at;
+      });
+
+      setCandidates(items);
+    });
+
+    return () => unsub();
   }, []);
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
     if (!q) return candidates;
+
     return candidates.filter((c) => {
       const statusText =
         c.status === "accepted" ? "התקבל" : c.status === "pending" ? "בדיקה" : "נדחה";
       return (
         c.fullName.toLowerCase().includes(q) ||
-        c.id.includes(q) ||
+        c.idNumber.includes(q) ||
         c.preferredTrack.includes(q) ||
         statusText.includes(q)
       );
@@ -307,10 +234,12 @@ const AdminCandidatesPage = () => {
     const eu = toIntSafe(form.englishUnits);
 
     if (!form.fullName.trim()) errors.fullName = "שדה חובה";
-    else if (!isHebrewNameLike(form.fullName)) errors.fullName = "יש להזין שם מלא (לפחות 2 מילים) ובאותיות בלבד";
+    else if (!isHebrewNameLike(form.fullName))
+      errors.fullName = "יש להזין שם מלא (לפחות 2 מילים) ובאותיות בלבד";
 
     if (!form.idNumber.trim()) errors.idNumber = "שדה חובה";
-    else if (!isIsraeliId9Digits(form.idNumber)) errors.idNumber = "תעודת זהות חייבת להיות 9 ספרות (ללא אותיות)";
+    else if (!isIsraeliId9Digits(form.idNumber))
+      errors.idNumber = "תעודת זהות חייבת להיות 9 ספרות (ללא אותיות)";
 
     if (form.psychometric && !inRange(psycho, 200, 800))
       errors.psychometric = "פסיכומטרי חייב להיות בטווח 200–800";
@@ -331,14 +260,12 @@ const AdminCandidatesPage = () => {
   }, [form]);
 
   const canSave = useMemo(() => {
-    // חובה: שם מלא + תז + מסלול + סטטוס
     const requiredOk =
       isHebrewNameLike(form.fullName) &&
       isIsraeliId9Digits(form.idNumber) &&
       !!form.preferredTrack &&
       !!form.status;
 
-    // שדות אופציונליים – אם הוזנו חייבים להיות בטווח
     const psycho = toIntSafe(form.psychometric);
     const bagrut = toIntSafe(form.bagrutAverage);
     const mu = toIntSafe(form.mathUnits);
@@ -353,8 +280,8 @@ const AdminCandidatesPage = () => {
     return requiredOk && optionalOk;
   }, [form]);
 
-  const handleAddCandidate = () => {
-    // מניעת שמירה אם לא תקין
+  // ===== Add =====
+  const handleAddCandidate = async () => {
     if (!canSave) {
       setFormTouched({
         fullName: true,
@@ -369,32 +296,38 @@ const AdminCandidatesPage = () => {
       return;
     }
 
-    const exists = candidates.some((c) => c.id === form.idNumber.trim());
+    const idNumber = form.idNumber.trim();
+
+    // מניעת כפילות לפי ת"ז
+    const exists = candidates.some((c) => c.idNumber === idNumber);
     if (exists) {
       setSnack({ open: true, msg: "ת.ז כבר קיימת במערכת" });
       return;
     }
 
-    const newCandidate: Candidate = {
-      id: form.idNumber.trim(),
-      fullName: form.fullName.trim().replace(/\s+/g, " "),
-      psychometric: toIntSafe(form.psychometric) ?? 0,
-      bagrutAverage: toIntSafe(form.bagrutAverage) ?? 0,
-      mathUnits: (toIntSafe(form.mathUnits) ?? 3) as Units,
-      englishUnits: (toIntSafe(form.englishUnits) ?? 3) as Units,
-      preferredTrack: form.preferredTrack as PreferredTrack,
-      status: form.status as CandidateStatus,
-      createdAt: formatDateIL(new Date()),
-    };
+    try {
+      const payload = {
+        idNumber,
+        fullName: form.fullName.trim().replace(/\s+/g, " "),
+        psychometric: toIntSafe(form.psychometric) ?? 0,
+        bagrutAverage: toIntSafe(form.bagrutAverage) ?? 0,
+        mathUnits: coerceUnits(toIntSafe(form.mathUnits) ?? 3),
+        englishUnits: coerceUnits(toIntSafe(form.englishUnits) ?? 3),
+        preferredTrack: form.preferredTrack as PreferredTrack,
+        status: form.status as CandidateStatus,
+        createdAt: serverTimestamp(),
+        createdAtText: formatDateIL(new Date()),
+      };
 
-    const next = [newCandidate, ...candidates];
-    setCandidates(next);
-    saveCandidates(next);
+      await addDoc(collection(db, "candidates"), payload);
 
-    setForm(emptyForm);
-    setFormTouched({});
-    setSnack({ open: true, msg: "מועמד נוסף בהצלחה" });
-    setTab(0);
+      setForm(emptyForm);
+      setFormTouched({});
+      setSnack({ open: true, msg: "מועמד נוסף בהצלחה" });
+      setTab(0);
+    } catch {
+      setSnack({ open: true, msg: "שגיאה בשמירה. נסי שוב." });
+    }
   };
 
   const handleReset = () => {
@@ -402,7 +335,7 @@ const AdminCandidatesPage = () => {
     setFormTouched({});
   };
 
-  // ---------- עריכה ----------
+  // ===== Edit =====
   const editErrors = useMemo(() => {
     const errors: Partial<Record<keyof FormState, string>> = {};
 
@@ -412,9 +345,9 @@ const AdminCandidatesPage = () => {
     const eu = toIntSafe(editForm.englishUnits);
 
     if (!editForm.fullName.trim()) errors.fullName = "שדה חובה";
-    else if (!isHebrewNameLike(editForm.fullName)) errors.fullName = "שם מלא חייב להיות לפחות 2 מילים ובאותיות בלבד";
+    else if (!isHebrewNameLike(editForm.fullName))
+      errors.fullName = "שם מלא חייב להיות לפחות 2 מילים ובאותיות בלבד";
 
-    // ת.ז בעריכה: לא משנים (ננעל), אבל עדיין תקין
     if (!isIsraeliId9Digits(editForm.idNumber)) errors.idNumber = "ת.ז חייבת להיות 9 ספרות";
 
     if (editForm.psychometric && !inRange(psycho, 200, 800))
@@ -457,10 +390,10 @@ const AdminCandidatesPage = () => {
   }, [editForm]);
 
   const openEdit = (c: Candidate) => {
-    setEditId(c.id);
+    setEditDocId(c.docId);
     setEditForm({
       fullName: c.fullName,
-      idNumber: c.id,
+      idNumber: c.idNumber,
       psychometric: String(c.psychometric || ""),
       bagrutAverage: String(c.bagrutAverage || ""),
       mathUnits: String(c.mathUnits || ""),
@@ -472,8 +405,8 @@ const AdminCandidatesPage = () => {
     setEditOpen(true);
   };
 
-  const saveEdit = () => {
-    if (!editId) return;
+  const saveEdit = async () => {
+    if (!editDocId) return;
 
     if (!canSaveEdit) {
       setEditTouched({
@@ -489,39 +422,40 @@ const AdminCandidatesPage = () => {
       return;
     }
 
-    const next = candidates.map((c) => {
-      if (c.id !== editId) return c;
-      return {
-        ...c,
+    try {
+      await updateDoc(doc(db, "candidates", editDocId), {
         fullName: editForm.fullName.trim().replace(/\s+/g, " "),
         psychometric: toIntSafe(editForm.psychometric) ?? 0,
         bagrutAverage: toIntSafe(editForm.bagrutAverage) ?? 0,
-        mathUnits: (toIntSafe(editForm.mathUnits) ?? 3) as Units,
-        englishUnits: (toIntSafe(editForm.englishUnits) ?? 3) as Units,
+        mathUnits: coerceUnits(toIntSafe(editForm.mathUnits) ?? 3),
+        englishUnits: coerceUnits(toIntSafe(editForm.englishUnits) ?? 3),
         preferredTrack: editForm.preferredTrack as PreferredTrack,
         status: editForm.status as CandidateStatus,
-      };
-    });
+      });
 
-    setCandidates(next);
-    saveCandidates(next);
-    setEditOpen(false);
-    setSnack({ open: true, msg: "העדכון נשמר בהצלחה" });
+      setEditOpen(false);
+      setSnack({ open: true, msg: "העדכון נשמר בהצלחה" });
+    } catch {
+      setSnack({ open: true, msg: "שגיאה בעדכון. נסי שוב." });
+    }
   };
 
-  // ---------- מחיקה ----------
-  const openDelete = (id: string) => {
-    setDeleteId(id);
+  // ===== Delete =====
+  const openDelete = (c: Candidate) => {
+    setDeleteTarget({ docId: c.docId, idNumber: c.idNumber });
     setDeleteOpen(true);
   };
 
-  const confirmDelete = () => {
-    if (!deleteId) return;
-    const next = candidates.filter((c) => c.id !== deleteId);
-    setCandidates(next);
-    saveCandidates(next);
-    setDeleteOpen(false);
-    setSnack({ open: true, msg: "נמחק בהצלחה" });
+  const confirmDelete = async () => {
+    if (!deleteTarget) return;
+
+    try {
+      await deleteDoc(doc(db, "candidates", deleteTarget.docId));
+      setDeleteOpen(false);
+      setSnack({ open: true, msg: "נמחק בהצלחה" });
+    } catch {
+      setSnack({ open: true, msg: "שגיאה במחיקה. נסי שוב." });
+    }
   };
 
   return (
@@ -600,7 +534,7 @@ const AdminCandidatesPage = () => {
 
                   <TableBody>
                     {filtered.map((c) => (
-                      <TableRow key={c.id} hover>
+                      <TableRow key={c.docId} hover>
                         <TableCell>
                           <Stack direction="row" spacing={1}>
                             <Button
@@ -617,7 +551,7 @@ const AdminCandidatesPage = () => {
                               variant="outlined"
                               color="error"
                               startIcon={<DeleteOutlineIcon fontSize="small" />}
-                              onClick={() => openDelete(c.id)}
+                              onClick={() => openDelete(c)}
                             >
                               מחיקה
                             </Button>
@@ -630,7 +564,7 @@ const AdminCandidatesPage = () => {
                         <TableCell>{c.bagrutAverage || "-"}</TableCell>
                         <TableCell>{c.psychometric || "-"}</TableCell>
                         <TableCell>{c.fullName}</TableCell>
-                        <TableCell>{c.id}</TableCell>
+                        <TableCell>{c.idNumber}</TableCell>
                       </TableRow>
                     ))}
 
@@ -680,7 +614,6 @@ const AdminCandidatesPage = () => {
                     label="תעודת זהות (9 ספרות)"
                     value={form.idNumber}
                     onChange={(e) => {
-                      // מאפשר הקלדה רק מספרים (ועדיין נבדוק בסוף 9 ספרות)
                       const onlyDigits = e.target.value.replace(/[^\d]/g, "");
                       setForm((p) => ({ ...p, idNumber: onlyDigits }));
                       setFormTouched((t) => ({ ...t, idNumber: true }));
@@ -811,18 +744,10 @@ const AdminCandidatesPage = () => {
                 >
                   שמירה
                 </Button>
-                <Button
-                  variant="outlined"
-                  sx={{ borderRadius: 999, px: 4 }}
-                  onClick={handleReset}
-                >
+                <Button variant="outlined" sx={{ borderRadius: 999, px: 4 }} onClick={handleReset}>
                   ניקוי שדות
                 </Button>
-                <Button
-                  variant="text"
-                  sx={{ borderRadius: 999 }}
-                  onClick={() => setTab(0)}
-                >
+                <Button variant="text" sx={{ borderRadius: 999 }} onClick={() => setTab(0)}>
                   חזרה לרשימה
                 </Button>
               </Box>
@@ -987,7 +912,7 @@ const AdminCandidatesPage = () => {
         <DialogTitle sx={{ fontWeight: 700 }}>מחיקת מועמד</DialogTitle>
         <DialogContent>
           <Typography>
-            למחוק את המועמד עם ת.ז: <b>{deleteId}</b> ?
+            למחוק את המועמד עם ת.ז: <b>{deleteTarget?.idNumber}</b> ?
           </Typography>
         </DialogContent>
         <DialogActions sx={{ p: 2 }}>
@@ -1009,4 +934,3 @@ const AdminCandidatesPage = () => {
 };
 
 export default AdminCandidatesPage;
-
