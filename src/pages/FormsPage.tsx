@@ -208,7 +208,7 @@ function FormsPage() {
     }
 
     // סטטוס לא נבחר ע"י מועמד — נקבע אוטומטית
-      const payload: CandidateSubmission = {
+    const payload: CandidateSubmission = {
       ...form,
       status: "חדש",
       createdAt: new Date().toISOString(),
