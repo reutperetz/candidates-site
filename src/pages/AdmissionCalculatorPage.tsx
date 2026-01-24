@@ -4,13 +4,13 @@ import {
   Container,
   Paper,
   Typography,
-  Grid,
   TextField,
   MenuItem,
   Button,
   Alert,
   Divider,
 } from "@mui/material";
+import Grid from "@mui/material/GridLegacy";
 
 /**
  * תנאי קבלה (עדכני לפי פרסומי אונו במסלולי טכנולוגיה דומים).
@@ -76,7 +76,6 @@ const AdmissionCalculatorPage = () => {
 
   const validate = (): boolean => {
     const nextErrors: Errors = {};
-    const { direct } = ADMISSION_RULES;
 
     // פסיכומטרי כללי: 200-800
     if (!values.psychometricTotal) {
