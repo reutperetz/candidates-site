@@ -16,7 +16,6 @@ import {
   Button,
   Stack,
   TextField,
-  Grid,
   MenuItem,
   Alert,
   Dialog,
@@ -25,6 +24,8 @@ import {
   DialogActions,
   Snackbar,
 } from "@mui/material";
+
+import Grid from "@mui/material/GridLegacy";
 import AddIcon from "@mui/icons-material/Add";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
@@ -267,13 +268,13 @@ const AdminCandidatesPage = () => {
   useEffect(() => {
     // טעינה ראשונית + Seed אם ריק
     const current = loadCandidates();
-    if (current.length === 0) {
-      const seeded = seedCandidates();
-      saveCandidates(seeded);
-      setCandidates(seeded);
-    } else {
-      setCandidates(current);
-    }
+  if (current.length === 0) {
+    const seeded = seedCandidates();
+    saveCandidates(seeded);
+    queueMicrotask(() => setCandidates(seeded)); // או setTimeout(() =>..., 0)
+  } else {
+    queueMicrotask(() => setCandidates(current));
+  }
   }, []);
 
   const filtered = useMemo(() => {
