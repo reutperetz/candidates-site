@@ -9,11 +9,12 @@ import {
   Chip,
   Container,
   Divider,
-  Grid,
   Snackbar,
   TextField,
   Typography,
 } from "@mui/material";
+
+import Grid from "@mui/material/GridLegacy";
 import AssignmentIcon from "@mui/icons-material/Assignment";
 import PersonAddAlt1Icon from "@mui/icons-material/PersonAddAlt1";
 import MenuBookIcon from "@mui/icons-material/MenuBook";
@@ -35,6 +36,11 @@ type CandidateForm = {
   englishGrade: string; // 0-100
 
   preferredTrack: string; // מסלול מועדף
+};
+
+type CandidateSubmission = CandidateForm & {
+  status: "חדש";
+  createdAt: string;
 };
 
 const ID_REGEX = /^\d{9}$/;
@@ -202,7 +208,7 @@ function FormsPage() {
     }
 
     // סטטוס לא נבחר ע"י מועמד — נקבע אוטומטית
-    const payload = {
+      const payload: CandidateSubmission = {
       ...form,
       status: "חדש",
       createdAt: new Date().toISOString(),
@@ -210,7 +216,18 @@ function FormsPage() {
 
     const key = "candidate_submissions";
     const existing = localStorage.getItem(key);
-    const arr = existing ? (JSON.parse(existing) as any[]) : [];
+
+    let arr: CandidateSubmission[] = [];
+
+    if (existing) {
+      try {
+        const parsed: unknown = JSON.parse(existing);
+        arr = Array.isArray(parsed) ? (parsed as CandidateSubmission[]) : [];
+      } catch {
+        arr = [];
+      }
+    }
+
     arr.push(payload);
     localStorage.setItem(key, JSON.stringify(arr));
 
