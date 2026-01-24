@@ -7,7 +7,6 @@ import {
   Paper,
   Tabs,
   Tab,
-  Grid,
   TextField,
   MenuItem,
   Button,
@@ -25,6 +24,8 @@ import {
   DialogActions,
   Divider,
 } from "@mui/material";
+
+import Grid from "@mui/material/GridLegacy";
 import AddIcon from "@mui/icons-material/Add";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
@@ -332,11 +333,13 @@ const AdminAdmissionRequirementsPage = () => {
     setSelected(null);
   };
 
-  const renderFormFields = (
-    current: FormState,
-    onChange: (f: keyof FormState) => any,
-    currentErrors: FormErrors
-  ) => (
+const renderFormFields = (
+  current: FormState,
+  onChange: (
+    f: keyof FormState
+  ) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void,
+  currentErrors: FormErrors
+) => (
     <Grid container spacing={2}>
       <Grid item xs={12} md={4}>
         <TextField
@@ -587,7 +590,7 @@ const AdminAdmissionRequirementsPage = () => {
                 אפשר לשמור רק אם כל השדות הנדרשים למסלול תקינים.
               </Typography>
 
-              {renderFormFields(form, handleChange as any, errors)}
+              {renderFormFields(form, handleChange, errors)}
 
               <Box mt={4} display="flex" justifyContent="center" gap={2} flexWrap="wrap">
                 <Button
@@ -621,7 +624,7 @@ const AdminAdmissionRequirementsPage = () => {
       <Dialog open={editOpen} onClose={() => setEditOpen(false)} fullWidth maxWidth="md">
         <DialogTitle sx={{ fontWeight: 700 }}>עריכת תנאי קבלה</DialogTitle>
         <DialogContent dividers>
-          {renderFormFields(editForm, handleEditChange as any, editErrors)}
+          {renderFormFields(editForm, handleEditChange, editErrors)}
           {Object.values(editErrors).some(Boolean) && (
             <Box mt={2}>
               <Alert severity="error">יש שדות לא תקינים — תקני את המסומן באדום.</Alert>
