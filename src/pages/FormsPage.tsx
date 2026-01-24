@@ -22,6 +22,10 @@ import RuleIcon from "@mui/icons-material/Rule";
 import HelpCenterIcon from "@mui/icons-material/HelpCenter";
 import { useNavigate } from "react-router-dom";
 
+// Firestore
+import { addDoc, collection, serverTimestamp } from "firebase/firestore";
+import { db } from "../firebase";
+
 type CandidateForm = {
   idNumber: string; // ת"ז
   fullName: string;
@@ -38,37 +42,33 @@ type CandidateForm = {
   preferredTrack: string; // מסלול מועדף
 };
 
-type CandidateSubmission = CandidateForm & {
-  status: "חדש";
-  createdAt: string;
-};
-
 const ID_REGEX = /^\d{9}$/;
 const PHONE_REGEX = /^\d{9,10}$/; // ישראל לרוב 9-10 ספרות (כולל 0)
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 function clampNumberStr(value: string) {
-  // מאפשר ריק, אחרת רק ספרות
   if (value === "") return "";
   return value.replace(/[^\d]/g, "");
 }
 
+const emptyForm: CandidateForm = {
+  idNumber: "",
+  fullName: "",
+  phone: "",
+  email: "",
+  psychometric: "",
+  bagrutAvg: "",
+  mathUnits: "",
+  mathGrade: "",
+  englishUnits: "",
+  englishGrade: "",
+  preferredTrack: "",
+};
+
 function FormsPage() {
   const navigate = useNavigate();
 
-  const [form, setForm] = useState<CandidateForm>({
-    idNumber: "",
-    fullName: "",
-    phone: "",
-    email: "",
-    psychometric: "",
-    bagrutAvg: "",
-    mathUnits: "",
-    mathGrade: "",
-    englishUnits: "",
-    englishGrade: "",
-    preferredTrack: "",
-  });
+  const [form, setForm] = useState<CandidateForm>(emptyForm);
 
   const [touched, setTouched] = useState<Record<keyof CandidateForm, boolean>>({
     idNumber: false,
@@ -121,7 +121,6 @@ function FormsPage() {
     else {
       const words = form.fullName.trim().split(/\s+/);
       if (words.length < 2) e.fullName = "יש להזין לפחות שתי מילים";
-      // רק עברית/אנגלית/רווחים/מקף/גרש — אם בא לך יותר קשוח תגידי
       const nameOk = /^[A-Za-z\u0590-\u05FF\s'’-]+$/.test(form.fullName.trim());
       if (!nameOk) e.fullName = "השם יכול להכיל אותיות ורווחים בלבד";
     }
@@ -182,7 +181,7 @@ function FormsPage() {
 
   const isValid = Object.keys(errors).length === 0;
 
-  const onSubmit = () => {
+  const onSubmit = async () => {
     // נוגעים בהכל כדי שיראו הודעות
     setTouched({
       idNumber: true,
@@ -207,63 +206,44 @@ function FormsPage() {
       return;
     }
 
-    // סטטוס לא נבחר ע"י מועמד — נקבע אוטומטית
-    const payload: CandidateSubmission = {
-      ...form,
-      status: "חדש",
-      createdAt: new Date().toISOString(),
-    };
+    try {
+      // שומרים ל-Firestore. doc id נוצר אוטומטית (כמו שדרשו).
+      const payload = {
+        ...form,
+        status: "חדש" as const,
+        createdAt: serverTimestamp(),
+      };
 
-    const key = "candidate_submissions";
-    const existing = localStorage.getItem(key);
+      const ref = await addDoc(collection(db, "candidate_submissions"), payload);
 
-    let arr: CandidateSubmission[] = [];
+      setSnack({
+        open: true,
+        type: "success",
+        message: `המועמדות נשלחה בהצלחה ✅ (מספר פנייה: ${ref.id})`,
+      });
 
-    if (existing) {
-      try {
-        const parsed: unknown = JSON.parse(existing);
-        arr = Array.isArray(parsed) ? (parsed as CandidateSubmission[]) : [];
-      } catch {
-        arr = [];
-      }
+      // איפוס
+      setForm(emptyForm);
+      setTouched({
+        idNumber: false,
+        fullName: false,
+        phone: false,
+        email: false,
+        psychometric: false,
+        bagrutAvg: false,
+        mathUnits: false,
+        mathGrade: false,
+        englishUnits: false,
+        englishGrade: false,
+        preferredTrack: false,
+      });
+    } catch (e) {
+      setSnack({
+        open: true,
+        type: "error",
+        message: "שגיאה בשליחה. נסי שוב.",
+      });
     }
-
-    arr.push(payload);
-    localStorage.setItem(key, JSON.stringify(arr));
-
-    setSnack({
-      open: true,
-      type: "success",
-      message: "המועמדות נשלחה בהצלחה ✅ נחזור אלייך בהקדם.",
-    });
-
-    // אופציונלי: איפוס
-    setForm({
-      idNumber: "",
-      fullName: "",
-      phone: "",
-      email: "",
-      psychometric: "",
-      bagrutAvg: "",
-      mathUnits: "",
-      mathGrade: "",
-      englishUnits: "",
-      englishGrade: "",
-      preferredTrack: "",
-    });
-    setTouched({
-      idNumber: false,
-      fullName: false,
-      phone: false,
-      email: false,
-      psychometric: false,
-      bagrutAvg: false,
-      mathUnits: false,
-      mathGrade: false,
-      englishUnits: false,
-      englishGrade: false,
-      preferredTrack: false,
-    });
   };
 
   const showError = (key: keyof CandidateForm) => touched[key] && !!errors[key];
@@ -282,11 +262,7 @@ function FormsPage() {
               fontWeight: 600,
             }}
           />
-          <Typography
-            variant="h4"
-            component="h1"
-            sx={{ color: "#2e7d32", fontWeight: 700, mb: 1 }}
-          >
+          <Typography variant="h4" component="h1" sx={{ color: "#2e7d32", fontWeight: 700, mb: 1 }}>
             טפסים – Forms
           </Typography>
           <Typography variant="body1" sx={{ maxWidth: 900, mx: "auto" }}>
