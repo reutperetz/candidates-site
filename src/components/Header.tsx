@@ -16,6 +16,10 @@ import {
 } from "@mui/material";
 import MenuIcon from "@mui/icons-material/Menu";
 import { useLocation, useNavigate } from "react-router-dom";
+import { useThemeMode } from "../theme/themeContext";
+import Tooltip from "@mui/material/Tooltip";
+import DarkModeIcon from "@mui/icons-material/DarkMode";
+import LightModeIcon from "@mui/icons-material/LightMode";
 
 type UserMode = "candidate" | "admin";
 
@@ -51,6 +55,7 @@ function Header({ userMode, onChangeMode }: HeaderProps) {
 
   const navigate = useNavigate();
   const location = useLocation();
+  const { mode, toggleMode: toggleColorMode } = useThemeMode();
 
   useEffect(() => {
     const sync = () => setAuthUser(localStorage.getItem("authUser"));
@@ -145,6 +150,13 @@ function Header({ userMode, onChangeMode }: HeaderProps) {
               </>
             )}
           </Stack>
+
+          {/* כפתור Dark/Light גלובלי */}
+          <Tooltip title={mode === "dark" ? "מצב בהיר" : "מצב כהה"}>
+            <IconButton onClick={toggleColorMode} color="inherit" sx={{ mr: 1 }}>
+              {mode === "dark" ? <LightModeIcon /> : <DarkModeIcon />}
+            </IconButton>
+          </Tooltip>
 
           <Stack direction="row" spacing={1} sx={{ display: { xs: "none", md: "flex" } }}>
             <Button
