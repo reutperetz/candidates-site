@@ -1,5 +1,5 @@
 // src/pages/AdminFaqManager.tsx
-import { useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import {
   Box,
   Container,
@@ -22,47 +22,73 @@ import {
   DialogTitle,
   DialogContent,
   DialogActions,
+  LinearProgress,
 } from "@mui/material";
 import AddIcon from "@mui/icons-material/Add";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
 
+import {
+  addDoc,
+  collection,
+  deleteDoc,
+  doc,
+  onSnapshot,
+  serverTimestamp,
+  updateDoc,
+  type Timestamp,
+} from "firebase/firestore";
+import { db } from "../firebase";
+
 type FaqStatus = "active" | "inactive";
 
 interface FaqItem {
-  id: number;
+  docId: string;
   question: string;
   answer: string;
   status: FaqStatus;
-  createdAt: string;
+  createdAt?: Timestamp;
 }
 
-const initialFaqs: FaqItem[] = [
-  {
-    id: 1,
-    question: "איך אני יודע אם כל המסמכים התקבלו?",
-    answer: "ניתן לבדוק את סטטוס ההרשמה בכל רגע מתוך אזור 'האיזור האישי' במערכת המועמדים.",
-    status: "active",
-    createdAt: "30/11/2025",
-  },
-];
-
 const statusChip = (status: FaqStatus) =>
-  status === "active" ? <Chip label="פעיל" color="success" size="small" /> : <Chip label="לא פעיל" size="small" />;
+  status === "active"
+    ? <Chip label="פעיל" color="success" size="small" />
+    : <Chip label="לא פעיל" size="small" />;
 
-function nowDateDMY() {
-  const d = new Date();
-  const dd = String(d.getDate()).padStart(2, "0");
-  const mm = String(d.getMonth() + 1).padStart(2, "0");
-  const yyyy = d.getFullYear();
-  return `${dd}/${mm}/${yyyy}`;
+function formatDate(value?: Timestamp) {
+  if (!value?.toDate) return "";
+  return value.toDate().toLocaleDateString("he-IL");
 }
 
 export default function AdminFaqManager() {
   const [tab, setTab] = useState(0);
-  const [faqs, setFaqs] = useState<FaqItem[]>(initialFaqs);
+  const [faqs, setFaqs] = useState<FaqItem[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
-  const nextId = useMemo(() => (faqs.length ? Math.max(...faqs.map((x) => x.id)) + 1 : 1), [faqs]);
+  useEffect(() => {
+    const unsub = onSnapshot(
+      collection(db, "faqs"),
+      (snap) => {
+        const items: FaqItem[] = snap.docs.map((d) => {
+          const data = d.data() as any;
+          return {
+            docId: d.id,
+            question: String(data.question ?? ""),
+            answer: String(data.answer ?? ""),
+            status: data.status ?? "active",
+            createdAt: data.createdAt,
+          };
+        });
+        items.sort((a, b) => (b.createdAt?.toMillis?.() ?? 0) - (a.createdAt?.toMillis?.() ?? 0));
+        setFaqs(items);
+        setIsLoading(false);
+      },
+      () => {
+        setIsLoading(false);
+      }
+    );
+    return () => unsub();
+  }, []);
 
   const [question, setQuestion] = useState("");
   const [answer, setAnswer] = useState("");
@@ -94,24 +120,37 @@ export default function AdminFaqManager() {
     return !e.question && !e.answer;
   };
 
-  const createFaq = () => {
+  const createFaq = async () => {
     if (!validate()) {
-      setSnack({ open: true, msg: "אי אפשר לשמור – יש שדות חסרים", severity: "error" });
+      setSnack({
+        open: true,
+        msg: "אי אפשר לשמור – יש שדות חסרים",
+        severity: "error",
+      });
       return;
     }
 
-    const newFaq: FaqItem = {
-      id: nextId,
-      question: question.trim(),
-      answer: answer.trim(),
-      status,
-      createdAt: nowDateDMY(),
-    };
-
-    setFaqs((prev) => [newFaq, ...prev]);
-    setSnack({ open: true, msg: "שאלה נפוצה נוספה בהצלחה", severity: "success" });
-    resetForm();
-    setTab(0);
+    try {
+      await addDoc(collection(db, "faqs"), {
+        question: question.trim(),
+        answer: answer.trim(),
+        status,
+        createdAt: serverTimestamp(),
+      });
+      setSnack({
+        open: true,
+        msg: "שאלה נפוצה נוספה בהצלחה",
+        severity: "success",
+      });
+      resetForm();
+      setTab(0);
+    } catch {
+      setSnack({
+        open: true,
+        msg: "אי אפשר לשמור – יש שדות חסרים",
+        severity: "error",
+      });
+    }
   };
 
   const openEdit = (item: FaqItem) => {
@@ -123,23 +162,38 @@ export default function AdminFaqManager() {
     setEditOpen(true);
   };
 
-  const saveEdit = () => {
+  const saveEdit = async () => {
     if (!selected) return;
     if (!validate()) {
-      setSnack({ open: true, msg: "אי אפשר לשמור – יש שדות חסרים", severity: "error" });
+      setSnack({
+        open: true,
+        msg: "אי אפשר לשמור – יש שדות חסרים",
+        severity: "error",
+      });
       return;
     }
 
-    setFaqs((prev) =>
-      prev.map((x) =>
-        x.id === selected.id ? { ...x, question: question.trim(), answer: answer.trim(), status } : x
-      )
-    );
-
-    setEditOpen(false);
-    setSelected(null);
-    setSnack({ open: true, msg: "השאלה עודכנה בהצלחה", severity: "success" });
-    resetForm();
+    try {
+      await updateDoc(doc(db, "faqs", selected.docId), {
+        question: question.trim(),
+        answer: answer.trim(),
+        status,
+      });
+      setEditOpen(false);
+      setSelected(null);
+      setSnack({
+        open: true,
+        msg: "השאלה עודכנה בהצלחה",
+        severity: "success",
+      });
+      resetForm();
+    } catch {
+      setSnack({
+        open: true,
+        msg: "אי אפשר לשמור – יש שדות חסרים",
+        severity: "error",
+      });
+    }
   };
 
   const openDelete = (item: FaqItem) => {
@@ -147,13 +201,23 @@ export default function AdminFaqManager() {
     setDeleteOpen(true);
   };
 
-  const confirmDelete = () => {
+  const confirmDelete = async () => {
     if (!selected) return;
-    setFaqs((prev) => prev.filter((x) => x.id !== selected.id));
-    setDeleteOpen(false);
-    setSelected(null);
-    setSnack({ open: true, msg: "השאלה נמחקה", severity: "success" });
+    try {
+      await deleteDoc(doc(db, "faqs", selected.docId));
+      setDeleteOpen(false);
+      setSelected(null);
+      setSnack({
+        open: true,
+        msg: "השאלה נמחקה",
+        severity: "success",
+      });
+    } catch {
+      setDeleteOpen(false);
+      setSelected(null);
+    }
   };
+
 
   return (
     <Box dir="rtl">
@@ -185,6 +249,7 @@ export default function AdminFaqManager() {
 
         {tab === 0 && (
           <Paper elevation={3} sx={{ p: 3, borderRadius: 3 }}>
+            {isLoading && <LinearProgress sx={{ mb: 2 }} />}
             <Box mb={2} display="flex" justifyContent="space-between" alignItems="center" flexWrap="wrap" gap={2}>
               <Typography variant="h5" fontWeight={600}>
                 רשימת שאלות נפוצות
@@ -221,7 +286,7 @@ export default function AdminFaqManager() {
                 </TableHead>
                 <TableBody>
                   {faqs.map((item) => (
-                    <TableRow key={item.id}>
+                    <TableRow key={item.docId}>
                       <TableCell>
                         <Stack direction="row" spacing={1}>
                           <Button
@@ -245,7 +310,7 @@ export default function AdminFaqManager() {
                         </Stack>
                       </TableCell>
                       <TableCell>{statusChip(item.status)}</TableCell>
-                      <TableCell>{item.createdAt}</TableCell>
+                      <TableCell>{formatDate(item.createdAt) || "-"}</TableCell>
                       <TableCell sx={{ maxWidth: 400 }}>
                         <Typography noWrap>{item.answer}</Typography>
                       </TableCell>

@@ -22,6 +22,7 @@ import {
   DialogTitle,
   DialogContent,
   DialogActions,
+  LinearProgress,
   Snackbar,
 } from "@mui/material";
 
@@ -163,10 +164,13 @@ const AdminCandidatesPage = () => {
   const [deleteTarget, setDeleteTarget] = useState<{ docId: string; idNumber: string } | null>(
     null
   );
+  const [isLoading, setIsLoading] = useState(true);
 
   // ===== Firestore: טעינה בזמן אמת =====
   useEffect(() => {
-    const unsub = onSnapshot(collection(db, "candidates"), (snap) => {
+    const unsub = onSnapshot(
+      collection(db, "candidates"),
+      (snap) => {
       const items: Candidate[] = snap.docs.map((d) => {
         const data = d.data() as any;
 
@@ -198,7 +202,12 @@ const AdminCandidatesPage = () => {
       });
 
       setCandidates(items);
-    });
+      setIsLoading(false);
+      },
+      () => {
+        setIsLoading(false);
+      }
+    );
 
     return () => unsub();
   }, []);
@@ -469,6 +478,7 @@ const AdminCandidatesPage = () => {
         </Typography>
 
         <Paper elevation={3} sx={{ borderRadius: 3, p: 3, bgcolor: "background.paper" }}>
+          {isLoading && <LinearProgress sx={{ mb: 2 }} />}
           <Tabs
             value={tab}
             onChange={(_, v) => setTab(v)}

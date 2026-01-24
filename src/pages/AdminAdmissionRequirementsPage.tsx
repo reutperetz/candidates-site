@@ -1,5 +1,5 @@
 // src/pages/AdminAdmissionRequirementsPage.tsx
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   Box,
   Container,
@@ -23,6 +23,7 @@ import {
   DialogContent,
   DialogActions,
   Divider,
+  LinearProgress,
 } from "@mui/material";
 
 import Grid from "@mui/material/GridLegacy";
@@ -30,11 +31,23 @@ import AddIcon from "@mui/icons-material/Add";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
 
+import {
+  addDoc,
+  collection,
+  deleteDoc,
+  doc,
+  onSnapshot,
+  serverTimestamp,
+  updateDoc,
+  type Timestamp,
+} from "firebase/firestore";
+import { db } from "../firebase";
+
 type TrackType = "A" | "B" | "C";
 type RequirementStatus = "active" | "inactive";
 
 interface AdmissionRequirement {
-  id: number;
+  docId: string;
   track: TrackType;
   trackName: string;
 
@@ -47,31 +60,11 @@ interface AdmissionRequirement {
   englishUnits?: number; // יחידות אנגלית
 
   status: RequirementStatus;
+  createdAt?: Timestamp;
 }
 
-// key קבוע ל־localStorage 
-const REQUIREMENTS_KEY = "admin_admission_requirements";
 
 // נתוני דמה התחלתיים
-const initialRequirements: AdmissionRequirement[] = [
-  {
-    id: 1,
-    track: "A",
-    trackName: "מסלול א' – פסיכומטרי ישיר",
-    minPsycho: 650,
-    status: "active",
-  },
-  {
-    id: 2,
-    track: "B",
-    trackName: "מסלול ב' – סכום משולב",
-    minPsycho: 130,
-    minMath: 85,
-    minAverage: 90,
-    mathUnits: 5,
-    status: "active",
-  },
-];
 
 const statusChip = (status: RequirementStatus) => {
   switch (status) {
@@ -203,20 +196,42 @@ function validateForm(form: FormState): FormErrors {
 const AdminAdmissionRequirementsPage = () => {
   const [tab, setTab] = useState(0);
 
-  //  רשימה אמיתית (לא mock קבוע)
-  const [requirements, setRequirements] = useState<AdmissionRequirement[]>(() => {
-  const raw = localStorage.getItem(REQUIREMENTS_KEY);
-  if (!raw) return initialRequirements;
+  //  ????? ????? (Firestore)
+  const [requirements, setRequirements] = useState<AdmissionRequirement[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
-  try {
-    const parsed: unknown = JSON.parse(raw);
-    return Array.isArray(parsed) ? (parsed as AdmissionRequirement[]) : initialRequirements;
-  } catch {
-    return initialRequirements;
-  }
-});
+  useEffect(() => {
+    const unsub = onSnapshot(
+      collection(db, "requirements"),
+      (snap) => {
+        const items: AdmissionRequirement[] = snap.docs.map((d) => {
+          const data = d.data() as any;
+          return {
+            docId: d.id,
+            track: data.track ?? "A",
+            trackName: String(data.trackName ?? ""),
+            minPsycho: data.minPsycho ?? undefined,
+            minAverage: data.minAverage ?? undefined,
+            minMath: data.minMath ?? undefined,
+            minEnglish: data.minEnglish ?? undefined,
+            mathUnits: data.mathUnits ?? undefined,
+            englishUnits: data.englishUnits ?? undefined,
+            status: data.status ?? "active",
+            createdAt: data.createdAt,
+          };
+        });
+        items.sort((a, b) => (b.createdAt?.toMillis?.() ?? 0) - (a.createdAt?.toMillis?.() ?? 0));
+        setRequirements(items);
+        setIsLoading(false);
+      },
+      () => {
+        setIsLoading(false);
+      }
+    );
+    return () => unsub();
+  }, []);
 
-  // טופס הוספה
+// טופס הוספה
   const [form, setForm] = useState<FormState>(emptyForm);
   const [errors, setErrors] = useState<FormErrors>({});
   const [saved, setSaved] = useState(false);
@@ -231,17 +246,6 @@ const AdminAdmissionRequirementsPage = () => {
   const [edited, setEdited] = useState(false);
 
 
-  //  helper: מעדכן state + שומר ל־localStorage (Add/Edit/Delete משתמשים בו)
-  const updateRequirements = (next: AdmissionRequirement[]) => {
-    setRequirements(next);
-    localStorage.setItem(REQUIREMENTS_KEY, JSON.stringify(next));
-    window.dispatchEvent(new Event("admission-requirements-changed"));
-  };
-
-  const nextId = useMemo(() => {
-    return requirements.length ? Math.max(...requirements.map((r) => r.id)) + 1 : 1;
-  }, [requirements]);
-
   const handleChange =
     (field: keyof FormState) =>
     (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -250,13 +254,12 @@ const AdminAdmissionRequirementsPage = () => {
       setErrors((prev) => ({ ...prev, [field]: undefined }));
     };
 
-  const handleSave = () => {
+  const handleSave = async () => {
     const v = validateForm(form);
     setErrors(v);
     if (Object.values(v).some(Boolean)) return;
 
-    const newReq: AdmissionRequirement = {
-      id: nextId,
+    const payload = {
       track: form.track as TrackType,
       trackName: form.trackName.trim(),
       minPsycho: toNumberOrUndef(form.minPsycho),
@@ -266,15 +269,18 @@ const AdminAdmissionRequirementsPage = () => {
       mathUnits: toNumberOrUndef(form.mathUnits),
       englishUnits: toNumberOrUndef(form.englishUnits),
       status: form.status,
+      createdAt: serverTimestamp(),
     };
 
-    // שמירה ל־localStorage 
-    updateRequirements([newReq, ...requirements]);
-
-    setSaved(true);
-    setForm(emptyForm);
-    setErrors({});
-    setTab(0);
+    try {
+      await addDoc(collection(db, "requirements"), payload);
+      setSaved(true);
+      setForm(emptyForm);
+      setErrors({});
+      setTab(0);
+    } catch {
+      setSaved(false);
+    }
   };
 
   const handleReset = () => {
@@ -309,14 +315,13 @@ const AdminAdmissionRequirementsPage = () => {
       setEditErrors((prev) => ({ ...prev, [field]: undefined }));
     };
 
-  const saveEdit = () => {
+  const saveEdit = async () => {
     const v = validateForm(editForm);
     setEditErrors(v);
     if (Object.values(v).some(Boolean)) return;
     if (!selected) return;
 
-    const updated: AdmissionRequirement = {
-      id: selected.id,
+    const updated = {
       track: editForm.track as TrackType,
       trackName: editForm.trackName.trim(),
       minPsycho: toNumberOrUndef(editForm.minPsycho),
@@ -328,15 +333,16 @@ const AdminAdmissionRequirementsPage = () => {
       status: editForm.status,
     };
 
-    // שמירה ל־localStorage גם בעריכה
-    const next = requirements.map((x) => (x.id === selected.id ? updated : x));
-    updateRequirements(next);
-
-    setEdited(true);
-    setTimeout(() => {
-      setEditOpen(false);
-      setSelected(null);
-    }, 600);
+    try {
+      await updateDoc(doc(db, "requirements", selected.docId), updated);
+      setEdited(true);
+      setTimeout(() => {
+        setEditOpen(false);
+        setSelected(null);
+      }, 600);
+    } catch {
+      setEdited(false);
+    }
   };
 
   const openDelete = (r: AdmissionRequirement) => {
@@ -344,14 +350,16 @@ const AdminAdmissionRequirementsPage = () => {
     setDeleteOpen(true);
   };
 
-  const confirmDelete = () => {
+  const confirmDelete = async () => {
     if (!selected) return;
-    // 4) שמירה ל־localStorage גם במחיקה
-    const next = requirements.filter((x) => x.id !== selected.id);
-    updateRequirements(next);
-    
-    setDeleteOpen(false);
-    setSelected(null);
+    try {
+      await deleteDoc(doc(db, "requirements", selected.docId));
+      setDeleteOpen(false);
+      setSelected(null);
+    } catch {
+      setDeleteOpen(false);
+      setSelected(null);
+    }
   };
 
   const cancelDelete = () => {
@@ -514,6 +522,9 @@ const renderFormFields = (
             <Tab label="הוספת תנאי קבלה חדש" />
           </Tabs>
 
+          {isLoading && <LinearProgress sx={{ mb: 2 }} />}
+
+
           {/* ===== TAB 0: LIST ===== */}
           {tab === 0 && (
             <Box>
@@ -561,7 +572,7 @@ const renderFormFields = (
 
                   <TableBody>
                     {requirements.map((r) => (
-                      <TableRow key={r.id}>
+                      <TableRow key={r.docId}>
                         <TableCell>
                           <Stack direction="row" spacing={1}>
                             <Button

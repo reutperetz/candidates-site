@@ -9,6 +9,7 @@ import {
   Chip,
   Container,
   Divider,
+  LinearProgress,
   Snackbar,
   TextField,
   Typography,
@@ -89,6 +90,7 @@ export default function FormsPage() {
     type: "success" | "error";
     message: string;
   }>({ open: false, type: "success", message: "" });
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const cardBaseStyle = useMemo(
     () => ({
@@ -207,6 +209,8 @@ export default function FormsPage() {
       return;
     }
 
+    setIsSubmitting(true);
+
     try {
       // Firestore: doc id נוצר אוטומטית
       const payload = {
@@ -245,6 +249,9 @@ export default function FormsPage() {
         message: "שגיאה בשליחה. נסי שוב.",
       });
     }
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const showError = (key: keyof CandidateForm) => touched[key] && !!errors[key];
@@ -254,6 +261,7 @@ export default function FormsPage() {
       <Container maxWidth="lg" dir="rtl">
         {/* כותרת */}
         <Box textAlign="center" mb={4}>
+          {isSubmitting && <LinearProgress sx={{ mb: 2 }} />}
           <Chip
             label="הגשת מועמדות"
             sx={{
@@ -452,6 +460,7 @@ export default function FormsPage() {
                 color="success"
                 startIcon={<AssignmentIcon />}
                 onClick={onSubmit}
+                disabled={isSubmitting}
               >
                 שליחת מועמדות
               </Button>

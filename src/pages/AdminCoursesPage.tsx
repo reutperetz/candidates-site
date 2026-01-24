@@ -1,5 +1,5 @@
 // src/pages/AdminCoursesPage.tsx
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   Box,
   Container,
@@ -18,6 +18,7 @@ import {
   TextField,
   MenuItem,
   Alert,
+  LinearProgress,
 } from "@mui/material";
 
 import Grid from "@mui/material/GridLegacy";
@@ -25,12 +26,25 @@ import AddIcon from "@mui/icons-material/Add";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
 
+import {
+  addDoc,
+  collection,
+  deleteDoc,
+  doc,
+  onSnapshot,
+  serverTimestamp,
+  updateDoc,
+  type Timestamp,
+} from "firebase/firestore";
+import { db } from "../firebase";
+
 type CourseStatus = "active" | "not-active";
 type CourseType = "חובה" | "בחירה";
 type CourseYear = "א" | "ב" | "ג";
 type CourseSemester = "א" | "ב" | "קיץ";
 
 interface Course {
+  docId: string;
   code: string; // למשל CS101
   name: string;
   type: CourseType;
@@ -40,47 +54,10 @@ interface Course {
   status: CourseStatus;
   description?: string;
   prerequisites?: string;
+  createdAt?: Timestamp;
 }
 
 // נתוני דמה התחלתיים (עכשיו נשמרים ב-state כדי לערוך/למחוק)
-const initialCourses: Course[] = [
-  {
-    code: "CS101",
-    name: "מבוא למדעי המחשב",
-    type: "חובה",
-    year: "א",
-    semester: "א",
-    points: 3,
-    status: "active",
-  },
-  {
-    code: "CS102",
-    name: "אלגוריתמים",
-    type: "חובה",
-    year: "ב",
-    semester: "ב",
-    points: 3,
-    status: "active",
-  },
-  {
-    code: "CS103",
-    name: "מבני נתונים",
-    type: "חובה",
-    year: "ב",
-    semester: "א",
-    points: 3,
-    status: "active",
-  },
-  {
-    code: "CS104",
-    name: "מערכות הפעלה",
-    type: "בחירה",
-    year: "ג",
-    semester: "ב",
-    points: 3,
-    status: "not-active",
-  },
-];
 
 const statusChip = (status: CourseStatus) => {
   switch (status) {
@@ -126,7 +103,7 @@ function normalizeCourseCode(code: string) {
   return code.replace(/\s+/g, "").toUpperCase();
 }
 
-function validateCourse(form: FormState, courses: Course[], editingCode: string | null): FormErrors {
+function validateCourse(form: FormState, courses: Course[], editingDocId: string | null, editingCode: string | null): FormErrors {
   const errors: FormErrors = {};
 
   const name = form.name.trim();
@@ -142,7 +119,7 @@ function validateCourse(form: FormState, courses: Course[], editingCode: string 
     // דוגמה לקוד: CS101 / CS102 וכו'
     const ok = /^[A-Z]{2}\d{3}$/.test(code);
     if (!ok) errors.code = "קוד חייב להיות בפורמט CS101 (2 אותיות + 3 ספרות)";
-    const exists = courses.some((c) => c.code === code);
+    const exists = courses.some((c) => c.code === code && c.docId !== editingDocId);
     if (exists && editingCode !== code) errors.code = "קוד קורס כבר קיים במערכת";
   }
 
@@ -168,13 +145,46 @@ const AdminCoursesPage = () => {
   // 0 = רשימה, 1 = הוספה/עריכה
   const [tab, setTab] = useState(0);
 
-  const [courses, setCourses] = useState<Course[]>(initialCourses);
+  const [courses, setCourses] = useState<Course[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [query, setQuery] = useState("");
 
   const [form, setForm] = useState<FormState>(emptyForm);
   const [errors, setErrors] = useState<FormErrors>({});
   const [savedMsg, setSavedMsg] = useState<string>("");
+  const [editingDocId, setEditingDocId] = useState<string | null>(null);
   const [editingCode, setEditingCode] = useState<string | null>(null); // אם לא null => עריכה
+
+  useEffect(() => {
+    const unsub = onSnapshot(
+      collection(db, "courses"),
+      (snap) => {
+        const items: Course[] = snap.docs.map((d) => {
+          const data = d.data() as any;
+          return {
+            docId: d.id,
+            code: String(data.code ?? ""),
+            name: String(data.name ?? ""),
+            type: data.type ?? "\u05d7\u05d5\u05d1\u05d4",
+            year: data.year ?? "\u05d0",
+            semester: data.semester ?? "\u05d0",
+            points: Number(data.points ?? 0),
+            status: data.status ?? "active",
+            description: data.description ?? undefined,
+            prerequisites: data.prerequisites ?? undefined,
+            createdAt: data.createdAt,
+          };
+        });
+        items.sort((a, b) => (b.createdAt?.toMillis?.() ?? 0) - (a.createdAt?.toMillis?.() ?? 0));
+        setCourses(items);
+        setIsLoading(false);
+      },
+      () => {
+        setIsLoading(false);
+      }
+    );
+    return () => unsub();
+  }, []);
 
   const filteredCourses = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -206,6 +216,7 @@ const AdminCoursesPage = () => {
     setForm(emptyForm);
     setErrors({});
     setSavedMsg("");
+    setEditingDocId(null);
     setEditingCode(null);
   };
 
@@ -215,6 +226,7 @@ const AdminCoursesPage = () => {
   };
 
   const startEdit = (course: Course) => {
+    setEditingDocId(course.docId);
     setEditingCode(course.code);
     setForm({
       name: course.name,
@@ -232,28 +244,27 @@ const AdminCoursesPage = () => {
     setTab(1);
   };
 
-  const handleDelete = (code: string) => {
-    const c = courses.find((x) => x.code === code);
-    if (!c) return;
-
-    const ok = window.confirm(`למחוק את הקורס "${c.name}" (${c.code})?`);
+  const handleDelete = async (course: Course) => {
+    const ok = window.confirm(`\u05dc\u05de\u05d7\u05d5\u05e7 \u05d0\u05ea \u05d4\u05e7\u05d5\u05e8\u05e1 "${course.name}" (${course.code})?`);
     if (!ok) return;
 
-    setCourses((prev) => prev.filter((x) => x.code !== code));
-
-    // אם מחקנו קורס שהיה בעריכה – ננקה טופס
-    if (editingCode === code) resetForm();
+    try {
+      await deleteDoc(doc(db, "courses", course.docId));
+      if (editingDocId === course.docId) resetForm();
+    } catch {
+      // ignore
+    }
   };
 
-  const handleSave = () => {
-    const nextErrors = validateCourse(form, courses, editingCode);
+  const handleSave = async () => {
+    const nextErrors = validateCourse(form, courses, editingDocId, editingCode);
     setErrors(nextErrors);
     if (Object.keys(nextErrors).length > 0) {
       setSavedMsg("");
       return;
     }
 
-    const payload: Course = {
+    const payload = {
       code: normalizeCourseCode(form.code),
       name: form.name.trim(),
       type: form.type as CourseType,
@@ -265,19 +276,19 @@ const AdminCoursesPage = () => {
       prerequisites: form.prerequisites.trim() || undefined,
     };
 
-    setCourses((prev) => {
-      // עריכה
-      if (editingCode) {
-        return prev.map((c) => (c.code === editingCode ? payload : c));
+    try {
+      if (editingDocId) {
+        await updateDoc(doc(db, "courses", editingDocId), payload);
+        setSavedMsg("\u05d4\u05e7\u05d5\u05e8\u05e1 \u05e2\u05d5\u05d3\u05db\u05df \u05d1\u05d4\u05e6\u05dc\u05d7\u05d4.");
+      } else {
+        const ref = await addDoc(collection(db, "courses"), { ...payload, createdAt: serverTimestamp() });
+        setEditingDocId(ref.id);
+        setSavedMsg("\u05e7\u05d5\u05e8\u05e1 \u05d7\u05d3\u05e9 \u05e0\u05e9\u05de\u05e8 \u05d1\u05d4\u05e6\u05dc\u05d7\u05d4.");
       }
-      // יצירה
-      return [payload, ...prev];
-    });
-    
-    setSavedMsg(editingCode ? "הקורס עודכן בהצלחה." : "קורס חדש נשמר בהצלחה.");
-    // נשארים בטאב כדי שתראי הודעה, אבל אפשר גם לעבור לרשימה:
-    // setTab(0);
-    setEditingCode(payload.code);
+      setEditingCode(payload.code);
+    } catch {
+      setSavedMsg("");
+    }
   };
 
   return (
@@ -300,6 +311,8 @@ const AdminCoursesPage = () => {
             <Tab label="רשימת קורסים" />
             <Tab label={editingCode ? "עריכת קורס" : "הוספת קורס חדש"} />
           </Tabs>
+
+          {isLoading && <LinearProgress sx={{ mb: 2 }} />}
 
           {/* ================= טאב 1 – רשימת קורסים ================= */}
           {tab === 0 && (
@@ -355,7 +368,7 @@ const AdminCoursesPage = () => {
 
                   <TableBody>
                     {filteredCourses.map((c) => (
-                      <TableRow key={c.code} hover>
+                      <TableRow key={c.docId} hover>
                         <TableCell>
                           <Stack direction="row" spacing={1}>
                             <Button
@@ -372,7 +385,7 @@ const AdminCoursesPage = () => {
                               variant="outlined"
                               color="error"
                               startIcon={<DeleteOutlineIcon fontSize="small" />}
-                              onClick={() => handleDelete(c.code)}
+                              onClick={() => handleDelete(c)}
                             >
                               מחיקה
                             </Button>

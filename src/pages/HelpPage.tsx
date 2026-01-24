@@ -9,76 +9,54 @@ import {
   AccordionSummary,
   AccordionDetails,
   Chip,
+  LinearProgress,
 } from "@mui/material";
 
 import HelpOutlineIcon from "@mui/icons-material/HelpOutline";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import ChatBubbleOutlineIcon from "@mui/icons-material/ChatBubbleOutline";
+import { useEffect, useState } from "react";
+import { collection, getDocs } from "firebase/firestore";
+import { db } from "../firebase";
+
+type FaqItem = {
+  docId: string;
+  question: string;
+  answer: string;
+  status?: string;
+};
 
 function HelpPage() {
   // רשימת השאלות לדוגמא – אפשר לערוך טקסטים חופשי
-  const faqs = [
-    {
-      id: 1,
-      question: "מהו תהליך ההרשמה לתואר?",
-      answer:
-        "ממלאים טופס הרשמה באתר, מצרפים מסמכים רלוונטיים (תעודת זהות, גיליון ציונים וכו'), ומשלמים את אגרת ההרשמה. לאחר מכן מזכירות המחלקה תיצור קשר במידה ונדרש מידע נוסף.",
-    },
-    {
-      id: 2,
-      question: "מהם תנאי הקבלה העיקריים?",
-      answer:
-        "תנאי הקבלה מתבססים על ציון פסיכומטרי, ממוצע בגרות ויחידות לימוד במתמטיקה ובאנגלית. את הספים המדויקים ניתן לראות במסך 'תנאי קבלה' במערכת.",
-    },
-    {
-      id: 3,
-      question: "כמה זמן נמשך התואר?",
-      answer:
-        "משך הלימודים המלא הוא בדרך-כלל שלוש שנים אקדמיות (שישה סמסטרים), עם אפשרות להארכה במידת הצורך בהתאם לעומס הקורסים.",
-    },
-    {
-      id: 4,
-      question: "האם ניתן לעבוד במקביל ללימודים?",
-      answer:
-        "כן, חלק גדול מהסטודנטים משלב עבודה חלקית יחד עם הלימודים. מומלץ לתכנן מערכת שעות מאוזנת ולא לקחת עומס קורסים גבוה במיוחד בסמסטר הראשון.",
-    },
-    {
-      id: 5,
-      question: "האם קיים מסלול ערב?",
-      answer:
-        "במידה והמחלקה מציעה מסלול ערב – ניתן לראות פרטים מלאים, ימים ושעות במסך הקורסים ובמידע הרשמי של המכללה.",
-    },
-    {
-      id: 6,
-      question: "מה כוללת תכנית הלימודים?",
-      answer:
-        "הלימודים כוללים קורסי יסוד במתמטיקה ומדעי המחשב, קורסי תשתית נוספים, וקורסי בחירה בתחומים מתקדמים. פירוט מלא של כל קורס מופיע במסך הקורסים.",
-    },
-    {
-      id: 7,
-      question: "מתי מתחיל הסמסטר?",
-      answer:
-        "תאריכי פתיחת הסמסטרים משתנים משנה לשנה. ניתן לראות את התאריכים המעודכנים בלוח האקדמי של המכללה ובמסך ההודעות.",
-    },
-    {
-      id: 8,
-      question: "האם יש תמיכה לסטודנטים מתקשים?",
-      answer:
-        "כן. קיימים מרכזי תמיכה, תגבורים ושעות קבלה של המרצים. ניתן למצוא את הפרטים במסך העזרה או באתר הרשמי של המכללה.",
-    },
-    {
-      id: 9,
-      question: "האם אפשר לעבור ממסלול בוקר למסלול ערב?",
-      answer:
-        "ברוב המקרים ניתן להגיש בקשה לשינוי מסלול דרך מזכירות המחלקה, בכפוף למקום פנוי ולעמידה בדרישות האקדמיות.",
-    },
-    {
-      id: 10,
-      question: "כיצד מתבצעת בדיקת סיכויי הקבלה?",
-      answer:
-        "בדיקת סיכוי הקבלה מבוססת על הזנת ציונים אישיים במערכת, והשוואתם לספי הקבלה המעודכנים. הכלי מאפשר לקבל הערכה ראשונית בלבד ואינו מחליף תשובה רשמית ממדור הרישום.",
-    },
-  ];
+  const [faqs, setFaqs] = useState<FaqItem[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    let active = true;
+    const load = async () => {
+      try {
+        const snap = await getDocs(collection(db, "faqs"));
+        const items: FaqItem[] = snap.docs.map((d) => {
+          const data = d.data() as any;
+          return {
+            docId: d.id,
+            question: String(data.question ?? ""),
+            answer: String(data.answer ?? ""),
+            status: data.status ?? "active",
+          };
+        });
+        const visible = items.filter((item) => item.status !== "inactive");
+        if (active) setFaqs(visible);
+      } finally {
+        if (active) setIsLoading(false);
+      }
+    };
+    load();
+    return () => {
+      active = false;
+    };
+  }, []);
+
 
   return (
     <Container maxWidth="lg" sx={{ mt: 6, mb: 6 }} dir="rtl">
@@ -108,6 +86,7 @@ function HelpPage() {
         }}
       >
         <CardContent sx={{ pb: 1 }}>
+          {isLoading && <LinearProgress sx={{ mb: 2 }} />}
           <Box
             display="flex"
             alignItems="center"
@@ -129,9 +108,9 @@ function HelpPage() {
           </Box>
 
           {/* רשימת האקורדיונים של השאלות */}
-          {faqs.map((faq) => (
+          {faqs.map((faq, index) => (
             <Accordion
-              key={faq.id}
+              key={faq.docId}
               disableGutters
               elevation={0}
               sx={{
@@ -168,7 +147,7 @@ function HelpPage() {
                     ml: 1,
                   }}
                 >
-                  {faq.id}
+                  {index + 1}
                 </Box>
 
                 <Typography variant="body1" sx={{ fontWeight: 500 }}>

@@ -1,8 +1,10 @@
 import { useEffect, useMemo, useState } from "react";
-import { Box, Container, Typography, Paper, Grid, Button, Divider } from "@mui/material";
+import { Box, Container, Typography, Paper, Grid, Button, Divider, LinearProgress } from "@mui/material";
 import CheckCircleOutlineIcon from "@mui/icons-material/CheckCircleOutline";
 import ArrowForwardIosIcon from "@mui/icons-material/ArrowForwardIos";
 import { useNavigate } from "react-router-dom";
+import { collection, getDocs, type Timestamp } from "firebase/firestore";
+import { db } from "../firebase";
 
 type RequirementDisplay = {
   label: string;
@@ -13,7 +15,7 @@ type TrackType = "A" | "B" | "C";
 type RequirementStatus = "active" | "inactive";
 
 type AdminRequirement = {
-  id: number;
+  docId: string;
   track: TrackType;
   trackName: string;
   minPsycho?: number;
@@ -23,42 +25,10 @@ type AdminRequirement = {
   mathUnits?: number;
   englishUnits?: number;
   status: RequirementStatus;
+  createdAt?: Timestamp;
 };
 
-const REQUIREMENTS_KEY = "admin_admission_requirements";
-
-const fallbackRequirements: AdminRequirement[] = [
-  {
-    id: 1,
-    track: "A",
-    trackName: "מסלול א' - פסיכומטרי ישיר",
-    minPsycho: 650,
-    status: "active",
-  },
-  {
-    id: 2,
-    track: "B",
-    trackName: "מסלול ב' - סכום משולב",
-    minPsycho: 130,
-    minMath: 85,
-    minAverage: 90,
-    mathUnits: 5,
-    status: "active",
-  },
-];
-
 const trackOrder: Record<TrackType, number> = { A: 0, B: 1, C: 2 };
-
-function loadRequirements(): AdminRequirement[] {
-  const raw = localStorage.getItem(REQUIREMENTS_KEY);
-  if (!raw) return fallbackRequirements;
-  try {
-    const parsed: unknown = JSON.parse(raw);
-    return Array.isArray(parsed) ? (parsed as AdminRequirement[]) : fallbackRequirements;
-  } catch {
-    return fallbackRequirements;
-  }
-}
 
 function buildDisplayItems(req: AdminRequirement): RequirementDisplay[] {
   const items: RequirementDisplay[] = [];
@@ -86,15 +56,38 @@ function buildDisplayItems(req: AdminRequirement): RequirementDisplay[] {
 const AdmissionRequirementsPage = () => {
   const navigate = useNavigate();
 
-  const [requirements, setRequirements] = useState<AdminRequirement[]>(() => loadRequirements());
+  const [requirements, setRequirements] = useState<AdminRequirement[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    const sync = () => setRequirements(loadRequirements());
-    window.addEventListener("storage", sync);
-    window.addEventListener("admission-requirements-changed", sync);
+    let active = true;
+    const load = async () => {
+      try {
+        const snap = await getDocs(collection(db, "requirements"));
+        const items: AdminRequirement[] = snap.docs.map((d) => {
+          const data = d.data() as any;
+          return {
+            docId: d.id,
+            track: data.track ?? "A",
+            trackName: String(data.trackName ?? ""),
+            minPsycho: data.minPsycho ?? undefined,
+            minAverage: data.minAverage ?? undefined,
+            minMath: data.minMath ?? undefined,
+            minEnglish: data.minEnglish ?? undefined,
+            mathUnits: data.mathUnits ?? undefined,
+            englishUnits: data.englishUnits ?? undefined,
+            status: data.status ?? "active",
+            createdAt: data.createdAt,
+          };
+        });
+        if (active) setRequirements(items);
+      } finally {
+        if (active) setIsLoading(false);
+      }
+    };
+    load();
     return () => {
-      window.removeEventListener("storage", sync);
-      window.removeEventListener("admission-requirements-changed", sync);
+      active = false;
     };
   }, []);
 
@@ -102,7 +95,9 @@ const AdmissionRequirementsPage = () => {
     () =>
       requirements
         .filter((req) => req.status === "active")
-        .sort((a, b) => trackOrder[a.track] - trackOrder[b.track] || a.id - b.id),
+        .sort((a, b) =>
+          trackOrder[a.track] - trackOrder[b.track] || (b.createdAt?.toMillis?.() ?? 0) - (a.createdAt?.toMillis?.() ?? 0)
+        ),
     [requirements]
   );
 
@@ -150,7 +145,8 @@ const AdmissionRequirementsPage = () => {
             bgcolor: "background.paper",
           }}
         >
-          {activeRequirements.length === 0 ? (
+          {isLoading && <LinearProgress />}
+          {isLoading ? null : activeRequirements.length === 0 ? (
             <Box sx={{ p: 3 }}>
               <Typography variant="body2" color="text.secondary">
                 {"לא זמינים תנאי קבלה פעילים כרגע."}
@@ -161,7 +157,7 @@ const AdmissionRequirementsPage = () => {
               {activeRequirements.map((req, index) => {
                 const items = buildDisplayItems(req);
                 return (
-                  <Box key={req.id}>
+                  <Box key={req.docId}>
                     <Box
                       sx={{
                         bgcolor: "success.main",
