@@ -208,7 +208,7 @@ export default function AdminFaqManager() {
               מספר השאלות במערכת: {faqs.length}
             </Typography>
 
-            <Paper elevation={0} sx={{ borderRadius: 3, overflow: "hidden", bgcolor: "white" }}>
+            <Paper elevation={0} sx={{ borderRadius: 3, overflow: "hidden", bgcolor: "background.paper" }}>
               <Table>
                 <TableHead>
                   <TableRow>

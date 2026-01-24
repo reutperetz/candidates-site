@@ -14,6 +14,7 @@ import {
   Stack,
   Chip,
 } from "@mui/material";
+import { alpha } from "@mui/material/styles";
 import MenuIcon from "@mui/icons-material/Menu";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useThemeMode } from "../theme/themeContext";
@@ -98,10 +99,11 @@ function Header({ userMode, onChangeMode }: HeaderProps) {
     <>
       <AppBar
         position="static"
-        sx={{
-          background: "linear-gradient(135deg, #33691e 0%, #607d8b 100%)",
-          boxShadow: "0 2px 8px rgba(0,0,0,0.15)",
-        }}
+        sx={(theme) => ({
+          background: `linear-gradient(135deg, ${theme.palette.primary.dark} 0%, ${theme.palette.secondary.main} 100%)`,
+          color: theme.palette.primary.contrastText,
+          boxShadow: theme.shadows[4],
+        })}
       >
         <Toolbar sx={{ direction: "rtl" }}>
           <IconButton
@@ -119,7 +121,7 @@ function Header({ userMode, onChangeMode }: HeaderProps) {
             onClick={() => handleNavigate(userMode === "admin" ? "/admin" : "/")}
             sx={{
               flexGrow: 1,
-              color: "white",
+              color: "inherit",
               fontWeight: 700,
               cursor: "pointer",
               letterSpacing: "0.5px",
@@ -137,7 +139,10 @@ function Header({ userMode, onChangeMode }: HeaderProps) {
                 <Chip
                   label={`מחובר/ת: ${authUser}`}
                   size="small"
-                  sx={{ bgcolor: "rgba(255,255,255,0.18)", color: "white" }}
+                  sx={(theme) => ({
+                    bgcolor: alpha(theme.palette.common.white, 0.18),
+                    color: "inherit",
+                  })}
                 />
                 <Button
                   variant="outlined"

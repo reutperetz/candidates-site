@@ -36,8 +36,9 @@ const AdmissionRequirementsPage = () => {
       sx={{
         p: 2,
         borderRadius: 3,
-        border: "1px solid #d8e6d8",
-        bgcolor: "#f7fbf7",
+        border: "1px solid",
+        borderColor: "divider",
+        bgcolor: "background.paper",
         textAlign: "center",
         minHeight: 90,
         display: "flex",
@@ -76,11 +77,11 @@ const AdmissionRequirementsPage = () => {
           sx={{
             borderRadius: 3,
             overflow: "hidden",
-            bgcolor: "#f5f8f5",
+            bgcolor: "background.paper",
           }}
         >
           {/* מסלול א' */}
-          <Box sx={{ bgcolor: "#2e7d32", color: "white", p: 3 }}>
+          <Box sx={{ bgcolor: "success.main", color: "success.contrastText", p: 3 }}>
             <Typography variant="h6" fontWeight={700}>
               מסלול א׳ – פסיכומטרי ישיר
             </Typography>
@@ -105,7 +106,7 @@ const AdmissionRequirementsPage = () => {
           <Divider />
 
           {/* מסלול ב' */}
-          <Box sx={{ bgcolor: "#2e7d32", color: "white", p: 3, mt: 2 }}>
+          <Box sx={{ bgcolor: "success.main", color: "success.contrastText", p: 3, mt: 2 }}>
             <Typography variant="h6" fontWeight={700}>
               מסלול ב׳ – בגרות (כולל מתמטיקה)
             </Typography>
@@ -132,8 +133,9 @@ const AdmissionRequirementsPage = () => {
                 mt: 1,
                 p: 2,
                 borderRadius: 2,
-                bgcolor: "#fff",
-                border: "1px dashed #c8dccc",
+                bgcolor: "background.paper",
+                border: "1px dashed",
+                borderColor: "divider",
               }}
             >
               <Typography variant="body2" color="text.secondary">

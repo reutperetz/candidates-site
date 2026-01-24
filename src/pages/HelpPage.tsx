@@ -87,7 +87,7 @@ function HelpPage() {
         <Typography
           variant="h4"
           component="h1"
-          sx={{ color: "#2e7d32", fontWeight: 700, mb: 1 }}
+          sx={{ color: "success.main", fontWeight: 700, mb: 1 }}
         >
           עזרה למועמדים – Help
         </Typography>
@@ -102,8 +102,9 @@ function HelpPage() {
         sx={{
           mb: 4,
           borderRadius: 3,
-          boxShadow: "0 2px 8px rgba(0,0,0,0.08)",
-          borderTop: "4px solid #2e7d32",
+          boxShadow: 2,
+          borderTop: "4px solid",
+          borderTopColor: "success.main",
         }}
       >
         <CardContent sx={{ pb: 1 }}>
@@ -114,7 +115,7 @@ function HelpPage() {
             mb={2}
           >
             <Box display="flex" alignItems="center" gap={1}>
-              <HelpOutlineIcon sx={{ color: "#2e7d32" }} />
+              <HelpOutlineIcon sx={{ color: "success.main" }} />
               <Typography variant="h6" fontWeight={600}>
                 שאלות נפוצות למועמדים
               </Typography>
@@ -123,7 +124,7 @@ function HelpPage() {
             <Chip
               label={`סה"כ ${faqs.length} שאלות`}
               size="small"
-              sx={{ backgroundColor: "#e8f5e9", color: "#2e7d32" }}
+              sx={{ bgcolor: "success.light", color: "success.main" }}
             />
           </Box>
 
@@ -136,12 +137,13 @@ function HelpPage() {
               sx={{
                 mb: 1,
                 borderRadius: 2,
-                border: "1px solid #e0e0e0",
+                border: "1px solid",
+                borderColor: "divider",
                 "&:before": { display: "none" },
               }}
             >
               <AccordionSummary
-                expandIcon={<ExpandMoreIcon sx={{ color: "#2e7d32" }} />}
+                expandIcon={<ExpandMoreIcon sx={{ color: "success.main" }} />}
                 sx={{
                   minHeight: 48,
                   "& .MuiAccordionSummary-content": {
@@ -156,8 +158,8 @@ function HelpPage() {
                     width: 28,
                     height: 28,
                     borderRadius: "50%",
-                    backgroundColor: "#e8f5e9",
-                    color: "#2e7d32",
+                    bgcolor: "success.light",
+                    color: "success.main",
                     display: "flex",
                     alignItems: "center",
                     justifyContent: "center",
@@ -188,9 +190,10 @@ function HelpPage() {
       <Card
         sx={{
           borderRadius: 4,
-          boxShadow: "0 4px 15px rgba(0,0,0,0.12)",
-          background: "linear-gradient(135deg, #2e7d32 0%, #66bb6a 100%)",
-          color: "white",
+          boxShadow: 4,
+          background: (theme) =>
+            `linear-gradient(135deg, ${theme.palette.success.dark} 0%, ${theme.palette.success.main} 100%)`,
+          color: "success.contrastText",
           maxWidth: 900,
           mx: "auto",
           mt: 4,

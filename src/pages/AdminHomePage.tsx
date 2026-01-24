@@ -63,7 +63,7 @@ const AdminHomePage = () => {
           sx={{
             borderRadius: 3,
             overflow: "hidden",
-            bgcolor: "#f7fbf7",
+            bgcolor: "background.paper",
             p: { xs: 2, md: 3 },
           }}
         >
@@ -71,7 +71,7 @@ const AdminHomePage = () => {
           <Box
             sx={{
               bgcolor: "success.main",
-              color: "white",
+              color: "success.contrastText",
               borderRadius: 3,
               p: 3,
               textAlign: "center",
@@ -99,17 +99,17 @@ const AdminHomePage = () => {
                   }}
                   sx={{
                     borderRadius: 3,
-                    bgcolor: "white",
+                    bgcolor: "background.paper",
                     cursor: "pointer",
-                    boxShadow: "0 2px 6px rgba(0,0,0,0.06)",
+                    boxShadow: 2,
                     transition: "0.2s",
                     outline: "none",
                     "&:hover": {
-                      boxShadow: "0 6px 16px rgba(0,0,0,0.12)",
+                      boxShadow: 6,
                       transform: "translateY(-2px)",
                     },
                     "&:focus-visible": {
-                      boxShadow: "0 0 0 3px rgba(46,125,50,0.25)",
+                      boxShadow: 6,
                     },
                   }}
                 >

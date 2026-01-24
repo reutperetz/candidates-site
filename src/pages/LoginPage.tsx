@@ -76,14 +76,14 @@ const LoginPage = () => {
         </Typography>
 
         <Paper elevation={3} sx={{ borderRadius: 3, overflow: "hidden" }}>
-          <Box sx={{ bgcolor: "success.main", color: "white", p: 3, textAlign: "center" }}>
+          <Box sx={{ bgcolor: "success.main", color: "success.contrastText", p: 3, textAlign: "center" }}>
             <Typography variant="h6" fontWeight={700}>
               התחברות למערכת
             </Typography>
             <Typography variant="body2">מידע לסטודנטים – מחלקה למדעי המחשב</Typography>
           </Box>
 
-          <Box sx={{ p: 3, bgcolor: "#f7fbf7" }}>
+          <Box sx={{ p: 3, bgcolor: "background.paper" }}>
             <TextField
               fullWidth
               margin="normal"

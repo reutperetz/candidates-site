@@ -21,7 +21,7 @@ import SupportAgentIcon from "@mui/icons-material/SupportAgent";
 
 const AdminHelpPage = () => {
   return (
-    <Box dir="rtl" sx={{ bgcolor: "#f5f7f5", minHeight: "100vh", py: 4 }}>
+    <Box dir="rtl" sx={{ bgcolor: "background.default", minHeight: "100vh", py: 4 }}>
       <Container maxWidth="md">
         {/* כותרת עליונה */}
         <Box textAlign="center" mb={3}>
@@ -36,7 +36,7 @@ const AdminHelpPage = () => {
         {/* קופסת מדריך מנהל */}
         <Paper
           elevation={3}
-          sx={{ p: 3, mb: 3, borderRadius: 3, bgcolor: "#ffffff" }}
+          sx={{ p: 3, mb: 3, borderRadius: 3, bgcolor: "background.paper" }}
         >
           <Stack direction="row" spacing={1} alignItems="center" mb={2}>
             <HelpOutlineIcon color="action" />

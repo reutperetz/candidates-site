@@ -19,6 +19,7 @@ import {
   MenuItem,
   Chip,
 } from "@mui/material";
+import { alpha } from "@mui/material/styles";
 import MenuBookIcon from "@mui/icons-material/MenuBook";
 
 type Course = {
@@ -143,7 +144,7 @@ function CoursesPage() {
         <Typography
           variant="h4"
           component="h1"
-          sx={{ color: "#2e7d32", fontWeight: 700, mb: 1 }}
+          sx={{ color: "success.main", fontWeight: 700, mb: 1 }}
         >
           קורסים – רשימת הקורסים בתואר
         </Typography>
@@ -157,8 +158,9 @@ function CoursesPage() {
       <Card
         sx={{
           borderRadius: 3,
-          boxShadow: "0 2px 8px rgba(0,0,0,0.08)",
-          borderTop: "4px solid #2e7d32",
+          boxShadow: 2,
+          borderTop: "4px solid",
+          borderTopColor: "success.main",
         }}
       >
         <CardContent>
@@ -172,14 +174,17 @@ function CoursesPage() {
             mb={3}
           >
             <Box display="flex" alignItems="center" gap={1.5}>
-              <MenuBookIcon sx={{ color: "#2e7d32" }} />
+              <MenuBookIcon sx={{ color: "success.main" }} />
               <Typography variant="h6" fontWeight={600}>
                 רשימת הקורסים במחלקה למדעי המחשב
               </Typography>
               <Chip
                 label={`${filteredCourses.length} מתוך ${COURSES.length} קורסים`}
                 size="small"
-                sx={{ backgroundColor: "#e8f5e9", color: "#2e7d32" }}
+                sx={(theme) => ({
+                  bgcolor: alpha(theme.palette.success.main, 0.15),
+                  color: theme.palette.success.main,
+                })}
               />
             </Box>
 
@@ -260,9 +265,9 @@ function CoursesPage() {
                         size="small"
                         sx={{
                           backgroundColor:
-                            course.type === "חובה" ? "#e8f5e9" : "#e3f2fd",
+                            course.type === "חובה" ? "success.light" : "info.light",
                           color:
-                            course.type === "חובה" ? "#2e7d32" : "#1565c0",
+                            course.type === "חובה" ? "success.main" : "info.main",
                         }}
                       />
                     </TableCell>

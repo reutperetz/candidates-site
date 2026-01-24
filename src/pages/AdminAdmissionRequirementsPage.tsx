@@ -502,7 +502,7 @@ const renderFormFields = (
           מערכת ניהול – תנאי קבלה
         </Typography>
 
-        <Paper elevation={3} sx={{ borderRadius: 3, p: 3, bgcolor: "#f7fbf7" }}>
+        <Paper elevation={3} sx={{ borderRadius: 3, p: 3, bgcolor: "background.paper" }}>
           <Tabs
             value={tab}
             onChange={(_e, v) => setTab(v)}
@@ -542,7 +542,7 @@ const renderFormFields = (
                 מספר תנאי הקבלה במערכת: {requirements.length}
               </Typography>
 
-              <Paper elevation={0} sx={{ borderRadius: 3, overflow: "hidden", bgcolor: "white" }}>
+              <Paper elevation={0} sx={{ borderRadius: 3, overflow: "hidden", bgcolor: "background.paper" }}>
                 <Table>
                   <TableHead>
                     <TableRow>

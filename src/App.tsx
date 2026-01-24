@@ -39,7 +39,7 @@ function App() {
   }, []);
 
   return (
-    <Box dir="rtl" sx={{ minHeight: "100vh", bgcolor: "#f5f5f5" }}>
+    <Box dir="rtl" sx={{ minHeight: "100vh", bgcolor: "background.default" }}>
       <Header userMode={userMode} onChangeMode={setUserMode} />
 
       <Box sx={{ p: 2 }}>

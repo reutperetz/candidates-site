@@ -93,10 +93,10 @@ function FormsPage() {
   const cardBaseStyle = useMemo(
     () => ({
       height: "100%",
-      boxShadow: "0 4px 12px rgba(0,0,0,0.08)",
+      boxShadow: 2,
       borderRadius: 3,
       overflow: "hidden",
-      backgroundColor: "#ffffff",
+      backgroundColor: "background.paper",
     }),
     []
   );
@@ -269,7 +269,7 @@ function FormsPage() {
   const showError = (key: keyof CandidateForm) => touched[key] && !!errors[key];
 
   return (
-    <Box sx={{ backgroundColor: "#f5f5f5", py: 6 }}>
+    <Box sx={{ bgcolor: "background.default", py: 6 }}>
       <Container maxWidth="lg" dir="rtl">
         {/* כותרת */}
         <Box textAlign="center" mb={4}>
@@ -277,15 +277,15 @@ function FormsPage() {
             label="הגשת מועמדות"
             sx={{
               mb: 2,
-              bgcolor: "#e8f5e9",
-              color: "#2e7d32",
+              bgcolor: "success.light",
+              color: "success.main",
               fontWeight: 600,
             }}
           />
           <Typography
             variant="h4"
             component="h1"
-            sx={{ color: "#2e7d32", fontWeight: 700, mb: 1 }}
+            sx={{ color: "success.main", fontWeight: 700, mb: 1 }}
           >
             טפסים – Forms
           </Typography>
@@ -295,16 +295,16 @@ function FormsPage() {
         </Box>
 
         {/* טופס מועמדות */}
-        <Card sx={{ ...cardBaseStyle, borderTop: "4px solid #2e7d32", mb: 4 }}>
+        <Card sx={{ ...cardBaseStyle, borderTop: "4px solid", borderTopColor: "success.main", mb: 4 }}>
           <CardContent sx={{ direction: "rtl", textAlign: "right" }}>
             <Box display="flex" alignItems="center" gap={1} mb={1.5}>
-              <PersonAddAlt1Icon sx={{ color: "#2e7d32" }} />
+              <PersonAddAlt1Icon sx={{ color: "success.main" }} />
               <Typography variant="h6" fontWeight={700}>
                 טופס הגשת מועמדות
               </Typography>
             </Box>
 
-            <Typography variant="body2" sx={{ mb: 3, color: "#455a64" }}>
+            <Typography variant="body2" sx={{ mb: 3, color: "text.secondary" }}>
               כל השדות חובה. לאחר השליחה תקבלי אישור, והמערכת תסמן את המועמדות כ״חדש״.
             </Typography>
 
@@ -465,7 +465,7 @@ function FormsPage() {
               <Button
                 variant="contained"
                 startIcon={<AssignmentIcon />}
-                sx={{ bgcolor: "#2e7d32" }}
+                sx={{ bgcolor: "success.main" }}
                 onClick={onSubmit}
               >
                 שליחת מועמדות
@@ -483,15 +483,15 @@ function FormsPage() {
         {/* כרטיסי מידע שימושיים במקום "תכנון הפרויקט" */}
         <Grid container spacing={3} sx={{ mb: 4 }}>
           <Grid item xs={12} md={4}>
-            <Card sx={{ ...cardBaseStyle, borderTop: "4px solid #388e3c" }}>
+            <Card sx={{ ...cardBaseStyle, borderTop: "4px solid", borderTopColor: "success.dark" }}>
               <CardContent sx={{ direction: "rtl", textAlign: "right" }}>
                 <Box display="flex" alignItems="center" gap={1} mb={1.5}>
-                  <RuleIcon sx={{ color: "#388e3c" }} />
+                  <RuleIcon sx={{ color: "success.dark" }} />
                   <Typography variant="h6" fontWeight={700}>
                     איך יודעים אם עומדים בתנאי קבלה?
                   </Typography>
                 </Box>
-                <Typography variant="body2" sx={{ color: "#455a64", mb: 2 }}>
+                <Typography variant="body2" sx={{ color: "text.secondary", mb: 2 }}>
                   מומלץ לבדוק תנאי קבלה לפי המסלול המבוקש, ולהיעזר במחשבון הסיכוי.
                 </Typography>
                 <Button fullWidth variant="outlined" onClick={() => navigate("/admission-requirements")}>
@@ -502,15 +502,15 @@ function FormsPage() {
           </Grid>
 
           <Grid item xs={12} md={4}>
-            <Card sx={{ ...cardBaseStyle, borderTop: "4px solid #2e7d32" }}>
+            <Card sx={{ ...cardBaseStyle, borderTop: "4px solid", borderTopColor: "success.main" }}>
               <CardContent sx={{ direction: "rtl", textAlign: "right" }}>
                 <Box display="flex" alignItems="center" gap={1} mb={1.5}>
-                  <MenuBookIcon sx={{ color: "#2e7d32" }} />
+                  <MenuBookIcon sx={{ color: "success.main" }} />
                   <Typography variant="h6" fontWeight={700}>
                     הקורסים בתואר
                   </Typography>
                 </Box>
-                <Typography variant="body2" sx={{ color: "#455a64", mb: 2 }}>
+                <Typography variant="body2" sx={{ color: "text.secondary", mb: 2 }}>
                   אפשר לעיין ברשימת הקורסים ולבדוק אילו קורסים נלמדים בכל מסלול.
                 </Typography>
                 <Button fullWidth variant="outlined" onClick={() => navigate("/courses")}>
@@ -521,15 +521,15 @@ function FormsPage() {
           </Grid>
 
           <Grid item xs={12} md={4}>
-            <Card sx={{ ...cardBaseStyle, borderTop: "4px solid #4caf50" }}>
+            <Card sx={{ ...cardBaseStyle, borderTop: "4px solid", borderTopColor: "success.light" }}>
               <CardContent sx={{ direction: "rtl", textAlign: "right" }}>
                 <Box display="flex" alignItems="center" gap={1} mb={1.5}>
-                  <HelpCenterIcon sx={{ color: "#4caf50" }} />
+                  <HelpCenterIcon sx={{ color: "success.light" }} />
                   <Typography variant="h6" fontWeight={700}>
                     צריכים עזרה?
                   </Typography>
                 </Box>
-                <Typography variant="body2" sx={{ color: "#455a64", mb: 2 }}>
+                <Typography variant="body2" sx={{ color: "text.secondary", mb: 2 }}>
                   בעמוד העזרה תמצאי שאלות נפוצות ודרכי יצירת קשר.
                 </Typography>
                 <Button fullWidth variant="outlined" onClick={() => navigate("/help")}>
@@ -543,7 +543,7 @@ function FormsPage() {
         {/* קישורים מהירים */}
         <Box mt={2}>
           <Divider sx={{ mb: 3 }} />
-          <Typography variant="h6" sx={{ mb: 2, fontWeight: 700, color: "#2e7d32" }}>
+          <Typography variant="h6" sx={{ mb: 2, fontWeight: 700, color: "success.main" }}>
             קישורים מהירים
           </Typography>
           <Grid container spacing={2}>

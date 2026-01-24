@@ -185,9 +185,10 @@ function HomePage() {
         sx={{
           mb: 4,
           borderRadius: 3,
-          boxShadow: "0 4px 15px rgba(0,0,0,0.12)",
-          background: "linear-gradient(135deg, #2e7d32 0%, #4caf50 100%)",
-          color: "white",
+          boxShadow: 4,
+          background: (theme) =>
+            `linear-gradient(135deg, ${theme.palette.success.dark} 0%, ${theme.palette.success.main} 100%)`,
+          color: "success.contrastText",
         }}
       >
         <CardContent sx={{ py: 4, textAlign: "center" }}>
@@ -224,7 +225,7 @@ function HomePage() {
                   עדכונים ומידע חדש מהמכללה
                 </Typography>
               </Box>
-              <NotificationsActiveIcon sx={{ fontSize: 36, color: "#2e7d32", ml: 1 }} />
+              <NotificationsActiveIcon sx={{ fontSize: 36, color: "success.main", ml: 1 }} />
             </CardContent>
           </Card>
         </Grid>
@@ -250,7 +251,7 @@ function HomePage() {
                   בדיקת מצב הבקשה שלך להרשמה
                 </Typography>
               </Box>
-              <AssignmentTurnedInIcon sx={{ fontSize: 36, color: "#2e7d32", ml: 1 }} />
+              <AssignmentTurnedInIcon sx={{ fontSize: 36, color: "success.main", ml: 1 }} />
             </CardContent>
           </Card>
         </Grid>
@@ -276,7 +277,7 @@ function HomePage() {
                   צפייה בקורסים ונתוני המסלול במחלקה
                 </Typography>
               </Box>
-              <MenuBookIcon sx={{ fontSize: 36, color: "#2e7d32", ml: 1 }} />
+              <MenuBookIcon sx={{ fontSize: 36, color: "success.main", ml: 1 }} />
             </CardContent>
           </Card>
         </Grid>
@@ -302,7 +303,7 @@ function HomePage() {
                   הערכת סיכויי הקבלה על בסיס הנתונים שלך
                 </Typography>
               </Box>
-              <AssessmentIcon sx={{ fontSize: 36, color: "#2e7d32", ml: 1 }} />
+              <AssessmentIcon sx={{ fontSize: 36, color: "success.main", ml: 1 }} />
             </CardContent>
           </Card>
         </Grid>
@@ -310,7 +311,7 @@ function HomePage() {
 
       {/* ------- טופס הרשמה מרכזי ------- */}
       <Box id="register-form" mb={2} textAlign="center">
-        <Typography variant="h5" sx={{ fontWeight: 700, color: "#2e7d32", mb: 1 }}>
+        <Typography variant="h5" sx={{ fontWeight: 700, color: "success.main", mb: 1 }}>
           טופס הרשמה לתואר במדעי המחשב
         </Typography>
         <Typography variant="body2" color="text.secondary">
@@ -324,13 +325,14 @@ function HomePage() {
           mx: "auto",
           borderRadius: 3,
           boxShadow: "0 4px 15px rgba(0,0,0,0.10)",
-          borderTop: "5px solid #2e7d32",
+          borderTop: "5px solid",
+          borderTopColor: "success.main",
         }}
       >
         <CardContent>
           <Typography
             variant="h6"
-            sx={{ fontWeight: 700, mb: 3, textAlign: "center", color: "#2e7d32" }}
+            sx={{ fontWeight: 700, mb: 3, textAlign: "center", color: "success.main" }}
           >
             טופס הרשמה
           </Typography>
