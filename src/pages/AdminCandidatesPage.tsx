@@ -62,6 +62,8 @@ interface Candidate {
   createdAt?: Timestamp; // לשמירה/מיון (אופציונלי)
 }
 
+type CandidateDoc = Omit<Candidate, "docId">;
+
 const formatDateIL = (d: Date) => {
   const dd = String(d.getDate()).padStart(2, "0");
   const mm = String(d.getMonth() + 1).padStart(2, "0");
@@ -172,7 +174,7 @@ const AdminCandidatesPage = () => {
       collection(db, "candidates"),
       (snap) => {
       const items: Candidate[] = snap.docs.map((d) => {
-        const data = d.data() as any;
+        const data = d.data() as Partial<CandidateDoc>;
 
         const createdAtTs: Timestamp | undefined = data.createdAt;
         const createdAtText: string =

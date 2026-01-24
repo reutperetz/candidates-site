@@ -26,6 +26,9 @@ type FaqItem = {
   status?: string;
 };
 
+type FaqDoc = Omit<FaqItem, "docId">;
+
+
 function HelpPage() {
   // רשימת השאלות לדוגמא – אפשר לערוך טקסטים חופשי
   const [faqs, setFaqs] = useState<FaqItem[]>([]);
@@ -37,7 +40,7 @@ function HelpPage() {
       try {
         const snap = await getDocs(collection(db, "faqs"));
         const items: FaqItem[] = snap.docs.map((d) => {
-          const data = d.data() as any;
+          const data = d.data() as Partial<FaqDoc>;
           return {
             docId: d.id,
             question: String(data.question ?? ""),

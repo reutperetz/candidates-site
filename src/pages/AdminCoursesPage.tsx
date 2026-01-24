@@ -160,7 +160,7 @@ const AdminCoursesPage = () => {
       collection(db, "courses"),
       (snap) => {
         const items: Course[] = snap.docs.map((d) => {
-          const data = d.data() as any;
+          const data = d.data() as Partial<CourseDoc>;
           return {
             docId: d.id,
             code: String(data.code ?? ""),

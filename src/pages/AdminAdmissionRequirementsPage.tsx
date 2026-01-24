@@ -1,5 +1,5 @@
 // src/pages/AdminAdmissionRequirementsPage.tsx
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import {
   Box,
   Container,
@@ -63,6 +63,7 @@ interface AdmissionRequirement {
   createdAt?: Timestamp;
 }
 
+type RequirementDoc = Omit<AdmissionRequirement, "docId">;
 
 // נתוני דמה התחלתיים
 
@@ -205,7 +206,7 @@ const AdminAdmissionRequirementsPage = () => {
       collection(db, "requirements"),
       (snap) => {
         const items: AdmissionRequirement[] = snap.docs.map((d) => {
-          const data = d.data() as any;
+          const data = d.data() as Partial<RequirementDoc>;
           return {
             docId: d.id,
             track: data.track ?? "A",

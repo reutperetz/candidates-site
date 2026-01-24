@@ -50,6 +50,8 @@ interface FaqItem {
   createdAt?: Timestamp;
 }
 
+type FaqDoc = Omit<FaqItem, "docId">;
+
 const statusChip = (status: FaqStatus) =>
   status === "active"
     ? <Chip label="פעיל" color="success" size="small" />
@@ -70,7 +72,7 @@ export default function AdminFaqManager() {
       collection(db, "faqs"),
       (snap) => {
         const items: FaqItem[] = snap.docs.map((d) => {
-          const data = d.data() as any;
+          const data = d.data() as Partial<FaqDoc>;
           return {
             docId: d.id,
             question: String(data.question ?? ""),

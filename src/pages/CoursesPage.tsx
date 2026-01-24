@@ -38,6 +38,10 @@ type Course = {
   status?: string;
 };
 
+type CourseDoc = Omit<Course, "docId">;
+
+
+
 
 
 function CoursesPage() {
@@ -50,7 +54,7 @@ function CoursesPage() {
       try {
         const snap = await getDocs(collection(db, "courses"));
         const items: Course[] = snap.docs.map((d) => {
-          const data = d.data() as any;
+          const data = d.data() as Partial<CourseDoc>;
           return {
             docId: d.id,
             code: String(data.code ?? ""),

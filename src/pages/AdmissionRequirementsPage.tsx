@@ -30,6 +30,9 @@ type AdminRequirement = {
 
 const trackOrder: Record<TrackType, number> = { A: 0, B: 1, C: 2 };
 
+type RequirementDoc = Omit<AdminRequirement, "docId">;
+
+
 function buildDisplayItems(req: AdminRequirement): RequirementDisplay[] {
   const items: RequirementDisplay[] = [];
   if (req.minPsycho !== undefined) {
@@ -65,7 +68,7 @@ const AdmissionRequirementsPage = () => {
       try {
         const snap = await getDocs(collection(db, "requirements"));
         const items: AdminRequirement[] = snap.docs.map((d) => {
-          const data = d.data() as any;
+          const data = d.data() as Partial<RequirementDoc>;
           return {
             docId: d.id,
             track: data.track ?? "A",

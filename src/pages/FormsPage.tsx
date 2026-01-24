@@ -248,7 +248,6 @@ export default function FormsPage() {
         type: "error",
         message: "שגיאה בשליחה. נסי שוב.",
       });
-    }
     } finally {
       setIsSubmitting(false);
     }
