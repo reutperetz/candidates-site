@@ -49,6 +49,9 @@ interface AdmissionRequirement {
   status: RequirementStatus;
 }
 
+// key קבוע ל־localStorage 
+const REQUIREMENTS_KEY = "admin_admission_requirements";
+
 // נתוני דמה התחלתיים
 const initialRequirements: AdmissionRequirement[] = [
   {
@@ -155,8 +158,8 @@ function validateForm(form: FormState): FormErrors {
 
   // טווחים (את יכולה לשנות לפי הדרישות שלכם)
   // פסיכומטרי: 200–800 (אם את משתמשת בשדה כמותי 50–150, תשני כאן בהתאם)
-  if (minPsycho !== undefined && !isNumInRange(minPsycho, 0, 800)) {
-    errors.minPsycho = "טווח לא תקין (לדוגמה 0–800)";
+  if (minPsycho !== undefined && !isNumInRange(minPsycho, 200, 800)) {
+    errors.minPsycho = "טווח לא תקין (לדוגמה 200–800)";
   }
 
   // ממוצע בגרות: 0–120
@@ -200,10 +203,18 @@ function validateForm(form: FormState): FormErrors {
 const AdminAdmissionRequirementsPage = () => {
   const [tab, setTab] = useState(0);
 
-  // ✅ רשימה אמיתית (לא mock קבוע)
-  const [requirements, setRequirements] = useState<AdmissionRequirement[]>(
-    initialRequirements
-  );
+  //  רשימה אמיתית (לא mock קבוע)
+  const [requirements, setRequirements] = useState<AdmissionRequirement[]>(() => {
+  const raw = localStorage.getItem(REQUIREMENTS_KEY);
+  if (!raw) return initialRequirements;
+
+  try {
+    const parsed: unknown = JSON.parse(raw);
+    return Array.isArray(parsed) ? (parsed as AdmissionRequirement[]) : initialRequirements;
+  } catch {
+    return initialRequirements;
+  }
+});
 
   // טופס הוספה
   const [form, setForm] = useState<FormState>(emptyForm);
@@ -218,6 +229,13 @@ const AdminAdmissionRequirementsPage = () => {
   const [editForm, setEditForm] = useState<FormState>(emptyForm);
   const [editErrors, setEditErrors] = useState<FormErrors>({});
   const [edited, setEdited] = useState(false);
+
+
+  //  helper: מעדכן state + שומר ל־localStorage (Add/Edit/Delete משתמשים בו)
+  const updateRequirements = (next: AdmissionRequirement[]) => {
+    setRequirements(next);
+    localStorage.setItem(REQUIREMENTS_KEY, JSON.stringify(next));
+  };
 
   const nextId = useMemo(() => {
     return requirements.length ? Math.max(...requirements.map((r) => r.id)) + 1 : 1;
@@ -249,11 +267,12 @@ const AdminAdmissionRequirementsPage = () => {
       status: form.status,
     };
 
-    setRequirements((prev) => [newReq, ...prev]);
+    // שמירה ל־localStorage 
+    updateRequirements([newReq, ...requirements]);
+
     setSaved(true);
     setForm(emptyForm);
     setErrors({});
-    // חוזרים לרשימה כדי “לראות שזה נשמר”
     setTab(0);
   };
 
@@ -308,7 +327,10 @@ const AdminAdmissionRequirementsPage = () => {
       status: editForm.status,
     };
 
-    setRequirements((prev) => prev.map((x) => (x.id === selected.id ? updated : x)));
+    // שמירה ל־localStorage גם בעריכה
+    const next = requirements.map((x) => (x.id === selected.id ? updated : x));
+    updateRequirements(next);
+
     setEdited(true);
     setTimeout(() => {
       setEditOpen(false);
@@ -323,7 +345,10 @@ const AdminAdmissionRequirementsPage = () => {
 
   const confirmDelete = () => {
     if (!selected) return;
-    setRequirements((prev) => prev.filter((x) => x.id !== selected.id));
+    // 4) שמירה ל־localStorage גם במחיקה
+    const next = requirements.filter((x) => x.id !== selected.id);
+    updateRequirements(next);
+    
     setDeleteOpen(false);
     setSelected(null);
   };
