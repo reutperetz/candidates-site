@@ -65,7 +65,7 @@ const emptyForm: CandidateForm = {
   preferredTrack: "",
 };
 
-function FormsPage() {
+export default function FormsPage() {
   const navigate = useNavigate();
 
   const [form, setForm] = useState<CandidateForm>(emptyForm);
@@ -163,7 +163,8 @@ function FormsPage() {
 
     // יחידות אנגלית 3/4/5
     if (!form.englishUnits.trim()) e.englishUnits = "שדה חובה";
-    else if (!["3", "4", "5"].includes(form.englishUnits)) e.englishUnits = "אפשר לבחור רק 3 / 4 / 5";
+    else if (!["3", "4", "5"].includes(form.englishUnits))
+      e.englishUnits = "אפשר לבחור רק 3 / 4 / 5";
 
     // ציון אנגלית 0-100
     if (!form.englishGrade.trim()) e.englishGrade = "שדה חובה";
@@ -207,7 +208,7 @@ function FormsPage() {
     }
 
     try {
-      // שומרים ל-Firestore. doc id נוצר אוטומטית (כמו שדרשו).
+      // Firestore: doc id נוצר אוטומטית
       const payload = {
         ...form,
         status: "חדש" as const,
@@ -237,7 +238,7 @@ function FormsPage() {
         englishGrade: false,
         preferredTrack: false,
       });
-    } catch (e) {
+    } catch {
       setSnack({
         open: true,
         type: "error",
@@ -348,7 +349,11 @@ function FormsPage() {
                   onChange={(e) => setField("preferredTrack", e.target.value)}
                   onBlur={() => markTouched("preferredTrack")}
                   error={showError("preferredTrack")}
-                  helperText={showError("preferredTrack") ? errors.preferredTrack : "לדוגמה: מדעי המחשב (בוקר)"}
+                  helperText={
+                    showError("preferredTrack")
+                      ? errors.preferredTrack
+                      : "לדוגמה: מדעי המחשב (בוקר)"
+                  }
                 />
               </Grid>
 
@@ -456,7 +461,7 @@ function FormsPage() {
           </CardContent>
         </Card>
 
-        {/* כרטיסי מידע שימושיים במקום "תכנון הפרויקט" */}
+        {/* כרטיסי מידע */}
         <Grid container spacing={3} sx={{ mb: 4 }}>
           <Grid item xs={12} md={4}>
             <Card sx={{ ...cardBaseStyle, borderTop: "4px solid #388e3c" }}>
@@ -560,5 +565,3 @@ function FormsPage() {
     </Box>
   );
 }
-
-export default FormsPage;
