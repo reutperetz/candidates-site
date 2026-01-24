@@ -1,37 +1,48 @@
 // src/theme/theme.ts
 import { createTheme, responsiveFontSizes } from "@mui/material/styles";
+import { blueGrey, common, green, grey } from "@mui/material/colors";
 
 export type ColorMode = "light" | "dark";
 
 const BRAND = {
-  primary: "#2e7d32",
-  secondary: "#1b5e20",
+  primary: {
+    light: green[700],
+    dark: green[300],
+  },
+  secondary: {
+    light: blueGrey[600],
+    dark: blueGrey[300],
+  },
 };
 
 export function buildTheme(mode: ColorMode) {
   let theme = createTheme({
     palette: {
       mode,
-      primary: { main: BRAND.primary },
-      secondary: { main: BRAND.secondary },
+      primary: {
+        main: mode === "dark" ? BRAND.primary.dark : BRAND.primary.light,
+      },
+      secondary: {
+        main: mode === "dark" ? BRAND.secondary.dark : BRAND.secondary.light,
+      },
 
       // חשוב לדרישה: "בדארק כל הרקע כהה"
       background:
         mode === "dark"
           ? {
-              default: "#0f1210",
-              paper: "#151a15",
+              default: blueGrey[900],
+              paper: blueGrey[800],
             }
           : {
-              default: "#ffffff",
-              paper: "#ffffff",
+              default: grey[50],
+              paper: common.white,
             },
     },
 
     shape: { borderRadius: 12 },
 
     typography: {
-      fontFamily: `"Rubik", "Heebo", "Arial", sans-serif`,
+      fontFamily: `"Assistant", "Rubik", "Arial", sans-serif`,
     },
 
     components: {
@@ -39,6 +50,7 @@ export function buildTheme(mode: ColorMode) {
         styleOverrides: {
           body: {
             direction: "rtl",
+            backgroundColor: mode === "dark" ? blueGrey[900] : grey[50],
           },
         },
       },
