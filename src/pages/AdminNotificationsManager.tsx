@@ -156,7 +156,16 @@ export default function AdminNotificationsManager() {
       </Typography>
 
       <Paper elevation={3} sx={{ borderRadius: 3, p: 2, mb: 3 }}>
-        <Tabs value={tab} onChange={(_, v) => setTab(v)} centered textColor="success" indicatorColor="success">
+        <Tabs
+          value={tab}
+          onChange={(_, v) => setTab(v)}
+          centered
+          sx={{
+            "& .MuiTabs-indicator": { bgcolor: "success.main" },
+            "& .MuiTab-root": { fontWeight: 600 },
+            "& .MuiTab-root.Mui-selected": { color: "success.main" },
+          }}
+        >
           <Tab label="📢 יצירת הודעה חדשה" />
           <Tab label="📄 רשימת הודעות" />
         </Tabs>
