@@ -1,5 +1,6 @@
 // src/pages/AdminHomePage.tsx
-import { Box, Container, Typography, Grid, Card, CardContent, Paper } from "@mui/material";
+import { Box, Container, Typography, Card, CardContent, Paper } from "@mui/material";
+import Grid from "@mui/material/GridLegacy";
 import NotificationsNoneIcon from "@mui/icons-material/NotificationsNone";
 import MenuBookIcon from "@mui/icons-material/MenuBook";
 import GroupOutlinedIcon from "@mui/icons-material/GroupOutlined";
