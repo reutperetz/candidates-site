@@ -1,5 +1,5 @@
 // src/pages/AdminAdmissionRequirementsPage.tsx
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   Box,
   Container,
@@ -201,6 +201,39 @@ const AdminAdmissionRequirementsPage = () => {
   const [requirements, setRequirements] = useState<AdmissionRequirement[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
+  const [saveError, setSaveError] = useState("");
+  const didSeedRef = useRef(false);
+
+  const seedRequirements = async () => {
+    const seedItems = [
+      {
+        track: "A",
+        trackName: "\u05de\u05e1\u05dc\u05d5\u05dc \u05d0' - \u05e4\u05e1\u05d9\u05db\u05d5\u05de\u05d8\u05e8\u05d9 \u05d9\u05e9\u05d9\u05e8",
+        minPsycho: 650,
+        status: "active",
+      },
+      {
+        track: "B",
+        trackName: "\u05de\u05e1\u05dc\u05d5\u05dc \u05d1' - \u05e1\u05db\u05d5\u05dd \u05de\u05e9\u05d5\u05dc\u05d1",
+        minPsycho: 130,
+        minAverage: 90,
+        minMath: 85,
+        mathUnits: 5,
+        status: "active",
+      },
+    ];
+
+    try {
+      await Promise.all(
+        seedItems.map((item) =>
+          addDoc(collection(db, "requirements"), { ...item, createdAt: serverTimestamp() })
+        )
+      );
+    } catch (err) {
+      console.error("Failed to seed requirements", err);
+    }
+  };
+
   useEffect(() => {
     const unsub = onSnapshot(
       collection(db, "requirements"),
@@ -222,8 +255,15 @@ const AdminAdmissionRequirementsPage = () => {
           };
         });
         items.sort((a, b) => (b.createdAt?.toMillis?.() ?? 0) - (a.createdAt?.toMillis?.() ?? 0));
+
+        if (items.length === 0 && !didSeedRef.current) {
+          didSeedRef.current = true;
+          seedRequirements();
+        }
+
         setRequirements(items);
         setIsLoading(false);
+
       },
       () => {
         setIsLoading(false);
@@ -259,6 +299,7 @@ const AdminAdmissionRequirementsPage = () => {
     const v = validateForm(form);
     setErrors(v);
     if (Object.values(v).some(Boolean)) return;
+    setSaveError("");
 
     const payload = {
       track: form.track as TrackType,
@@ -279,8 +320,10 @@ const AdminAdmissionRequirementsPage = () => {
       setForm(emptyForm);
       setErrors({});
       setTab(0);
-    } catch {
+    } catch (err) {
+      console.error("Failed to add requirement", err);
       setSaved(false);
+      setSaveError("\u05e9\u05d2\u05d9\u05d0\u05d4 \u05d1\u05e9\u05de\u05d9\u05e8\u05d4. \u05e0\u05e1\u05d9 \u05e9\u05d5\u05d1.");
     }
   };
 
@@ -341,7 +384,8 @@ const AdminAdmissionRequirementsPage = () => {
         setEditOpen(false);
         setSelected(null);
       }, 600);
-    } catch {
+    } catch (err) {
+      console.error("Failed to update requirement", err);
       setEdited(false);
     }
   };
@@ -357,7 +401,8 @@ const AdminAdmissionRequirementsPage = () => {
       await deleteDoc(doc(db, "requirements", selected.docId));
       setDeleteOpen(false);
       setSelected(null);
-    } catch {
+    } catch (err) {
+      console.error("Failed to delete requirement", err);
       setDeleteOpen(false);
       setSelected(null);
     }
@@ -629,6 +674,11 @@ const renderFormFields = (
               </Typography>
 
               {renderFormFields(form, handleChange, errors)}
+              {saveError && (
+                <Box mt={2}>
+                  <Alert severity="error">{saveError}</Alert>
+                </Box>
+              )}
 
               <Box mt={4} display="flex" justifyContent="center" gap={2} flexWrap="wrap">
                 <Button

@@ -1,5 +1,5 @@
 // src/pages/AdminFaqManager.tsx
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   Box,
   Container,
@@ -67,6 +67,38 @@ export default function AdminFaqManager() {
   const [faqs, setFaqs] = useState<FaqItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
+  const didSeedRef = useRef(false);
+
+  const seedFaqs = async () => {
+    const seedItems = [
+      {
+        question: "\u05d0\u05d9\u05da \u05d0\u05e0\u05d9 \u05d9\u05d5\u05d3\u05e2 \u05d0\u05dd \u05db\u05dc \u05d4\u05de\u05e1\u05de\u05db\u05d9\u05dd \u05d4\u05ea\u05e7\u05d1\u05dc\u05d5?",
+        answer: "\u05e0\u05d9\u05ea\u05df \u05dc\u05d1\u05d3\u05d5\u05e7 \u05d0\u05ea \u05e1\u05d8\u05d8\u05d5\u05e1 \u05d4\u05d4\u05e8\u05e9\u05de\u05d4 \u05d1\u05db\u05dc \u05e8\u05d2\u05e2 \u05de\u05ea\u05d5\u05da \u05d0\u05d6\u05d5\u05e8 \u05d4\u05d0\u05d9\u05d6\u05d5\u05e8 \u05d4\u05d0\u05d9\u05e9\u05d9 \u05d1\u05de\u05e2\u05e8\u05db\u05ea.",
+        status: "active",
+      },
+      {
+        question: "\u05de\u05d4\u05dd \u05ea\u05e0\u05d0\u05d9 \u05d4\u05e7\u05d1\u05dc\u05d4 \u05d4\u05e2\u05d9\u05e7\u05e8\u05d9\u05d9\u05dd?",
+        answer: "\u05ea\u05e0\u05d0\u05d9 \u05d4\u05e7\u05d1\u05dc\u05d4 \u05de\u05ea\u05d1\u05e1\u05e1\u05d9\u05dd \u05e2\u05dc \u05e6\u05d9\u05d5\u05df \u05e4\u05e1\u05d9\u05db\u05d5\u05de\u05d8\u05e8\u05d9, \u05de\u05de\u05d5\u05e6\u05e2 \u05d1\u05d2\u05e8\u05d5\u05ea \u05d5\u05d9\u05d7\u05d9\u05d3\u05d5\u05ea \u05dc\u05d9\u05de\u05d5\u05d3 \u05d1\u05de\u05ea\u05de\u05d8\u05d9\u05e7\u05d4 \u05d5\u05d1\u05d0\u05e0\u05d2\u05dc\u05d9\u05ea.",
+        status: "active",
+      },
+      {
+        question: "\u05db\u05de\u05d4 \u05d6\u05de\u05df \u05e0\u05de\u05e9\u05da \u05d4\u05ea\u05d5\u05d0\u05e8?",
+        answer: "\u05de\u05e9\u05da \u05d4\u05dc\u05d9\u05de\u05d5\u05d3\u05d9\u05dd \u05d4\u05de\u05dc\u05d0 \u05d4\u05d5\u05d0 \u05d1\u05d3\u05e8\u05da-\u05db\u05dc\u05dc \u05e9\u05dc\u05d5\u05e9 \u05e9\u05e0\u05d9\u05dd \u05d0\u05e7\u05d3\u05de\u05d9\u05d5\u05ea.",
+        status: "active",
+      },
+    ];
+
+    try {
+      await Promise.all(
+        seedItems.map((item) =>
+          addDoc(collection(db, "faqs"), { ...item, createdAt: serverTimestamp() })
+        )
+      );
+    } catch (err) {
+      console.error("Failed to seed FAQs", err);
+    }
+  };
+
   useEffect(() => {
     const unsub = onSnapshot(
       collection(db, "faqs"),
@@ -82,6 +114,12 @@ export default function AdminFaqManager() {
           };
         });
         items.sort((a, b) => (b.createdAt?.toMillis?.() ?? 0) - (a.createdAt?.toMillis?.() ?? 0));
+
+        if (items.length === 0 && !didSeedRef.current) {
+          didSeedRef.current = true;
+          seedFaqs();
+        }
+
         setFaqs(items);
         setIsLoading(false);
       },
@@ -214,7 +252,8 @@ export default function AdminFaqManager() {
         msg: "השאלה נמחקה",
         severity: "success",
       });
-    } catch {
+    } catch (err) {
+      console.error("Failed to delete FAQ", err);
       setDeleteOpen(false);
       setSelected(null);
     }
