@@ -38,7 +38,10 @@ type Course = {
   status?: string;
 };
 
-type CourseDoc = Omit<Course, "docId">;
+type CourseDoc = Omit<Course, "docId" | "credits"> & {
+  credits?: number;
+  points?: number;
+};
 
 
 

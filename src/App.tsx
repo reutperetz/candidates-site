@@ -91,6 +91,7 @@ function App() {
           <Route path="/admin" element={<AdminOnly><AdminHomePage /></AdminOnly>} />
           <Route path="/admin/candidates" element={<AdminOnly><AdminCandidatesPage /></AdminOnly>} />
           <Route path="/admin/courses" element={<AdminOnly><AdminCoursesPage /></AdminOnly>} />
+          <Route path="/admin/courses/:courseId" element={<AdminOnly><AdminCoursesPage /></AdminOnly>} />
           <Route
             path="/admin/admission-requirements"
             element={<AdminOnly><AdminAdmissionRequirementsPage /></AdminOnly>}

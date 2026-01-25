@@ -1,5 +1,6 @@
 // src/pages/AdminCoursesPage.tsx
 import { useEffect, useMemo, useRef, useState } from "react";
+import { useNavigate, useParams } from "react-router-dom";
 import {
   Box,
   Container,
@@ -56,6 +57,8 @@ interface Course {
   prerequisites?: string;
   createdAt?: Timestamp;
 }
+
+type CourseDoc = Omit<Course, "docId">;
 
 // נתוני דמה התחלתיים (עכשיו נשמרים ב-state כדי לערוך/למחוק)
 
@@ -142,6 +145,8 @@ function validateCourse(form: FormState, courses: Course[], editingDocId: string
 }
 
 const AdminCoursesPage = () => {
+  const { courseId } = useParams();
+  const navigate = useNavigate();
   // 0 = רשימה, 1 = הוספה/עריכה
   const [tab, setTab] = useState(0);
 
@@ -155,6 +160,8 @@ const AdminCoursesPage = () => {
   const [editingDocId, setEditingDocId] = useState<string | null>(null);
   const [saveError, setSaveError] = useState("");
   const didSeedRef = useRef(false);
+  const lastHandledIdRef = useRef<string | null>(null);
+  const [missingCourseId, setMissingCourseId] = useState<string | null>(null);
   const [editingCode, setEditingCode] = useState<string | null>(null); // אם לא null => עריכה
 
   const seedCourses = async () => {
@@ -245,6 +252,26 @@ const AdminCoursesPage = () => {
     return () => unsub();
   }, []);
 
+  useEffect(() => {
+    if (!courseId) {
+      lastHandledIdRef.current = null;
+      setMissingCourseId(null);
+      return;
+    }
+    if (isLoading) return;
+    if (lastHandledIdRef.current === courseId) return;
+
+    const match = courses.find((course) => course.docId === courseId);
+    if (match) {
+      lastHandledIdRef.current = courseId;
+      setMissingCourseId(null);
+      startEdit(match);
+    } else {
+      lastHandledIdRef.current = courseId;
+      setMissingCourseId(courseId);
+    }
+  }, [courseId, courses, isLoading]);
+
   const filteredCourses = useMemo(() => {
     const q = query.trim().toLowerCase();
     if (!q) return courses;
@@ -282,6 +309,9 @@ const AdminCoursesPage = () => {
   };
 
   const startCreate = () => {
+    if (courseId) {
+      navigate("/admin/courses");
+    }
     resetForm();
     setTab(1);
   };
@@ -379,6 +409,11 @@ const AdminCoursesPage = () => {
           </Tabs>
 
           {isLoading && <LinearProgress sx={{ mb: 2 }} />}
+          {!!missingCourseId && (
+            <Alert severity="error" sx={{ mb: 2 }}>
+              קורס עם המזהה "{missingCourseId}" לא נמצא במערכת.
+            </Alert>
+          )}
 
           {/* ================= טאב 1 – רשימת קורסים ================= */}
           {tab === 0 && (
@@ -442,7 +477,7 @@ const AdminCoursesPage = () => {
                               variant="outlined"
                               color="primary"
                               startIcon={<EditIcon fontSize="small" />}
-                              onClick={() => startEdit(c)}
+                              onClick={() => navigate(`/admin/courses/${c.docId}`)}
                             >
                               עריכה
                             </Button>
@@ -643,7 +678,10 @@ const AdminCoursesPage = () => {
                 <Button
                   variant="text"
                   sx={{ borderRadius: 999, px: 2 }}
-                  onClick={() => setTab(0)}
+                  onClick={() => {
+                    setTab(0);
+                    navigate("/admin/courses");
+                  }}
                 >
                   חזרה לרשימה
                 </Button>

@@ -1,7 +1,8 @@
 import { useEffect, useMemo, useState } from "react";
-import { Box, Container, Typography, Paper, Grid, Button, Divider, LinearProgress } from "@mui/material";
+import { Box, Container, Typography, Paper, Button, Divider, LinearProgress } from "@mui/material";
 import CheckCircleOutlineIcon from "@mui/icons-material/CheckCircleOutline";
 import ArrowForwardIosIcon from "@mui/icons-material/ArrowForwardIos";
+import Grid from "@mui/material/GridLegacy";
 import { useNavigate } from "react-router-dom";
 import { collection, getDocs, type Timestamp } from "firebase/firestore";
 import { db } from "../firebase";
