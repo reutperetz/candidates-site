@@ -170,43 +170,57 @@ const AdminCandidatesPage = () => {
 
   // ===== Firestore: טעינה בזמן אמת =====
   useEffect(() => {
+    console.log(
+      "[CandidatesSnapshot] subscribing... projectId:",
+      import.meta.env.VITE_FIREBASE_PROJECT_ID
+    );
+
     const unsub = onSnapshot(
       collection(db, "candidates"),
       (snap) => {
-      const items: Candidate[] = snap.docs.map((d) => {
-        const data = d.data() as Partial<CandidateDoc>;
+        try {
+          console.log("[CandidatesSnapshot] size:", snap.size);
+          console.log("[CandidatesSnapshot] ids:", snap.docs.map((d) => d.id));
+          console.log("[CandidatesSnapshot] firstDoc:", snap.docs[0]?.data());
 
-        const createdAtTs: Timestamp | undefined = data.createdAt;
-        const createdAtText: string =
-          data.createdAtText ||
-          (createdAtTs?.toDate ? formatDateIL(createdAtTs.toDate()) : "");
+          const items: Candidate[] = snap.docs.map((d) => {
+            const data = d.data() as Partial<CandidateDoc>;
 
-        return {
-          docId: d.id,
-          idNumber: String(data.idNumber ?? ""),
-          fullName: String(data.fullName ?? ""),
-          psychometric: Number(data.psychometric ?? 0),
-          bagrutAverage: Number(data.bagrutAverage ?? 0),
-          mathUnits: coerceUnits(data.mathUnits),
-          englishUnits: coerceUnits(data.englishUnits),
-          preferredTrack: coerceTrack(data.preferredTrack),
-          status: coerceStatus(data.status),
-          createdAtText,
-          createdAt: createdAtTs,
-        };
-      });
+            const createdAtTs = data.createdAt as Timestamp | undefined;
+            const createdAtText =
+              data.createdAtText ||
+              (createdAtTs?.toDate ? formatDateIL(createdAtTs.toDate()) : "");
 
-      // מיון: חדשים למעלה (אם יש createdAt)
-      items.sort((a, b) => {
-        const at = a.createdAt?.toMillis?.() ?? 0;
-        const bt = b.createdAt?.toMillis?.() ?? 0;
-        return bt - at;
-      });
+            return {
+              docId: d.id,
+              idNumber: String(data.idNumber ?? ""),
+              fullName: String(data.fullName ?? ""),
+              psychometric: Number(data.psychometric ?? 0),
+              bagrutAverage: Number(data.bagrutAverage ?? 0),
+              mathUnits: coerceUnits(data.mathUnits),
+              englishUnits: coerceUnits(data.englishUnits),
+              preferredTrack: coerceTrack(data.preferredTrack),
+              status: coerceStatus(data.status),
+              createdAtText,
+              createdAt: createdAtTs,
+            };
+          });
 
-      setCandidates(items);
-      setIsLoading(false);
+          items.sort((a, b) => {
+            const at = a.createdAt?.toMillis?.() ?? 0;
+            const bt = b.createdAt?.toMillis?.() ?? 0;
+            return bt - at;
+          });
+
+          setCandidates(items);
+        } catch (e) {
+          console.error("[CandidatesSnapshot] MAPPING FAILED:", e);
+        } finally {
+          setIsLoading(false);
+        }
       },
-      () => {
+      (err) => {
+        console.error("[CandidatesSnapshot] SNAPSHOT ERROR:", err);
         setIsLoading(false);
       }
     );
@@ -330,13 +344,28 @@ const AdminCandidatesPage = () => {
         createdAtText: formatDateIL(new Date()),
       };
 
-      await addDoc(collection(db, "candidates"), payload);
+      console.log("[SaveCandidate] projectId:", import.meta.env.VITE_FIREBASE_PROJECT_ID);
+      console.log("[SaveCandidate] collection:", "candidates");
+      console.log("[SaveCandidate] payload:", {
+        idNumber: payload.idNumber,
+        preferredTrack: payload.preferredTrack,
+        status: payload.status,
+        mathUnits: payload.mathUnits,
+        englishUnits: payload.englishUnits,
+        bagrutAverage: payload.bagrutAverage,
+        psychometric: payload.psychometric,
+      });
+
+      const docRef = await addDoc(collection(db, "candidates"), payload);
+      console.log("[SaveCandidate] success docId:", docRef.id);
 
       setForm(emptyForm);
       setFormTouched({});
       setSnack({ open: true, msg: "מועמד נוסף בהצלחה" });
       setTab(0);
-    } catch {
+    } catch (err) {
+      console.error("[SaveCandidate] FAILED:", err);
+      alert("Save failed. Check console for details.");
       setSnack({ open: true, msg: "שגיאה בשמירה. נסי שוב." });
     }
   };
