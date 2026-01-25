@@ -161,8 +161,13 @@ const AdminCoursesPage = () => {
   const [saveError, setSaveError] = useState("");
   const didSeedRef = useRef(false);
   const lastHandledIdRef = useRef<string | null>(null);
+  const courseIdRef = useRef<string | undefined>(undefined);
   const [missingCourseId, setMissingCourseId] = useState<string | null>(null);
   const [editingCode, setEditingCode] = useState<string | null>(null); // אם לא null => עריכה
+
+  useEffect(() => {
+    courseIdRef.current = courseId;
+  }, [courseId]);
 
   const seedCourses = async () => {
     const seedItems = [
@@ -215,62 +220,6 @@ const AdminCoursesPage = () => {
     }
   };
 
-  useEffect(() => {
-    const unsub = onSnapshot(
-      collection(db, "courses"),
-      (snap) => {
-        const items: Course[] = snap.docs.map((d) => {
-          const data = d.data() as Partial<CourseDoc>;
-          return {
-            docId: d.id,
-            code: String(data.code ?? ""),
-            name: String(data.name ?? ""),
-            type: data.type ?? "\u05d7\u05d5\u05d1\u05d4",
-            year: data.year ?? "\u05d0",
-            semester: data.semester ?? "\u05d0",
-            points: Number(data.points ?? 0),
-            status: data.status ?? "active",
-            description: data.description ?? undefined,
-            prerequisites: data.prerequisites ?? undefined,
-            createdAt: data.createdAt,
-          };
-        });
-        items.sort((a, b) => (b.createdAt?.toMillis?.() ?? 0) - (a.createdAt?.toMillis?.() ?? 0));
-
-        if (items.length === 0 && !didSeedRef.current) {
-          didSeedRef.current = true;
-          seedCourses();
-        }
-
-        setCourses(items);
-        setIsLoading(false);
-      },
-      () => {
-        setIsLoading(false);
-      }
-    );
-    return () => unsub();
-  }, []);
-
-  useEffect(() => {
-    if (!courseId) {
-      lastHandledIdRef.current = null;
-      setMissingCourseId(null);
-      return;
-    }
-    if (isLoading) return;
-    if (lastHandledIdRef.current === courseId) return;
-
-    const match = courses.find((course) => course.docId === courseId);
-    if (match) {
-      lastHandledIdRef.current = courseId;
-      setMissingCourseId(null);
-      startEdit(match);
-    } else {
-      lastHandledIdRef.current = courseId;
-      setMissingCourseId(courseId);
-    }
-  }, [courseId, courses, isLoading]);
 
   const filteredCourses = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -334,6 +283,58 @@ const AdminCoursesPage = () => {
     setSavedMsg("");
     setTab(1);
   };
+
+  useEffect(() => {
+    const unsub = onSnapshot(
+      collection(db, "courses"),
+      (snap) => {
+        const items: Course[] = snap.docs.map((d) => {
+          const data = d.data() as Partial<CourseDoc>;
+          return {
+            docId: d.id,
+            code: String(data.code ?? ""),
+            name: String(data.name ?? ""),
+            type: data.type ?? "\u05d7\u05d5\u05d1\u05d4",
+            year: data.year ?? "\u05d0",
+            semester: data.semester ?? "\u05d0",
+            points: Number(data.points ?? 0),
+            status: data.status ?? "active",
+            description: data.description ?? undefined,
+            prerequisites: data.prerequisites ?? undefined,
+            createdAt: data.createdAt,
+          };
+        });
+        items.sort((a, b) => (b.createdAt?.toMillis?.() ?? 0) - (a.createdAt?.toMillis?.() ?? 0));
+
+        if (items.length === 0 && !didSeedRef.current) {
+          didSeedRef.current = true;
+          seedCourses();
+        }
+
+        const currentId = courseIdRef.current;
+        if (!currentId) {
+          lastHandledIdRef.current = null;
+          setMissingCourseId(null);
+        } else if (lastHandledIdRef.current !== currentId) {
+          const match = items.find((course) => course.docId === currentId);
+          if (match) {
+            setMissingCourseId(null);
+            startEdit(match);
+          } else {
+            setMissingCourseId(currentId);
+          }
+          lastHandledIdRef.current = currentId;
+        }
+
+        setCourses(items);
+        setIsLoading(false);
+      },
+      () => {
+        setIsLoading(false);
+      }
+    );
+    return () => unsub();
+  }, []);
 
   const handleDelete = async (course: Course) => {
     const ok = window.confirm(`\u05dc\u05de\u05d7\u05d5\u05e7 \u05d0\u05ea \u05d4\u05e7\u05d5\u05e8\u05e1 "${course.name}" (${course.code})?`);
@@ -477,7 +478,10 @@ const AdminCoursesPage = () => {
                               variant="outlined"
                               color="primary"
                               startIcon={<EditIcon fontSize="small" />}
-                              onClick={() => navigate(`/admin/courses/${c.docId}`)}
+                              onClick={() => {
+                                startEdit(c);
+                                navigate(`/admin/courses/${c.docId}`);
+                              }}
                             >
                               עריכה
                             </Button>

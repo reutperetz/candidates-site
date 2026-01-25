@@ -75,16 +75,14 @@ function HomePage() {
 
   const state = (location.state ?? {}) as HomeLocationState;
 
-  // הודעת התחברות + גלילה להרשמה
-  useEffect(() => {
-    if (state?.loginSuccess) {
-      setToastText(state?.isGuest ? "התחברת בהצלחה (אורח)" : "התחברת בהצלחה");
-      setToastOpen(true);
+  const loginToastText = state?.isGuest
+    ? "???????????? ???????????? (????????)"
+    : "???????????? ????????????";
+  const showLoginToast = Boolean(state?.loginSuccess);
+  const showLocalToast = toastOpen;
+  const showToast = showLocalToast || showLoginToast;
+  const currentToastText = showLocalToast ? toastText : loginToastText;
 
-      // ננקה state כדי שלא יקפוץ שוב ברענון/ניווט
-      navigate(location.pathname, { replace: true, state: {} });
-    }
-  }, [state?.loginSuccess]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     if (state?.scrollTo === "register") {
@@ -170,13 +168,23 @@ function HomePage() {
   return (
     <Container maxWidth="lg" sx={{ mt: 6, mb: 6 }} dir="rtl">
       <Snackbar
-        open={toastOpen}
+        open={showToast}
         autoHideDuration={2500}
-        onClose={() => setToastOpen(false)}
+        onClose={() => {
+          if (showLocalToast) setToastOpen(false);
+          if (showLoginToast) navigate(location.pathname, { replace: true, state: {} });
+        }}
         anchorOrigin={{ vertical: "top", horizontal: "center" }}
       >
-        <Alert onClose={() => setToastOpen(false)} severity="success" sx={{ width: "100%" }}>
-          {toastText}
+        <Alert
+          onClose={() => {
+            if (showLocalToast) setToastOpen(false);
+            if (showLoginToast) navigate(location.pathname, { replace: true, state: {} });
+          }}
+          severity="success"
+          sx={{ width: "100%" }}
+        >
+          {currentToastText}
         </Alert>
       </Snackbar>
 

@@ -31,6 +31,36 @@ import { initLocalStorage } from "./utils/initLocalStorage";
 
 type UserMode = "candidate" | "admin";
 
+type AdminOnlyProps = {
+  children: ReactNode;
+  isDesktop: boolean;
+};
+
+const AdminOnly = ({ children, isDesktop }: AdminOnlyProps) =>
+  isDesktop ? (
+    <>{children}</>
+  ) : (
+    <Box
+      sx={{
+        mt: 4,
+        mb: 4,
+        p: 4,
+        borderRadius: 3,
+        textAlign: "center",
+        bgcolor: "background.paper",
+        border: "1px solid",
+        borderColor: "divider",
+      }}
+    >
+      <Typography variant="h6" fontWeight={700} gutterBottom>
+        אזור הניהול זמין במסך מחשב בלבד
+      </Typography>
+      <Typography variant="body2" color="text.secondary">
+        עבור מסכי מנהל יש לעבור לרוחב מסך Desktop.
+      </Typography>
+    </Box>
+  );
+
 function App() {
   const [userMode, setUserMode] = useState<UserMode>("candidate");
   const theme = useTheme();
@@ -40,31 +70,6 @@ function App() {
   useEffect(() => {
     initLocalStorage();
   }, []);
-
-  const AdminOnly = ({ children }: { children: ReactNode }) =>
-    isDesktop ? (
-      <>{children}</>
-    ) : (
-      <Box
-        sx={{
-          mt: 4,
-          mb: 4,
-          p: 4,
-          borderRadius: 3,
-          textAlign: "center",
-          bgcolor: "background.paper",
-          border: "1px solid",
-          borderColor: "divider",
-        }}
-      >
-        <Typography variant="h6" fontWeight={700} gutterBottom>
-          אזור הניהול זמין במסך מחשב בלבד
-        </Typography>
-        <Typography variant="body2" color="text.secondary">
-          עבור מסכי מנהל יש לעבור לרוחב מסך Desktop.
-        </Typography>
-      </Box>
-    );
 
   return (
     <Box dir="rtl" sx={{ minHeight: "100vh", bgcolor: "background.default" }}>
@@ -88,21 +93,78 @@ function App() {
           <Route path="/login" element={<LoginPage />} />
 
           {/* ===== אדמין ===== */}
-          <Route path="/admin" element={<AdminOnly><AdminHomePage /></AdminOnly>} />
-          <Route path="/admin/candidates" element={<AdminOnly><AdminCandidatesPage /></AdminOnly>} />
-          <Route path="/admin/courses" element={<AdminOnly><AdminCoursesPage /></AdminOnly>} />
-          <Route path="/admin/courses/:courseId" element={<AdminOnly><AdminCoursesPage /></AdminOnly>} />
+          <Route
+            path="/admin"
+            element={
+              <AdminOnly isDesktop={isDesktop}>
+                <AdminHomePage />
+              </AdminOnly>
+            }
+          />
+          <Route
+            path="/admin/candidates"
+            element={
+              <AdminOnly isDesktop={isDesktop}>
+                <AdminCandidatesPage />
+              </AdminOnly>
+            }
+          />
+          <Route
+            path="/admin/courses"
+            element={
+              <AdminOnly isDesktop={isDesktop}>
+                <AdminCoursesPage />
+              </AdminOnly>
+            }
+          />
+          <Route
+            path="/admin/courses/:courseId"
+            element={
+              <AdminOnly isDesktop={isDesktop}>
+                <AdminCoursesPage />
+              </AdminOnly>
+            }
+          />
           <Route
             path="/admin/admission-requirements"
-            element={<AdminOnly><AdminAdmissionRequirementsPage /></AdminOnly>}
+            element={
+              <AdminOnly isDesktop={isDesktop}>
+                <AdminAdmissionRequirementsPage />
+              </AdminOnly>
+            }
           />
-          <Route path="/admin/users" element={<AdminOnly><AdminUsersNewPage /></AdminOnly>} />
+          <Route
+            path="/admin/users"
+            element={
+              <AdminOnly isDesktop={isDesktop}>
+                <AdminUsersNewPage />
+              </AdminOnly>
+            }
+          />
           <Route
             path="/admin/notifications"
-            element={<AdminOnly><AdminNotificationsManagerPage /></AdminOnly>}
+            element={
+              <AdminOnly isDesktop={isDesktop}>
+                <AdminNotificationsManagerPage />
+              </AdminOnly>
+            }
           />
-          <Route path="/admin/faq" element={<AdminOnly><AdminFaqManagerPage /></AdminOnly>} />
-          <Route path="/admin/help" element={<AdminOnly><AdminHelpPage /></AdminOnly>} />
+          <Route
+            path="/admin/faq"
+            element={
+              <AdminOnly isDesktop={isDesktop}>
+                <AdminFaqManagerPage />
+              </AdminOnly>
+            }
+          />
+          <Route
+            path="/admin/help"
+            element={
+              <AdminOnly isDesktop={isDesktop}>
+                <AdminHelpPage />
+              </AdminOnly>
+            }
+          />
         </Routes>
       </Box>
     </Box>
