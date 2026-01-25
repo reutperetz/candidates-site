@@ -1,78 +1,67 @@
-<<<<<<< HEAD
-# React + TypeScript + Vite
+# Candidates Site – Frontend Project
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Frontend system for managing candidates and academic data  
+for the Computer Science Department.
 
-Currently, two official plugins are available:
+---
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+## Project Overview
+The project is a frontend management system that allows administrators to manage:
+- Courses
+- Admission requirements
+- FAQs
+- Candidates
 
-## React Compiler
+The system is implemented according to the course requirements and focuses on
+clean architecture, usability, and integration with Firebase Firestore.
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+---
 
-## Expanding the ESLint configuration
+## Technologies
+- React + TypeScript
+- Vite
+- Material UI (Theming)
+- Firebase Firestore
+- React Router
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+---
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+## Main Features
+- Light / Dark mode implemented using Material UI ThemeProvider
+- Responsive design  
+  - Admin screens are available on desktop only  
+  - A dedicated message is shown on smaller screens
+- Full CRUD operations (Create, Read, Update, Delete) using Firestore
+- No local data persistence (all data is managed via Firestore)
+- Loading indicators (LinearProgress) during Firestore data fetching
+- Direct routing using React Router and useParams
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
+---
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
+## Admin Routes
+- `/admin/courses`
+- `/admin/courses/:courseId`
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+Example:
+http://localhost:5173/admin/courses/ckXHT1tqdQKD9ZWzMrtd
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+The `courseId` is read from the URL using `useParams`.  
+If the ID does not exist, an appropriate error message is displayed.
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
-=======
-# candidates-site
-A candidates information website for the Computer Science Department.
->>>>>>> b2292e9b3da83c5de12b859b2583bcf448b4ca1c
+---
+
+## Environment Variables
+The project uses environment variables for Firebase configuration.
+
+Environment files:
+- `.env.development`
+- `.env.production`
+- `.env.local`
+
+Firebase configuration values are accessed using:
+import.meta.env.VITE_...
+## Running the Project Locally
+```bash
+npm install
+npm run dev
+
