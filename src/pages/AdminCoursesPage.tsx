@@ -1,5 +1,5 @@
 // src/pages/AdminCoursesPage.tsx
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
   Box,
   Container,
@@ -153,7 +153,60 @@ const AdminCoursesPage = () => {
   const [errors, setErrors] = useState<FormErrors>({});
   const [savedMsg, setSavedMsg] = useState<string>("");
   const [editingDocId, setEditingDocId] = useState<string | null>(null);
+  const [saveError, setSaveError] = useState("");
+  const didSeedRef = useRef(false);
   const [editingCode, setEditingCode] = useState<string | null>(null); // אם לא null => עריכה
+
+  const seedCourses = async () => {
+    const seedItems = [
+      {
+        code: "CS101",
+        name: "\u05de\u05d1\u05d5\u05d0 \u05dc\u05de\u05d3\u05e2\u05d9 \u05d4\u05de\u05d7\u05e9\u05d1",
+        type: "\u05d7\u05d5\u05d1\u05d4",
+        year: "\u05d0",
+        semester: "\u05d0",
+        points: 3,
+        status: "active",
+      },
+      {
+        code: "CS102",
+        name: "\u05d0\u05dc\u05d2\u05d5\u05e8\u05d9\u05ea\u05de\u05d9\u05dd",
+        type: "\u05d7\u05d5\u05d1\u05d4",
+        year: "\u05d1",
+        semester: "\u05d1",
+        points: 3,
+        status: "active",
+      },
+      {
+        code: "CS103",
+        name: "\u05de\u05d1\u05e0\u05d9 \u05e0\u05ea\u05d5\u05e0\u05d9\u05dd",
+        type: "\u05d7\u05d5\u05d1\u05d4",
+        year: "\u05d1",
+        semester: "\u05d0",
+        points: 3,
+        status: "active",
+      },
+      {
+        code: "CS104",
+        name: "\u05de\u05e2\u05e8\u05db\u05d5\u05ea \u05d4\u05e4\u05e2\u05dc\u05d4",
+        type: "\u05d1\u05d7\u05d9\u05e8\u05d4",
+        year: "\u05d2",
+        semester: "\u05d1",
+        points: 3,
+        status: "not-active",
+      },
+    ];
+
+    try {
+      await Promise.all(
+        seedItems.map((item) =>
+          addDoc(collection(db, "courses"), { ...item, createdAt: serverTimestamp() })
+        )
+      );
+    } catch (err) {
+      console.error("Failed to seed courses", err);
+    }
+  };
 
   useEffect(() => {
     const unsub = onSnapshot(
@@ -176,6 +229,12 @@ const AdminCoursesPage = () => {
           };
         });
         items.sort((a, b) => (b.createdAt?.toMillis?.() ?? 0) - (a.createdAt?.toMillis?.() ?? 0));
+
+        if (items.length === 0 && !didSeedRef.current) {
+          didSeedRef.current = true;
+          seedCourses();
+        }
+
         setCourses(items);
         setIsLoading(false);
       },
@@ -200,6 +259,7 @@ const AdminCoursesPage = () => {
     (field: keyof FormState) => (e: React.ChangeEvent<HTMLInputElement>) => {
       const value = e.target.value;
       setSavedMsg("");
+      setSaveError("");
 
       // נרצה לקוד להפוך ל-Uppercase בזמן אמת
       if (field === "code") {
@@ -216,6 +276,7 @@ const AdminCoursesPage = () => {
     setForm(emptyForm);
     setErrors({});
     setSavedMsg("");
+    setSaveError("");
     setEditingDocId(null);
     setEditingCode(null);
   };
@@ -251,8 +312,9 @@ const AdminCoursesPage = () => {
     try {
       await deleteDoc(doc(db, "courses", course.docId));
       if (editingDocId === course.docId) resetForm();
-    } catch {
-      // ignore
+    } catch (err) {
+      console.error("Failed to delete course", err);
+      setSaveError("\u05e9\u05d2\u05d9\u05d0\u05d4 \u05d1\u05de\u05d7\u05d9\u05e7\u05d4. \u05e0\u05e1\u05d9 \u05e9\u05d5\u05d1.");
     }
   };
 
@@ -261,8 +323,10 @@ const AdminCoursesPage = () => {
     setErrors(nextErrors);
     if (Object.keys(nextErrors).length > 0) {
       setSavedMsg("");
+      setSaveError("");
       return;
     }
+    setSaveError("");
 
     const payload = {
       code: normalizeCourseCode(form.code),
@@ -286,8 +350,10 @@ const AdminCoursesPage = () => {
         setSavedMsg("\u05e7\u05d5\u05e8\u05e1 \u05d7\u05d3\u05e9 \u05e0\u05e9\u05de\u05e8 \u05d1\u05d4\u05e6\u05dc\u05d7\u05d4.");
       }
       setEditingCode(payload.code);
-    } catch {
+    } catch (err) {
+      console.error("Failed to save course", err);
       setSavedMsg("");
+      setSaveError("\u05e9\u05d2\u05d9\u05d0\u05d4 \u05d1\u05e9\u05de\u05d9\u05e8\u05d4. \u05e0\u05e1\u05d9 \u05e9\u05d5\u05d1.");
     }
   };
 
@@ -586,6 +652,11 @@ const AdminCoursesPage = () => {
               {!!savedMsg && (
                 <Box mt={3}>
                   <Alert severity="success">{savedMsg}</Alert>
+                </Box>
+              )}
+              {saveError && (
+                <Box mt={2}>
+                  <Alert severity="error">{saveError}</Alert>
                 </Box>
               )}
 

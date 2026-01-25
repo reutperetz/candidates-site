@@ -1,7 +1,8 @@
 // src/App.tsx
-import { useEffect, useState } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import { Routes, Route } from "react-router-dom";
-import { Box } from "@mui/material";
+import { Box, Typography, useMediaQuery } from "@mui/material";
+import { useTheme } from "@mui/material/styles";
 
 // Header
 import Header from "./components/Header";
@@ -32,11 +33,38 @@ type UserMode = "candidate" | "admin";
 
 function App() {
   const [userMode, setUserMode] = useState<UserMode>("candidate");
+  const theme = useTheme();
+  const isDesktop = useMediaQuery(theme.breakpoints.up("md"));
 
   // 🚀 רץ פעם אחת בלבד בטעינת האפליקציה
   useEffect(() => {
     initLocalStorage();
   }, []);
+
+  const AdminOnly = ({ children }: { children: ReactNode }) =>
+    isDesktop ? (
+      <>{children}</>
+    ) : (
+      <Box
+        sx={{
+          mt: 4,
+          mb: 4,
+          p: 4,
+          borderRadius: 3,
+          textAlign: "center",
+          bgcolor: "background.paper",
+          border: "1px solid",
+          borderColor: "divider",
+        }}
+      >
+        <Typography variant="h6" fontWeight={700} gutterBottom>
+          אזור הניהול זמין במסך מחשב בלבד
+        </Typography>
+        <Typography variant="body2" color="text.secondary">
+          עבור מסכי מנהל יש לעבור לרוחב מסך Desktop.
+        </Typography>
+      </Box>
+    );
 
   return (
     <Box dir="rtl" sx={{ minHeight: "100vh", bgcolor: "background.default" }}>
@@ -60,20 +88,20 @@ function App() {
           <Route path="/login" element={<LoginPage />} />
 
           {/* ===== אדמין ===== */}
-          <Route path="/admin" element={<AdminHomePage />} />
-          <Route path="/admin/candidates" element={<AdminCandidatesPage />} />
-          <Route path="/admin/courses" element={<AdminCoursesPage />} />
+          <Route path="/admin" element={<AdminOnly><AdminHomePage /></AdminOnly>} />
+          <Route path="/admin/candidates" element={<AdminOnly><AdminCandidatesPage /></AdminOnly>} />
+          <Route path="/admin/courses" element={<AdminOnly><AdminCoursesPage /></AdminOnly>} />
           <Route
             path="/admin/admission-requirements"
-            element={<AdminAdmissionRequirementsPage />}
+            element={<AdminOnly><AdminAdmissionRequirementsPage /></AdminOnly>}
           />
-          <Route path="/admin/users" element={<AdminUsersNewPage />} />
+          <Route path="/admin/users" element={<AdminOnly><AdminUsersNewPage /></AdminOnly>} />
           <Route
             path="/admin/notifications"
-            element={<AdminNotificationsManagerPage />}
+            element={<AdminOnly><AdminNotificationsManagerPage /></AdminOnly>}
           />
-          <Route path="/admin/faq" element={<AdminFaqManagerPage />} />
-          <Route path="/admin/help" element={<AdminHelpPage />} />
+          <Route path="/admin/faq" element={<AdminOnly><AdminFaqManagerPage /></AdminOnly>} />
+          <Route path="/admin/help" element={<AdminOnly><AdminHelpPage /></AdminOnly>} />
         </Routes>
       </Box>
     </Box>

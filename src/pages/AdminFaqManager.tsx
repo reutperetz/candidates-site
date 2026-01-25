@@ -184,7 +184,8 @@ export default function AdminFaqManager() {
       });
       resetForm();
       setTab(0);
-    } catch {
+    } catch (err) {
+      console.error("Failed to add FAQ", err);
       setSnack({
         open: true,
         msg: "אי אפשר לשמור – יש שדות חסרים",
@@ -227,7 +228,8 @@ export default function AdminFaqManager() {
         severity: "success",
       });
       resetForm();
-    } catch {
+    } catch (err) {
+      console.error("Failed to update FAQ", err);
       setSnack({
         open: true,
         msg: "אי אפשר לשמור – יש שדות חסרים",
