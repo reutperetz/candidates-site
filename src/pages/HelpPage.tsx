@@ -28,7 +28,6 @@ type FaqItem = {
 
 type FaqDoc = Omit<FaqItem, "docId">;
 
-
 function HelpPage() {
   // רשימת השאלות לדוגמא – אפשר לערוך טקסטים חופשי
   const [faqs, setFaqs] = useState<FaqItem[]>([]);
@@ -60,7 +59,6 @@ function HelpPage() {
     };
   }, []);
 
-
   return (
     <Container maxWidth="lg" sx={{ mt: 6, mb: 6 }} dir="rtl">
       {/* כותרת עליונה */}
@@ -73,8 +71,8 @@ function HelpPage() {
           עזרה למועמדים – Help
         </Typography>
         <Typography variant="body1" sx={{ maxWidth: 800, mx: "auto" }}>
-          מסך זה מרכז שאלות ותשובות נפוצות לגבי תהליך ההרשמה, תנאי הקבלה
-          ומבנה התואר. ניתן לפתוח כל שאלה לקבלת פירוט נוסף.
+          מסך זה מרכז שאלות ותשובות נפוצות לגבי תהליך ההרשמה, תנאי הקבלה ומבנה
+          התואר. ניתן לפתוח כל שאלה לקבלת פירוט נוסף.
         </Typography>
       </Box>
 
@@ -195,8 +193,8 @@ function HelpPage() {
               לא מצאת תשובה?
             </Typography>
             <Typography variant="body2">
-              ניתן לפנות למזכירות המחלקה בטלפון או במייל המופיעים באתר
-              הרשמי של המכללה.
+              ניתן לפנות למזכירות המחלקה בטלפון או במייל המופיעים באתר הרשמי של
+              המכללה.
             </Typography>
           </Box>
 

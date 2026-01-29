@@ -81,14 +81,16 @@ const AdmissionCalculatorPage = () => {
     if (!values.psychometricTotal) {
       nextErrors.psychometricTotal = "חובה להזין ציון פסיכומטרי כללי";
     } else if (!isIntInRange(values.psychometricTotal, 200, 800)) {
-      nextErrors.psychometricTotal = "פסיכומטרי חייב להיות מספר שלם בין 200 ל-800";
+      nextErrors.psychometricTotal =
+        "פסיכומטרי חייב להיות מספר שלם בין 200 ל-800";
     }
 
     // ממוצע בגרות: 55-120 (אצל רבים זה טווח סביר לממוצע משוקלל)
     if (!values.bagrutAverage) {
       nextErrors.bagrutAverage = "חובה להזין ממוצע בגרות";
     } else if (!/^\d+(\.\d{1,2})?$/.test(values.bagrutAverage)) {
-      nextErrors.bagrutAverage = "ממוצע בגרות חייב להיות מספר (אפשר עם עד 2 ספרות אחרי נקודה)";
+      nextErrors.bagrutAverage =
+        "ממוצע בגרות חייב להיות מספר (אפשר עם עד 2 ספרות אחרי נקודה)";
     } else {
       const b = Number(values.bagrutAverage);
       if (Number.isNaN(b) || b < 55 || b > 120) {
@@ -107,7 +109,8 @@ const AdmissionCalculatorPage = () => {
     if (!values.mathBagrutGrade) {
       nextErrors.mathBagrutGrade = "חובה להזין ציון מתמטיקה בבגרות";
     } else if (!isIntInRange(values.mathBagrutGrade, 0, 100)) {
-      nextErrors.mathBagrutGrade = "ציון מתמטיקה חייב להיות מספר שלם בין 0 ל-100";
+      nextErrors.mathBagrutGrade =
+        "ציון מתמטיקה חייב להיות מספר שלם בין 0 ל-100";
     }
 
     // אנגלית: אופציונלי אבל אם נבחר – חייב להיות 3/4/5
@@ -138,24 +141,26 @@ const AdmissionCalculatorPage = () => {
       meetsMath && (b >= direct.bagrutAvgMin || p >= direct.psychometricMin);
 
     if (meetsDirect) {
-      setResult("✅ לפי הנתונים שהזנת – את עומדת בתנאי הקבלה הישירה (על פי הכללים שהוגדרו במחשבון).");
+      setResult(
+        "✅ לפי הנתונים שהזנת – את עומדת בתנאי הקבלה הישירה (על פי הכללים שהוגדרו במחשבון).",
+      );
     } else {
       const reasons: string[] = [];
       if (!meetsMath) {
         reasons.push(
-          `מתמטיקה: נדרש 4 יח"ל ${direct.math.units4MinGrade}+ או 5 יח"ל ${direct.math.units5MinGrade}+`
+          `מתמטיקה: נדרש 4 יח"ל ${direct.math.units4MinGrade}+ או 5 יח"ל ${direct.math.units5MinGrade}+`,
         );
       }
       if (!(b >= direct.bagrutAvgMin || p >= direct.psychometricMin)) {
         reasons.push(
-          `נדרש ממוצע בגרות ${direct.bagrutAvgMin}+ או פסיכומטרי ${direct.psychometricMin}+`
+          `נדרש ממוצע בגרות ${direct.bagrutAvgMin}+ או פסיכומטרי ${direct.psychometricMin}+`,
         );
       }
 
       setResult(
         `ℹ️ לפי הנתונים שהזנת – אין עמידה מלאה בתנאי הקבלה הישירה.\n` +
           `מה חסר:\n- ${reasons.join("\n- ")}\n\n` +
-          `המלצה: לפנות לייעוץ רישום/בדיקת מסלולים חלופיים.`
+          `המלצה: לפנות לייעוץ רישום/בדיקת מסלולים חלופיים.`,
       );
     }
   };
@@ -174,8 +179,14 @@ const AdmissionCalculatorPage = () => {
             מחשבון סיכויי קבלה
           </Typography>
 
-          <Typography variant="body2" align="center" color="text.secondary" mb={3}>
-            הזינו נתונים אמיתיים (מספרים בלבד). הכפתור “חשב כעת” יפעל רק כשהכול תקין.
+          <Typography
+            variant="body2"
+            align="center"
+            color="text.secondary"
+            mb={3}
+          >
+            הזינו נתונים אמיתיים (מספרים בלבד). הכפתור “חשב כעת” יפעל רק כשהכול
+            תקין.
           </Typography>
 
           {/* תנאי קבלה גלויים וברורים */}
@@ -215,7 +226,9 @@ const AdmissionCalculatorPage = () => {
                 value={values.bagrutAverage}
                 onChange={handleChange("bagrutAverage")}
                 error={!!errors.bagrutAverage}
-                helperText={errors.bagrutAverage || "אפשר גם עם נקודה, לדוגמה: 98.5"}
+                helperText={
+                  errors.bagrutAverage || "אפשר גם עם נקודה, לדוגמה: 98.5"
+                }
                 inputProps={{ inputMode: "decimal" }}
                 InputLabelProps={{ shrink: true }}
               />
@@ -263,7 +276,9 @@ const AdmissionCalculatorPage = () => {
                 value={values.englishUnits}
                 onChange={handleChange("englishUnits")}
                 error={!!errors.englishUnits}
-                helperText={errors.englishUnits || "לא חובה לחישוב, לשיקוף מידע בלבד"}
+                helperText={
+                  errors.englishUnits || "לא חובה לחישוב, לשיקוף מידע בלבד"
+                }
                 InputLabelProps={{ shrink: true }}
               >
                 <MenuItem value="">
@@ -292,7 +307,10 @@ const AdmissionCalculatorPage = () => {
 
           {result && (
             <Box mt={3}>
-              <Alert severity={result.startsWith("✅") ? "success" : "info"} sx={{ whiteSpace: "pre-line" }}>
+              <Alert
+                severity={result.startsWith("✅") ? "success" : "info"}
+                sx={{ whiteSpace: "pre-line" }}
+              >
                 {result}
               </Alert>
             </Box>

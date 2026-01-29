@@ -35,7 +35,7 @@ export default function AppThemeProvider({ children }: Props) {
 
   const value = useMemo(
     () => ({ mode, toggleMode, setMode }),
-    [mode, toggleMode, setMode]
+    [mode, toggleMode, setMode],
   );
 
   return (

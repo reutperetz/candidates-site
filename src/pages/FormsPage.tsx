@@ -100,7 +100,7 @@ export default function FormsPage() {
       overflow: "hidden",
       backgroundColor: "background.paper",
     }),
-    []
+    [],
   );
 
   const setField = (key: keyof CandidateForm, value: string) => {
@@ -116,7 +116,8 @@ export default function FormsPage() {
 
     // ת"ז
     if (!form.idNumber.trim()) e.idNumber = "שדה חובה";
-    else if (!ID_REGEX.test(form.idNumber)) e.idNumber = "תעודת זהות חייבת להיות 9 ספרות בלבד";
+    else if (!ID_REGEX.test(form.idNumber))
+      e.idNumber = "תעודת זהות חייבת להיות 9 ספרות בלבד";
 
     // שם מלא
     if (!form.fullName.trim()) e.fullName = "שדה חובה";
@@ -129,7 +130,8 @@ export default function FormsPage() {
 
     // טלפון
     if (!form.phone.trim()) e.phone = "שדה חובה";
-    else if (!PHONE_REGEX.test(form.phone)) e.phone = "טלפון חייב להיות 9–10 ספרות בלבד";
+    else if (!PHONE_REGEX.test(form.phone))
+      e.phone = "טלפון חייב להיות 9–10 ספרות בלבד";
 
     // אימייל
     if (!form.email.trim()) e.email = "שדה חובה";
@@ -153,7 +155,8 @@ export default function FormsPage() {
 
     // יחידות מתמטיקה 3/4/5
     if (!form.mathUnits.trim()) e.mathUnits = "שדה חובה";
-    else if (!["3", "4", "5"].includes(form.mathUnits)) e.mathUnits = "אפשר לבחור רק 3 / 4 / 5";
+    else if (!["3", "4", "5"].includes(form.mathUnits))
+      e.mathUnits = "אפשר לבחור רק 3 / 4 / 5";
 
     // ציון מתמטיקה 0-100
     if (!form.mathGrade.trim()) e.mathGrade = "שדה חובה";
@@ -219,7 +222,10 @@ export default function FormsPage() {
         createdAt: serverTimestamp(),
       };
 
-      const ref = await addDoc(collection(db, "candidate_submissions"), payload);
+      const ref = await addDoc(
+        collection(db, "candidate_submissions"),
+        payload,
+      );
 
       setSnack({
         open: true,
@@ -278,12 +284,20 @@ export default function FormsPage() {
             טפסים – Forms
           </Typography>
           <Typography variant="body1" sx={{ maxWidth: 900, mx: "auto" }}>
-            כאן אפשר להגיש מועמדות ללימודים, לעיין בקורסים ובתנאי הקבלה, ולקבל עזרה במידת הצורך.
+            כאן אפשר להגיש מועמדות ללימודים, לעיין בקורסים ובתנאי הקבלה, ולקבל
+            עזרה במידת הצורך.
           </Typography>
         </Box>
 
         {/* טופס מועמדות */}
-        <Card sx={{ ...cardBaseStyle, borderTop: "4px solid", borderTopColor: "success.main", mb: 4 }}>
+        <Card
+          sx={{
+            ...cardBaseStyle,
+            borderTop: "4px solid",
+            borderTopColor: "success.main",
+            mb: 4,
+          }}
+        >
           <CardContent sx={{ direction: "rtl", textAlign: "right" }}>
             <Box display="flex" alignItems="center" gap={1} mb={1.5}>
               <PersonAddAlt1Icon sx={{ color: "success.main" }} />
@@ -293,7 +307,8 @@ export default function FormsPage() {
             </Box>
 
             <Typography variant="body2" sx={{ mb: 3, color: "text.secondary" }}>
-              כל השדות חובה. לאחר השליחה תקבלי אישור, והמערכת תסמן את המועמדות כ״חדש״.
+              כל השדות חובה. לאחר השליחה תקבלי אישור, והמערכת תסמן את המועמדות
+              כ״חדש״.
             </Typography>
 
             <Grid container spacing={2}>
@@ -303,10 +318,14 @@ export default function FormsPage() {
                   required
                   label="תעודת זהות"
                   value={form.idNumber}
-                  onChange={(e) => setField("idNumber", clampNumberStr(e.target.value))}
+                  onChange={(e) =>
+                    setField("idNumber", clampNumberStr(e.target.value))
+                  }
                   onBlur={() => markTouched("idNumber")}
                   error={showError("idNumber")}
-                  helperText={showError("idNumber") ? errors.idNumber : "9 ספרות בלבד"}
+                  helperText={
+                    showError("idNumber") ? errors.idNumber : "9 ספרות בלבד"
+                  }
                   inputProps={{ inputMode: "numeric" }}
                 />
               </Grid>
@@ -320,7 +339,9 @@ export default function FormsPage() {
                   onChange={(e) => setField("fullName", e.target.value)}
                   onBlur={() => markTouched("fullName")}
                   error={showError("fullName")}
-                  helperText={showError("fullName") ? errors.fullName : "לפחות שתי מילים"}
+                  helperText={
+                    showError("fullName") ? errors.fullName : "לפחות שתי מילים"
+                  }
                 />
               </Grid>
 
@@ -330,7 +351,9 @@ export default function FormsPage() {
                   required
                   label="טלפון"
                   value={form.phone}
-                  onChange={(e) => setField("phone", clampNumberStr(e.target.value))}
+                  onChange={(e) =>
+                    setField("phone", clampNumberStr(e.target.value))
+                  }
                   onBlur={() => markTouched("phone")}
                   error={showError("phone")}
                   helperText={showError("phone") ? errors.phone : "9–10 ספרות"}
@@ -347,7 +370,9 @@ export default function FormsPage() {
                   onChange={(e) => setField("email", e.target.value)}
                   onBlur={() => markTouched("email")}
                   error={showError("email")}
-                  helperText={showError("email") ? errors.email : "לדוגמה: name@mail.com"}
+                  helperText={
+                    showError("email") ? errors.email : "לדוגמה: name@mail.com"
+                  }
                 />
               </Grid>
 
@@ -374,10 +399,14 @@ export default function FormsPage() {
                   required
                   label="ציון פסיכומטרי כללי"
                   value={form.psychometric}
-                  onChange={(e) => setField("psychometric", clampNumberStr(e.target.value))}
+                  onChange={(e) =>
+                    setField("psychometric", clampNumberStr(e.target.value))
+                  }
                   onBlur={() => markTouched("psychometric")}
                   error={showError("psychometric")}
-                  helperText={showError("psychometric") ? errors.psychometric : "200–800"}
+                  helperText={
+                    showError("psychometric") ? errors.psychometric : "200–800"
+                  }
                   inputProps={{ inputMode: "numeric" }}
                 />
               </Grid>
@@ -388,10 +417,14 @@ export default function FormsPage() {
                   required
                   label="ממוצע בגרות"
                   value={form.bagrutAvg}
-                  onChange={(e) => setField("bagrutAvg", clampNumberStr(e.target.value))}
+                  onChange={(e) =>
+                    setField("bagrutAvg", clampNumberStr(e.target.value))
+                  }
                   onBlur={() => markTouched("bagrutAvg")}
                   error={showError("bagrutAvg")}
-                  helperText={showError("bagrutAvg") ? errors.bagrutAvg : "0–120"}
+                  helperText={
+                    showError("bagrutAvg") ? errors.bagrutAvg : "0–120"
+                  }
                   inputProps={{ inputMode: "numeric" }}
                 />
               </Grid>
@@ -402,10 +435,14 @@ export default function FormsPage() {
                   required
                   label="יחידות מתמטיקה"
                   value={form.mathUnits}
-                  onChange={(e) => setField("mathUnits", e.target.value.replace(/[^\d]/g, ""))}
+                  onChange={(e) =>
+                    setField("mathUnits", e.target.value.replace(/[^\d]/g, ""))
+                  }
                   onBlur={() => markTouched("mathUnits")}
                   error={showError("mathUnits")}
-                  helperText={showError("mathUnits") ? errors.mathUnits : "3 / 4 / 5"}
+                  helperText={
+                    showError("mathUnits") ? errors.mathUnits : "3 / 4 / 5"
+                  }
                   inputProps={{ inputMode: "numeric" }}
                 />
               </Grid>
@@ -416,10 +453,14 @@ export default function FormsPage() {
                   required
                   label="ציון מתמטיקה"
                   value={form.mathGrade}
-                  onChange={(e) => setField("mathGrade", clampNumberStr(e.target.value))}
+                  onChange={(e) =>
+                    setField("mathGrade", clampNumberStr(e.target.value))
+                  }
                   onBlur={() => markTouched("mathGrade")}
                   error={showError("mathGrade")}
-                  helperText={showError("mathGrade") ? errors.mathGrade : "0–100"}
+                  helperText={
+                    showError("mathGrade") ? errors.mathGrade : "0–100"
+                  }
                   inputProps={{ inputMode: "numeric" }}
                 />
               </Grid>
@@ -430,10 +471,19 @@ export default function FormsPage() {
                   required
                   label="יחידות אנגלית"
                   value={form.englishUnits}
-                  onChange={(e) => setField("englishUnits", e.target.value.replace(/[^\d]/g, ""))}
+                  onChange={(e) =>
+                    setField(
+                      "englishUnits",
+                      e.target.value.replace(/[^\d]/g, ""),
+                    )
+                  }
                   onBlur={() => markTouched("englishUnits")}
                   error={showError("englishUnits")}
-                  helperText={showError("englishUnits") ? errors.englishUnits : "3 / 4 / 5"}
+                  helperText={
+                    showError("englishUnits")
+                      ? errors.englishUnits
+                      : "3 / 4 / 5"
+                  }
                   inputProps={{ inputMode: "numeric" }}
                 />
               </Grid>
@@ -444,10 +494,14 @@ export default function FormsPage() {
                   required
                   label="ציון אנגלית"
                   value={form.englishGrade}
-                  onChange={(e) => setField("englishGrade", clampNumberStr(e.target.value))}
+                  onChange={(e) =>
+                    setField("englishGrade", clampNumberStr(e.target.value))
+                  }
                   onBlur={() => markTouched("englishGrade")}
                   error={showError("englishGrade")}
-                  helperText={showError("englishGrade") ? errors.englishGrade : "0–100"}
+                  helperText={
+                    showError("englishGrade") ? errors.englishGrade : "0–100"
+                  }
                   inputProps={{ inputMode: "numeric" }}
                 />
               </Grid>
@@ -463,7 +517,10 @@ export default function FormsPage() {
               >
                 שליחת מועמדות
               </Button>
-              <Button variant="outlined" onClick={() => navigate("/admission-requirements")}>
+              <Button
+                variant="outlined"
+                onClick={() => navigate("/admission-requirements")}
+              >
                 תנאי קבלה
               </Button>
               <Button variant="outlined" onClick={() => navigate("/courses")}>
@@ -476,7 +533,13 @@ export default function FormsPage() {
         {/* כרטיסי מידע */}
         <Grid container spacing={3} sx={{ mb: 4 }}>
           <Grid item xs={12} md={4}>
-            <Card sx={{ ...cardBaseStyle, borderTop: "4px solid", borderTopColor: "success.dark" }}>
+            <Card
+              sx={{
+                ...cardBaseStyle,
+                borderTop: "4px solid",
+                borderTopColor: "success.dark",
+              }}
+            >
               <CardContent sx={{ direction: "rtl", textAlign: "right" }}>
                 <Box display="flex" alignItems="center" gap={1} mb={1.5}>
                   <RuleIcon sx={{ color: "success.dark" }} />
@@ -484,10 +547,18 @@ export default function FormsPage() {
                     איך יודעים אם עומדים בתנאי קבלה?
                   </Typography>
                 </Box>
-                <Typography variant="body2" sx={{ color: "text.secondary", mb: 2 }}>
-                  מומלץ לבדוק תנאי קבלה לפי המסלול המבוקש, ולהיעזר במחשבון הסיכוי.
+                <Typography
+                  variant="body2"
+                  sx={{ color: "text.secondary", mb: 2 }}
+                >
+                  מומלץ לבדוק תנאי קבלה לפי המסלול המבוקש, ולהיעזר במחשבון
+                  הסיכוי.
                 </Typography>
-                <Button fullWidth variant="outlined" onClick={() => navigate("/admission-requirements")}>
+                <Button
+                  fullWidth
+                  variant="outlined"
+                  onClick={() => navigate("/admission-requirements")}
+                >
                   מעבר לתנאי קבלה
                 </Button>
               </CardContent>
@@ -495,7 +566,13 @@ export default function FormsPage() {
           </Grid>
 
           <Grid item xs={12} md={4}>
-            <Card sx={{ ...cardBaseStyle, borderTop: "4px solid", borderTopColor: "success.main" }}>
+            <Card
+              sx={{
+                ...cardBaseStyle,
+                borderTop: "4px solid",
+                borderTopColor: "success.main",
+              }}
+            >
               <CardContent sx={{ direction: "rtl", textAlign: "right" }}>
                 <Box display="flex" alignItems="center" gap={1} mb={1.5}>
                   <MenuBookIcon sx={{ color: "success.main" }} />
@@ -503,10 +580,17 @@ export default function FormsPage() {
                     הקורסים בתואר
                   </Typography>
                 </Box>
-                <Typography variant="body2" sx={{ color: "text.secondary", mb: 2 }}>
+                <Typography
+                  variant="body2"
+                  sx={{ color: "text.secondary", mb: 2 }}
+                >
                   אפשר לעיין ברשימת הקורסים ולבדוק אילו קורסים נלמדים בכל מסלול.
                 </Typography>
-                <Button fullWidth variant="outlined" onClick={() => navigate("/courses")}>
+                <Button
+                  fullWidth
+                  variant="outlined"
+                  onClick={() => navigate("/courses")}
+                >
                   מעבר לקורסים
                 </Button>
               </CardContent>
@@ -514,7 +598,13 @@ export default function FormsPage() {
           </Grid>
 
           <Grid item xs={12} md={4}>
-            <Card sx={{ ...cardBaseStyle, borderTop: "4px solid", borderTopColor: "success.light" }}>
+            <Card
+              sx={{
+                ...cardBaseStyle,
+                borderTop: "4px solid",
+                borderTopColor: "success.light",
+              }}
+            >
               <CardContent sx={{ direction: "rtl", textAlign: "right" }}>
                 <Box display="flex" alignItems="center" gap={1} mb={1.5}>
                   <HelpCenterIcon sx={{ color: "success.light" }} />
@@ -522,10 +612,17 @@ export default function FormsPage() {
                     צריכים עזרה?
                   </Typography>
                 </Box>
-                <Typography variant="body2" sx={{ color: "text.secondary", mb: 2 }}>
+                <Typography
+                  variant="body2"
+                  sx={{ color: "text.secondary", mb: 2 }}
+                >
                   בעמוד העזרה תמצאי שאלות נפוצות ודרכי יצירת קשר.
                 </Typography>
-                <Button fullWidth variant="outlined" onClick={() => navigate("/help")}>
+                <Button
+                  fullWidth
+                  variant="outlined"
+                  onClick={() => navigate("/help")}
+                >
                   מעבר לעזרה
                 </Button>
               </CardContent>
@@ -536,22 +633,37 @@ export default function FormsPage() {
         {/* קישורים מהירים */}
         <Box mt={2}>
           <Divider sx={{ mb: 3 }} />
-          <Typography variant="h6" sx={{ mb: 2, fontWeight: 700, color: "success.main" }}>
+          <Typography
+            variant="h6"
+            sx={{ mb: 2, fontWeight: 700, color: "success.main" }}
+          >
             קישורים מהירים
           </Typography>
           <Grid container spacing={2}>
             <Grid item xs={12} md={4}>
-              <Button fullWidth variant="outlined" onClick={() => navigate("/admission-calculator")}>
+              <Button
+                fullWidth
+                variant="outlined"
+                onClick={() => navigate("/admission-calculator")}
+              >
                 מחשבון סיכוי קבלה
               </Button>
             </Grid>
             <Grid item xs={12} md={4}>
-              <Button fullWidth variant="outlined" onClick={() => navigate("/login")}>
+              <Button
+                fullWidth
+                variant="outlined"
+                onClick={() => navigate("/login")}
+              >
                 התחברות
               </Button>
             </Grid>
             <Grid item xs={12} md={4}>
-              <Button fullWidth variant="outlined" onClick={() => navigate("/help")}>
+              <Button
+                fullWidth
+                variant="outlined"
+                onClick={() => navigate("/help")}
+              >
                 תמיכה ועזרה
               </Button>
             </Grid>

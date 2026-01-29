@@ -8,10 +8,13 @@ export type ThemeContextValue = {
   setMode: (mode: ColorMode) => void;
 };
 
-export const ThemeModeContext = createContext<ThemeContextValue | undefined>(undefined);
+export const ThemeModeContext = createContext<ThemeContextValue | undefined>(
+  undefined,
+);
 
 export function useThemeMode(): ThemeContextValue {
   const ctx = useContext(ThemeModeContext);
-  if (!ctx) throw new Error("useThemeMode must be used inside AppThemeProvider");
+  if (!ctx)
+    throw new Error("useThemeMode must be used inside AppThemeProvider");
   return ctx;
 }

@@ -38,10 +38,7 @@ export function initLocalStorage() {
       minMath: 80,
       status: "active",
     }));
-    localStorage.setItem(
-      "admissionRequirements",
-      JSON.stringify(requirements)
-    );
+    localStorage.setItem("admissionRequirements", JSON.stringify(requirements));
   }
 
   /* ===== הודעות ===== */

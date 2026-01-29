@@ -43,10 +43,6 @@ type CourseDoc = Omit<Course, "docId" | "credits"> & {
   points?: number;
 };
 
-
-
-
-
 function CoursesPage() {
   const [courses, setCourses] = useState<Course[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -83,13 +79,13 @@ function CoursesPage() {
 
   const [search, setSearch] = useState("");
   const [semesterFilter, setSemesterFilter] = useState<"הכל" | "א" | "ב">(
-    "הכל"
+    "הכל",
   );
-  const [typeFilter, setTypeFilter] = useState<"הכל" | "חובה" | "בחירה">(
-    "הכל"
-  );
+  const [typeFilter, setTypeFilter] = useState<"הכל" | "חובה" | "בחירה">("הכל");
 
-  const activeCourses = courses.filter((course) => course.status !== "not-active");
+  const activeCourses = courses.filter(
+    (course) => course.status !== "not-active",
+  );
 
   const filteredCourses = activeCourses.filter((course) => {
     const matchesSearch =
@@ -101,8 +97,8 @@ function CoursesPage() {
       semesterFilter === "הכל"
         ? true
         : semesterFilter === "א"
-        ? course.semester.includes("א")
-        : course.semester.includes("ב");
+          ? course.semester.includes("א")
+          : course.semester.includes("ב");
 
     const matchesType =
       typeFilter === "הכל" ? true : course.type === typeFilter;
@@ -122,8 +118,8 @@ function CoursesPage() {
           קורסים – רשימת הקורסים בתואר
         </Typography>
         <Typography variant="body1" sx={{ maxWidth: 900, mx: "auto" }}>
-          מסך זה מציג רשימה מרוכזת של כל קורסי מדעי המחשב, כולל שנה, סמסטר,
-          נק״ז וסוג (חובה/בחירה). ניתן לבצע חיפוש וסינון לפי סמסטר וסוג קורס.
+          מסך זה מציג רשימה מרוכזת של כל קורסי מדעי המחשב, כולל שנה, סמסטר, נק״ז
+          וסוג (חובה/בחירה). ניתן לבצע חיפוש וסינון לפי סמסטר וסוג קורס.
         </Typography>
       </Box>
 
@@ -200,9 +196,7 @@ function CoursesPage() {
                   label="סוג קורס"
                   value={typeFilter}
                   onChange={(e) =>
-                    setTypeFilter(
-                      e.target.value as "הכל" | "חובה" | "בחירה"
-                    )
+                    setTypeFilter(e.target.value as "הכל" | "חובה" | "בחירה")
                   }
                 >
                   <MenuItem value="הכל">כל הקורסים</MenuItem>
@@ -239,9 +233,13 @@ function CoursesPage() {
                         size="small"
                         sx={{
                           backgroundColor:
-                            course.type === "חובה" ? "success.light" : "info.light",
+                            course.type === "חובה"
+                              ? "success.light"
+                              : "info.light",
                           color:
-                            course.type === "חובה" ? "success.main" : "info.main",
+                            course.type === "חובה"
+                              ? "success.main"
+                              : "info.main",
                         }}
                       />
                     </TableCell>

@@ -16,4 +16,3 @@ console.log("🔥 Firebase projectId:", import.meta.env.VITE_FIREBASE_PROJECT_ID
 const app = initializeApp(firebaseConfig);
 
 export const db = getFirestore(app);
-

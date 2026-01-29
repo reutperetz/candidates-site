@@ -106,7 +106,12 @@ function normalizeCourseCode(code: string) {
   return code.replace(/\s+/g, "").toUpperCase();
 }
 
-function validateCourse(form: FormState, courses: Course[], editingDocId: string | null, editingCode: string | null): FormErrors {
+function validateCourse(
+  form: FormState,
+  courses: Course[],
+  editingDocId: string | null,
+  editingCode: string | null,
+): FormErrors {
   const errors: FormErrors = {};
 
   const name = form.name.trim();
@@ -115,15 +120,19 @@ function validateCourse(form: FormState, courses: Course[], editingDocId: string
 
   if (!name) errors.name = "חובה להזין שם קורס";
   else if (name.length < 2) errors.name = "שם קורס קצר מדי";
-  else if (!isHebrewNameOrText(name)) errors.name = "שם קורס מכיל תווים לא תקינים";
+  else if (!isHebrewNameOrText(name))
+    errors.name = "שם קורס מכיל תווים לא תקינים";
 
   if (!code) errors.code = "חובה להזין קוד קורס";
   else {
     // דוגמה לקוד: CS101 / CS102 וכו'
     const ok = /^[A-Z]{2}\d{3}$/.test(code);
     if (!ok) errors.code = "קוד חייב להיות בפורמט CS101 (2 אותיות + 3 ספרות)";
-    const exists = courses.some((c) => c.code === code && c.docId !== editingDocId);
-    if (exists && editingCode !== code) errors.code = "קוד קורס כבר קיים במערכת";
+    const exists = courses.some(
+      (c) => c.code === code && c.docId !== editingDocId,
+    );
+    if (exists && editingCode !== code)
+      errors.code = "קוד קורס כבר קיים במערכת";
   }
 
   if (!form.type) errors.type = "חובה לבחור סוג קורס";
@@ -212,21 +221,24 @@ const AdminCoursesPage = () => {
     try {
       await Promise.all(
         seedItems.map((item) =>
-          addDoc(collection(db, "courses"), { ...item, createdAt: serverTimestamp() })
-        )
+          addDoc(collection(db, "courses"), {
+            ...item,
+            createdAt: serverTimestamp(),
+          }),
+        ),
       );
     } catch (err) {
       console.error("Failed to seed courses", err);
     }
   };
 
-
   const filteredCourses = useMemo(() => {
     const q = query.trim().toLowerCase();
     if (!q) return courses;
 
     return courses.filter((c) => {
-      const hay = `${c.code} ${c.name} ${c.type} ${c.year} ${c.semester} ${c.status}`.toLowerCase();
+      const hay =
+        `${c.code} ${c.name} ${c.type} ${c.year} ${c.semester} ${c.status}`.toLowerCase();
       return hay.includes(q);
     });
   }, [courses, query]);
@@ -304,7 +316,10 @@ const AdminCoursesPage = () => {
             createdAt: data.createdAt,
           };
         });
-        items.sort((a, b) => (b.createdAt?.toMillis?.() ?? 0) - (a.createdAt?.toMillis?.() ?? 0));
+        items.sort(
+          (a, b) =>
+            (b.createdAt?.toMillis?.() ?? 0) - (a.createdAt?.toMillis?.() ?? 0),
+        );
 
         if (items.length === 0 && !didSeedRef.current) {
           didSeedRef.current = true;
@@ -331,13 +346,15 @@ const AdminCoursesPage = () => {
       },
       () => {
         setIsLoading(false);
-      }
+      },
     );
     return () => unsub();
   }, []);
 
   const handleDelete = async (course: Course) => {
-    const ok = window.confirm(`\u05dc\u05de\u05d7\u05d5\u05e7 \u05d0\u05ea \u05d4\u05e7\u05d5\u05e8\u05e1 "${course.name}" (${course.code})?`);
+    const ok = window.confirm(
+      `\u05dc\u05de\u05d7\u05d5\u05e7 \u05d0\u05ea \u05d4\u05e7\u05d5\u05e8\u05e1 "${course.name}" (${course.code})?`,
+    );
     if (!ok) return;
 
     try {
@@ -345,7 +362,9 @@ const AdminCoursesPage = () => {
       if (editingDocId === course.docId) resetForm();
     } catch (err) {
       console.error("Failed to delete course", err);
-      setSaveError("\u05e9\u05d2\u05d9\u05d0\u05d4 \u05d1\u05de\u05d7\u05d9\u05e7\u05d4. \u05e0\u05e1\u05d9 \u05e9\u05d5\u05d1.");
+      setSaveError(
+        "\u05e9\u05d2\u05d9\u05d0\u05d4 \u05d1\u05de\u05d7\u05d9\u05e7\u05d4. \u05e0\u05e1\u05d9 \u05e9\u05d5\u05d1.",
+      );
     }
   };
 
@@ -374,31 +393,53 @@ const AdminCoursesPage = () => {
     try {
       if (editingDocId) {
         await updateDoc(doc(db, "courses", editingDocId), payload);
-        setSavedMsg("\u05d4\u05e7\u05d5\u05e8\u05e1 \u05e2\u05d5\u05d3\u05db\u05df \u05d1\u05d4\u05e6\u05dc\u05d7\u05d4.");
+        setSavedMsg(
+          "\u05d4\u05e7\u05d5\u05e8\u05e1 \u05e2\u05d5\u05d3\u05db\u05df \u05d1\u05d4\u05e6\u05dc\u05d7\u05d4.",
+        );
       } else {
-        const ref = await addDoc(collection(db, "courses"), { ...payload, createdAt: serverTimestamp() });
+        const ref = await addDoc(collection(db, "courses"), {
+          ...payload,
+          createdAt: serverTimestamp(),
+        });
         setEditingDocId(ref.id);
-        setSavedMsg("\u05e7\u05d5\u05e8\u05e1 \u05d7\u05d3\u05e9 \u05e0\u05e9\u05de\u05e8 \u05d1\u05d4\u05e6\u05dc\u05d7\u05d4.");
+        setSavedMsg(
+          "\u05e7\u05d5\u05e8\u05e1 \u05d7\u05d3\u05e9 \u05e0\u05e9\u05de\u05e8 \u05d1\u05d4\u05e6\u05dc\u05d7\u05d4.",
+        );
       }
       setEditingCode(payload.code);
     } catch (err) {
       console.error("Failed to save course", err);
       setSavedMsg("");
-      setSaveError("\u05e9\u05d2\u05d9\u05d0\u05d4 \u05d1\u05e9\u05de\u05d9\u05e8\u05d4. \u05e0\u05e1\u05d9 \u05e9\u05d5\u05d1.");
+      setSaveError(
+        "\u05e9\u05d2\u05d9\u05d0\u05d4 \u05d1\u05e9\u05de\u05d9\u05e8\u05d4. \u05e0\u05e1\u05d9 \u05e9\u05d5\u05d1.",
+      );
     }
   };
 
   return (
     <Box dir="rtl">
       <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
-        <Typography variant="h6" align="center" fontWeight={700} color="success.main">
+        <Typography
+          variant="h6"
+          align="center"
+          fontWeight={700}
+          color="success.main"
+        >
           המחלקה למדעי המחשב
         </Typography>
-        <Typography variant="body2" align="center" color="text.secondary" mb={3}>
+        <Typography
+          variant="body2"
+          align="center"
+          color="text.secondary"
+          mb={3}
+        >
           מערכת ניהול – קורסים
         </Typography>
 
-        <Paper elevation={3} sx={{ borderRadius: 3, p: 3, bgcolor: "background.paper" }}>
+        <Paper
+          elevation={3}
+          sx={{ borderRadius: 3, p: 3, bgcolor: "background.paper" }}
+        >
           <Tabs
             value={tab}
             onChange={(_e, v) => setTab(v)}
@@ -453,7 +494,14 @@ const AdminCoursesPage = () => {
                 מספר הקורסים במערכת: {filteredCourses.length}
               </Typography>
 
-              <Paper elevation={0} sx={{ borderRadius: 3, overflow: "hidden", bgcolor: "background.paper" }}>
+              <Paper
+                elevation={0}
+                sx={{
+                  borderRadius: 3,
+                  overflow: "hidden",
+                  bgcolor: "background.paper",
+                }}
+              >
                 <Table>
                   <TableHead>
                     <TableRow>
@@ -509,7 +557,11 @@ const AdminCoursesPage = () => {
 
                     {filteredCourses.length === 0 && (
                       <TableRow>
-                        <TableCell colSpan={8} align="center" sx={{ py: 4, color: "text.secondary" }}>
+                        <TableCell
+                          colSpan={8}
+                          align="center"
+                          sx={{ py: 4, color: "text.secondary" }}
+                        >
                           אין תוצאות לחיפוש.
                         </TableCell>
                       </TableRow>
@@ -552,7 +604,9 @@ const AdminCoursesPage = () => {
                     value={form.code}
                     onChange={handleChangeForm("code")}
                     error={!!errors.code}
-                    helperText={errors.code ?? "פורמט חובה: CS101 (2 אותיות + 3 ספרות)"}
+                    helperText={
+                      errors.code ?? "פורמט חובה: CS101 (2 אותיות + 3 ספרות)"
+                    }
                     inputProps={{ maxLength: 5 }}
                   />
                 </Grid>
@@ -616,7 +670,7 @@ const AdminCoursesPage = () => {
                     value={form.points}
                     onChange={handleChangeForm("points")}
                     error={!!errors.points}
-                    helperText={errors.points ?? 'מספר שלם בין 1 ל-10'}
+                    helperText={errors.points ?? "מספר שלם בין 1 ל-10"}
                     inputProps={{ min: 1, max: 10, step: 1 }}
                   />
                 </Grid>
@@ -646,7 +700,9 @@ const AdminCoursesPage = () => {
                     value={form.description}
                     onChange={handleChangeForm("description")}
                     error={!!errors.description}
-                    helperText={errors.description ?? "עד 500 תווים (אופציונלי)"}
+                    helperText={
+                      errors.description ?? "עד 500 תווים (אופציונלי)"
+                    }
                   />
                 </Grid>
 
@@ -661,7 +717,13 @@ const AdminCoursesPage = () => {
                 </Grid>
               </Grid>
 
-              <Box mt={4} display="flex" justifyContent="center" gap={2} flexWrap="wrap">
+              <Box
+                mt={4}
+                display="flex"
+                justifyContent="center"
+                gap={2}
+                flexWrap="wrap"
+              >
                 <Button
                   variant="contained"
                   color="success"

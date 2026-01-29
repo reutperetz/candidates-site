@@ -53,9 +53,11 @@ interface FaqItem {
 type FaqDoc = Omit<FaqItem, "docId">;
 
 const statusChip = (status: FaqStatus) =>
-  status === "active"
-    ? <Chip label="פעיל" color="success" size="small" />
-    : <Chip label="לא פעיל" size="small" />;
+  status === "active" ? (
+    <Chip label="פעיל" color="success" size="small" />
+  ) : (
+    <Chip label="לא פעיל" size="small" />
+  );
 
 function formatDate(value?: Timestamp) {
   if (!value?.toDate) return "";
@@ -72,18 +74,24 @@ export default function AdminFaqManager() {
   const seedFaqs = async () => {
     const seedItems = [
       {
-        question: "\u05d0\u05d9\u05da \u05d0\u05e0\u05d9 \u05d9\u05d5\u05d3\u05e2 \u05d0\u05dd \u05db\u05dc \u05d4\u05de\u05e1\u05de\u05db\u05d9\u05dd \u05d4\u05ea\u05e7\u05d1\u05dc\u05d5?",
-        answer: "\u05e0\u05d9\u05ea\u05df \u05dc\u05d1\u05d3\u05d5\u05e7 \u05d0\u05ea \u05e1\u05d8\u05d8\u05d5\u05e1 \u05d4\u05d4\u05e8\u05e9\u05de\u05d4 \u05d1\u05db\u05dc \u05e8\u05d2\u05e2 \u05de\u05ea\u05d5\u05da \u05d0\u05d6\u05d5\u05e8 \u05d4\u05d0\u05d9\u05d6\u05d5\u05e8 \u05d4\u05d0\u05d9\u05e9\u05d9 \u05d1\u05de\u05e2\u05e8\u05db\u05ea.",
+        question:
+          "\u05d0\u05d9\u05da \u05d0\u05e0\u05d9 \u05d9\u05d5\u05d3\u05e2 \u05d0\u05dd \u05db\u05dc \u05d4\u05de\u05e1\u05de\u05db\u05d9\u05dd \u05d4\u05ea\u05e7\u05d1\u05dc\u05d5?",
+        answer:
+          "\u05e0\u05d9\u05ea\u05df \u05dc\u05d1\u05d3\u05d5\u05e7 \u05d0\u05ea \u05e1\u05d8\u05d8\u05d5\u05e1 \u05d4\u05d4\u05e8\u05e9\u05de\u05d4 \u05d1\u05db\u05dc \u05e8\u05d2\u05e2 \u05de\u05ea\u05d5\u05da \u05d0\u05d6\u05d5\u05e8 \u05d4\u05d0\u05d9\u05d6\u05d5\u05e8 \u05d4\u05d0\u05d9\u05e9\u05d9 \u05d1\u05de\u05e2\u05e8\u05db\u05ea.",
         status: "active",
       },
       {
-        question: "\u05de\u05d4\u05dd \u05ea\u05e0\u05d0\u05d9 \u05d4\u05e7\u05d1\u05dc\u05d4 \u05d4\u05e2\u05d9\u05e7\u05e8\u05d9\u05d9\u05dd?",
-        answer: "\u05ea\u05e0\u05d0\u05d9 \u05d4\u05e7\u05d1\u05dc\u05d4 \u05de\u05ea\u05d1\u05e1\u05e1\u05d9\u05dd \u05e2\u05dc \u05e6\u05d9\u05d5\u05df \u05e4\u05e1\u05d9\u05db\u05d5\u05de\u05d8\u05e8\u05d9, \u05de\u05de\u05d5\u05e6\u05e2 \u05d1\u05d2\u05e8\u05d5\u05ea \u05d5\u05d9\u05d7\u05d9\u05d3\u05d5\u05ea \u05dc\u05d9\u05de\u05d5\u05d3 \u05d1\u05de\u05ea\u05de\u05d8\u05d9\u05e7\u05d4 \u05d5\u05d1\u05d0\u05e0\u05d2\u05dc\u05d9\u05ea.",
+        question:
+          "\u05de\u05d4\u05dd \u05ea\u05e0\u05d0\u05d9 \u05d4\u05e7\u05d1\u05dc\u05d4 \u05d4\u05e2\u05d9\u05e7\u05e8\u05d9\u05d9\u05dd?",
+        answer:
+          "\u05ea\u05e0\u05d0\u05d9 \u05d4\u05e7\u05d1\u05dc\u05d4 \u05de\u05ea\u05d1\u05e1\u05e1\u05d9\u05dd \u05e2\u05dc \u05e6\u05d9\u05d5\u05df \u05e4\u05e1\u05d9\u05db\u05d5\u05de\u05d8\u05e8\u05d9, \u05de\u05de\u05d5\u05e6\u05e2 \u05d1\u05d2\u05e8\u05d5\u05ea \u05d5\u05d9\u05d7\u05d9\u05d3\u05d5\u05ea \u05dc\u05d9\u05de\u05d5\u05d3 \u05d1\u05de\u05ea\u05de\u05d8\u05d9\u05e7\u05d4 \u05d5\u05d1\u05d0\u05e0\u05d2\u05dc\u05d9\u05ea.",
         status: "active",
       },
       {
-        question: "\u05db\u05de\u05d4 \u05d6\u05de\u05df \u05e0\u05de\u05e9\u05da \u05d4\u05ea\u05d5\u05d0\u05e8?",
-        answer: "\u05de\u05e9\u05da \u05d4\u05dc\u05d9\u05de\u05d5\u05d3\u05d9\u05dd \u05d4\u05de\u05dc\u05d0 \u05d4\u05d5\u05d0 \u05d1\u05d3\u05e8\u05da-\u05db\u05dc\u05dc \u05e9\u05dc\u05d5\u05e9 \u05e9\u05e0\u05d9\u05dd \u05d0\u05e7\u05d3\u05de\u05d9\u05d5\u05ea.",
+        question:
+          "\u05db\u05de\u05d4 \u05d6\u05de\u05df \u05e0\u05de\u05e9\u05da \u05d4\u05ea\u05d5\u05d0\u05e8?",
+        answer:
+          "\u05de\u05e9\u05da \u05d4\u05dc\u05d9\u05de\u05d5\u05d3\u05d9\u05dd \u05d4\u05de\u05dc\u05d0 \u05d4\u05d5\u05d0 \u05d1\u05d3\u05e8\u05da-\u05db\u05dc\u05dc \u05e9\u05dc\u05d5\u05e9 \u05e9\u05e0\u05d9\u05dd \u05d0\u05e7\u05d3\u05de\u05d9\u05d5\u05ea.",
         status: "active",
       },
     ];
@@ -91,8 +99,11 @@ export default function AdminFaqManager() {
     try {
       await Promise.all(
         seedItems.map((item) =>
-          addDoc(collection(db, "faqs"), { ...item, createdAt: serverTimestamp() })
-        )
+          addDoc(collection(db, "faqs"), {
+            ...item,
+            createdAt: serverTimestamp(),
+          }),
+        ),
       );
     } catch (err) {
       console.error("Failed to seed FAQs", err);
@@ -113,7 +124,10 @@ export default function AdminFaqManager() {
             createdAt: data.createdAt,
           };
         });
-        items.sort((a, b) => (b.createdAt?.toMillis?.() ?? 0) - (a.createdAt?.toMillis?.() ?? 0));
+        items.sort(
+          (a, b) =>
+            (b.createdAt?.toMillis?.() ?? 0) - (a.createdAt?.toMillis?.() ?? 0),
+        );
 
         if (items.length === 0 && !didSeedRef.current) {
           didSeedRef.current = true;
@@ -125,7 +139,7 @@ export default function AdminFaqManager() {
       },
       () => {
         setIsLoading(false);
-      }
+      },
     );
     return () => unsub();
   }, []);
@@ -133,9 +147,15 @@ export default function AdminFaqManager() {
   const [question, setQuestion] = useState("");
   const [answer, setAnswer] = useState("");
   const [status, setStatus] = useState<FaqStatus>("active");
-  const [errors, setErrors] = useState<{ question?: string; answer?: string }>({});
+  const [errors, setErrors] = useState<{ question?: string; answer?: string }>(
+    {},
+  );
 
-  const [snack, setSnack] = useState<{ open: boolean; msg: string; severity: "success" | "error" }>({
+  const [snack, setSnack] = useState<{
+    open: boolean;
+    msg: string;
+    severity: "success" | "error";
+  }>({
     open: false,
     msg: "",
     severity: "success",
@@ -261,14 +281,23 @@ export default function AdminFaqManager() {
     }
   };
 
-
   return (
     <Box dir="rtl">
       <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
-        <Typography variant="h6" align="center" fontWeight={700} color="success.main">
+        <Typography
+          variant="h6"
+          align="center"
+          fontWeight={700}
+          color="success.main"
+        >
           המחלקה למדעי המחשב
         </Typography>
-        <Typography variant="body2" align="center" color="text.secondary" mb={3}>
+        <Typography
+          variant="body2"
+          align="center"
+          color="text.secondary"
+          mb={3}
+        >
           מערכת ניהול – שאלות נפוצות
         </Typography>
 
@@ -293,7 +322,14 @@ export default function AdminFaqManager() {
         {tab === 0 && (
           <Paper elevation={3} sx={{ p: 3, borderRadius: 3 }}>
             {isLoading && <LinearProgress sx={{ mb: 2 }} />}
-            <Box mb={2} display="flex" justifyContent="space-between" alignItems="center" flexWrap="wrap" gap={2}>
+            <Box
+              mb={2}
+              display="flex"
+              justifyContent="space-between"
+              alignItems="center"
+              flexWrap="wrap"
+              gap={2}
+            >
               <Typography variant="h5" fontWeight={600}>
                 רשימת שאלות נפוצות
               </Typography>
@@ -316,7 +352,14 @@ export default function AdminFaqManager() {
               מספר השאלות במערכת: {faqs.length}
             </Typography>
 
-            <Paper elevation={0} sx={{ borderRadius: 3, overflow: "hidden", bgcolor: "background.paper" }}>
+            <Paper
+              elevation={0}
+              sx={{
+                borderRadius: 3,
+                overflow: "hidden",
+                bgcolor: "background.paper",
+              }}
+            >
               <Table>
                 <TableHead>
                   <TableRow>
@@ -413,8 +456,18 @@ export default function AdminFaqManager() {
                 <option value="inactive">לא פעיל</option>
               </TextField>
 
-              <Box mt={2} display="flex" justifyContent="space-between" flexWrap="wrap" gap={2}>
-                <Button variant="text" color="success" onClick={() => setTab(0)}>
+              <Box
+                mt={2}
+                display="flex"
+                justifyContent="space-between"
+                flexWrap="wrap"
+                gap={2}
+              >
+                <Button
+                  variant="text"
+                  color="success"
+                  onClick={() => setTab(0)}
+                >
                   ⬅ חזרה לרשימת שאלות
                 </Button>
 
@@ -427,7 +480,11 @@ export default function AdminFaqManager() {
                   >
                     ביטול
                   </Button>
-                  <Button variant="contained" color="success" onClick={createFaq}>
+                  <Button
+                    variant="contained"
+                    color="success"
+                    onClick={createFaq}
+                  >
                     שמירה
                   </Button>
                 </Stack>
@@ -438,7 +495,12 @@ export default function AdminFaqManager() {
       </Container>
 
       {/* EDIT */}
-      <Dialog open={editOpen} onClose={() => setEditOpen(false)} fullWidth maxWidth="md">
+      <Dialog
+        open={editOpen}
+        onClose={() => setEditOpen(false)}
+        fullWidth
+        maxWidth="md"
+      >
         <DialogTitle>עריכת שאלה נפוצה</DialogTitle>
         <DialogContent>
           <Box mt={1} display="flex" flexDirection="column" gap={2}>
@@ -505,11 +567,14 @@ export default function AdminFaqManager() {
         onClose={() => setSnack((s) => ({ ...s, open: false }))}
         anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
       >
-        <Alert severity={snack.severity} variant="filled" sx={{ width: "100%" }}>
+        <Alert
+          severity={snack.severity}
+          variant="filled"
+          sx={{ width: "100%" }}
+        >
           {snack.msg}
         </Alert>
       </Snackbar>
     </Box>
   );
 }
-

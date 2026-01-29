@@ -28,8 +28,14 @@ const candidateNav = [
   { label: "Home / מסך הבית", path: "/" },
   { label: "Forms / טפסים", path: "/forms" },
   { label: "Courses / קורסים", path: "/courses" },
-  { label: "Admission Calculator / מחשבון סיכוי קבלה", path: "/admission-calculator" },
-  { label: "Admission Requirements / תנאי קבלה", path: "/admission-requirements" },
+  {
+    label: "Admission Calculator / מחשבון סיכוי קבלה",
+    path: "/admission-calculator",
+  },
+  {
+    label: "Admission Requirements / תנאי קבלה",
+    path: "/admission-requirements",
+  },
   { label: "Help / עזרה", path: "/help" },
   { label: "Login / התחברות", path: "/login" },
 ];
@@ -39,7 +45,10 @@ const adminNav = [
   { label: "System Users / משתמשי מערכת", path: "/admin/users" },
   { label: "Candidates / מועמדים", path: "/admin/candidates" },
   { label: "Courses / קורסים", path: "/admin/courses" },
-  { label: "Admission Requirements / תנאי קבלה", path: "/admin/admission-requirements" },
+  {
+    label: "Admission Requirements / תנאי קבלה",
+    path: "/admin/admission-requirements",
+  },
   { label: "Notifications / הודעות", path: "/admin/notifications" },
   { label: "FAQ / שאלות נפוצות", path: "/admin/faq" },
   { label: "Help / עזרה", path: "/admin/help" },
@@ -52,7 +61,9 @@ interface HeaderProps {
 
 function Header({ userMode, onChangeMode }: HeaderProps) {
   const [drawerOpen, setDrawerOpen] = useState(false);
-  const [authUser, setAuthUser] = useState<string | null>(localStorage.getItem("authUser"));
+  const [authUser, setAuthUser] = useState<string | null>(
+    localStorage.getItem("authUser"),
+  );
 
   const navigate = useNavigate();
   const location = useLocation();
@@ -118,7 +129,9 @@ function Header({ userMode, onChangeMode }: HeaderProps) {
 
           <Typography
             variant="h6"
-            onClick={() => handleNavigate(userMode === "admin" ? "/admin" : "/")}
+            onClick={() =>
+              handleNavigate(userMode === "admin" ? "/admin" : "/")
+            }
             sx={{
               flexGrow: 1,
               color: "inherit",
@@ -158,12 +171,20 @@ function Header({ userMode, onChangeMode }: HeaderProps) {
 
           {/* כפתור Dark/Light גלובלי */}
           <Tooltip title={mode === "dark" ? "מצב בהיר" : "מצב כהה"}>
-            <IconButton onClick={toggleColorMode} color="inherit" sx={{ mr: 1 }}>
+            <IconButton
+              onClick={toggleColorMode}
+              color="inherit"
+              sx={{ mr: 1 }}
+            >
               {mode === "dark" ? <LightModeIcon /> : <DarkModeIcon />}
             </IconButton>
           </Tooltip>
 
-          <Stack direction="row" spacing={1} sx={{ display: { xs: "none", md: "flex" } }}>
+          <Stack
+            direction="row"
+            spacing={1}
+            sx={{ display: { xs: "none", md: "flex" } }}
+          >
             <Button
               variant={userMode === "candidate" ? "contained" : "outlined"}
               color="secondary"
@@ -204,18 +225,32 @@ function Header({ userMode, onChangeMode }: HeaderProps) {
                 selected={location.pathname === item.path}
                 onClick={() => handleNavigate(item.path)}
               >
-                <ListItemText primary={item.label} primaryTypographyProps={{ sx: { textAlign: "right" } }} />
+                <ListItemText
+                  primary={item.label}
+                  primaryTypographyProps={{ sx: { textAlign: "right" } }}
+                />
               </ListItemButton>
             ))}
           </List>
 
           <Box sx={{ p: 2, display: "grid", gap: 1 }}>
-            <Button fullWidth variant="outlined" onClick={toggleMode} size="small">
+            <Button
+              fullWidth
+              variant="outlined"
+              onClick={toggleMode}
+              size="small"
+            >
               מעבר ל־{userMode === "candidate" ? "מצב Admin" : "מצב מועמד"}
             </Button>
 
             {authUser && (
-              <Button fullWidth variant="outlined" color="secondary" onClick={handleLogout} size="small">
+              <Button
+                fullWidth
+                variant="outlined"
+                color="secondary"
+                onClick={handleLogout}
+                size="small"
+              >
                 התנתקות
               </Button>
             )}

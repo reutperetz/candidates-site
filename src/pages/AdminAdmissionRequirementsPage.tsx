@@ -171,22 +171,27 @@ function validateForm(form: FormState): FormErrors {
 
   // יח"ל: 3–5 מספר שלם
   if (form.mathUnits.trim() && !isIntInRange(mathUnits, 3, 5)) {
-    errors.mathUnits = "יח\"ל מתמטיקה חייב להיות 3–5";
+    errors.mathUnits = 'יח"ל מתמטיקה חייב להיות 3–5';
   }
   if (form.englishUnits.trim() && !isIntInRange(englishUnits, 3, 5)) {
-    errors.englishUnits = "יח\"ל אנגלית חייב להיות 3–5";
+    errors.englishUnits = 'יח"ל אנגלית חייב להיות 3–5';
   }
 
   // חובה לפי מסלול (כמו הדרישה שלך “לא לקבל מה שלא תקין”)
   if (form.track === "A") {
-    if (minPsycho === undefined) errors.minPsycho = "במסלול א' חובה פסיכומטרי מינימלי";
+    if (minPsycho === undefined)
+      errors.minPsycho = "במסלול א' חובה פסיכומטרי מינימלי";
   }
 
   if (form.track === "B") {
-    if (minPsycho === undefined) errors.minPsycho = "במסלול ב' חובה פסיכומטרי/כמותי מינימלי";
-    if (minAverage === undefined) errors.minAverage = "במסלול ב' חובה ממוצע בגרות מינימלי";
-    if (minMath === undefined) errors.minMath = "במסלול ב' חובה ציון מתמטיקה מינימלי";
-    if (!isIntInRange(mathUnits, 3, 5)) errors.mathUnits = "במסלול ב' חובה יח\"ל מתמטיקה (3–5)";
+    if (minPsycho === undefined)
+      errors.minPsycho = "במסלול ב' חובה פסיכומטרי/כמותי מינימלי";
+    if (minAverage === undefined)
+      errors.minAverage = "במסלול ב' חובה ממוצע בגרות מינימלי";
+    if (minMath === undefined)
+      errors.minMath = "במסלול ב' חובה ציון מתמטיקה מינימלי";
+    if (!isIntInRange(mathUnits, 3, 5))
+      errors.mathUnits = "במסלול ב' חובה יח\"ל מתמטיקה (3–5)";
   }
 
   // מסלול C (אופציונלי) – לא מכריחים כרגע
@@ -208,13 +213,15 @@ const AdminAdmissionRequirementsPage = () => {
     const seedItems = [
       {
         track: "A",
-        trackName: "\u05de\u05e1\u05dc\u05d5\u05dc \u05d0' - \u05e4\u05e1\u05d9\u05db\u05d5\u05de\u05d8\u05e8\u05d9 \u05d9\u05e9\u05d9\u05e8",
+        trackName:
+          "\u05de\u05e1\u05dc\u05d5\u05dc \u05d0' - \u05e4\u05e1\u05d9\u05db\u05d5\u05de\u05d8\u05e8\u05d9 \u05d9\u05e9\u05d9\u05e8",
         minPsycho: 650,
         status: "active",
       },
       {
         track: "B",
-        trackName: "\u05de\u05e1\u05dc\u05d5\u05dc \u05d1' - \u05e1\u05db\u05d5\u05dd \u05de\u05e9\u05d5\u05dc\u05d1",
+        trackName:
+          "\u05de\u05e1\u05dc\u05d5\u05dc \u05d1' - \u05e1\u05db\u05d5\u05dd \u05de\u05e9\u05d5\u05dc\u05d1",
         minPsycho: 130,
         minAverage: 90,
         minMath: 85,
@@ -226,8 +233,11 @@ const AdminAdmissionRequirementsPage = () => {
     try {
       await Promise.all(
         seedItems.map((item) =>
-          addDoc(collection(db, "requirements"), { ...item, createdAt: serverTimestamp() })
-        )
+          addDoc(collection(db, "requirements"), {
+            ...item,
+            createdAt: serverTimestamp(),
+          }),
+        ),
       );
     } catch (err) {
       console.error("Failed to seed requirements", err);
@@ -254,7 +264,10 @@ const AdminAdmissionRequirementsPage = () => {
             createdAt: data.createdAt,
           };
         });
-        items.sort((a, b) => (b.createdAt?.toMillis?.() ?? 0) - (a.createdAt?.toMillis?.() ?? 0));
+        items.sort(
+          (a, b) =>
+            (b.createdAt?.toMillis?.() ?? 0) - (a.createdAt?.toMillis?.() ?? 0),
+        );
 
         if (items.length === 0 && !didSeedRef.current) {
           didSeedRef.current = true;
@@ -263,16 +276,15 @@ const AdminAdmissionRequirementsPage = () => {
 
         setRequirements(items);
         setIsLoading(false);
-
       },
       () => {
         setIsLoading(false);
-      }
+      },
     );
     return () => unsub();
   }, []);
 
-// טופס הוספה
+  // טופס הוספה
   const [form, setForm] = useState<FormState>(emptyForm);
   const [errors, setErrors] = useState<FormErrors>({});
   const [saved, setSaved] = useState(false);
@@ -285,7 +297,6 @@ const AdminAdmissionRequirementsPage = () => {
   const [editForm, setEditForm] = useState<FormState>(emptyForm);
   const [editErrors, setEditErrors] = useState<FormErrors>({});
   const [edited, setEdited] = useState(false);
-
 
   const handleChange =
     (field: keyof FormState) =>
@@ -323,7 +334,9 @@ const AdminAdmissionRequirementsPage = () => {
     } catch (err) {
       console.error("Failed to add requirement", err);
       setSaved(false);
-      setSaveError("\u05e9\u05d2\u05d9\u05d0\u05d4 \u05d1\u05e9\u05de\u05d9\u05e8\u05d4. \u05e0\u05e1\u05d9 \u05e9\u05d5\u05d1.");
+      setSaveError(
+        "\u05e9\u05d2\u05d9\u05d0\u05d4 \u05d1\u05e9\u05de\u05d9\u05e8\u05d4. \u05e0\u05e1\u05d9 \u05e9\u05d5\u05d1.",
+      );
     }
   };
 
@@ -413,13 +426,13 @@ const AdminAdmissionRequirementsPage = () => {
     setSelected(null);
   };
 
-const renderFormFields = (
-  current: FormState,
-  onChange: (
-    f: keyof FormState
-  ) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void,
-  currentErrors: FormErrors
-) => (
+  const renderFormFields = (
+    current: FormState,
+    onChange: (
+      f: keyof FormState,
+    ) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void,
+    currentErrors: FormErrors,
+  ) => (
     <Grid container spacing={2}>
       <Grid item xs={12} md={4}>
         <TextField
@@ -446,7 +459,9 @@ const renderFormFields = (
           value={current.trackName}
           onChange={onChange("trackName")}
           error={!!currentErrors.trackName}
-          helperText={currentErrors.trackName || "לדוגמה: מסלול ב' – סכום משולב"}
+          helperText={
+            currentErrors.trackName || "לדוגמה: מסלול ב' – סכום משולב"
+          }
         />
       </Grid>
 
@@ -550,14 +565,27 @@ const renderFormFields = (
   return (
     <Box dir="rtl">
       <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
-        <Typography variant="h6" align="center" fontWeight={700} color="success.main">
+        <Typography
+          variant="h6"
+          align="center"
+          fontWeight={700}
+          color="success.main"
+        >
           המחלקה למדעי המחשב
         </Typography>
-        <Typography variant="body2" align="center" color="text.secondary" mb={3}>
+        <Typography
+          variant="body2"
+          align="center"
+          color="text.secondary"
+          mb={3}
+        >
           מערכת ניהול – תנאי קבלה
         </Typography>
 
-        <Paper elevation={3} sx={{ borderRadius: 3, p: 3, bgcolor: "background.paper" }}>
+        <Paper
+          elevation={3}
+          sx={{ borderRadius: 3, p: 3, bgcolor: "background.paper" }}
+        >
           <Tabs
             value={tab}
             onChange={(_e, v) => setTab(v)}
@@ -569,7 +597,6 @@ const renderFormFields = (
           </Tabs>
 
           {isLoading && <LinearProgress sx={{ mb: 2 }} />}
-
 
           {/* ===== TAB 0: LIST ===== */}
           {tab === 0 && (
@@ -600,7 +627,14 @@ const renderFormFields = (
                 מספר תנאי הקבלה במערכת: {requirements.length}
               </Typography>
 
-              <Paper elevation={0} sx={{ borderRadius: 3, overflow: "hidden", bgcolor: "background.paper" }}>
+              <Paper
+                elevation={0}
+                sx={{
+                  borderRadius: 3,
+                  overflow: "hidden",
+                  bgcolor: "background.paper",
+                }}
+              >
                 <Table>
                   <TableHead>
                     <TableRow>
@@ -680,7 +714,13 @@ const renderFormFields = (
                 </Box>
               )}
 
-              <Box mt={4} display="flex" justifyContent="center" gap={2} flexWrap="wrap">
+              <Box
+                mt={4}
+                display="flex"
+                justifyContent="center"
+                gap={2}
+                flexWrap="wrap"
+              >
                 <Button
                   variant="contained"
                   color="success"
@@ -700,7 +740,9 @@ const renderFormFields = (
 
               {Object.values(errors).some(Boolean) && (
                 <Box mt={3}>
-                  <Alert severity="error">יש שדות לא תקינים — תקני את המסומן באדום.</Alert>
+                  <Alert severity="error">
+                    יש שדות לא תקינים — תקני את המסומן באדום.
+                  </Alert>
                 </Box>
               )}
             </Box>
@@ -709,13 +751,20 @@ const renderFormFields = (
       </Container>
 
       {/* ===== EDIT DIALOG ===== */}
-      <Dialog open={editOpen} onClose={() => setEditOpen(false)} fullWidth maxWidth="md">
+      <Dialog
+        open={editOpen}
+        onClose={() => setEditOpen(false)}
+        fullWidth
+        maxWidth="md"
+      >
         <DialogTitle sx={{ fontWeight: 700 }}>עריכת תנאי קבלה</DialogTitle>
         <DialogContent dividers>
           {renderFormFields(editForm, handleEditChange, editErrors)}
           {Object.values(editErrors).some(Boolean) && (
             <Box mt={2}>
-              <Alert severity="error">יש שדות לא תקינים — תקני את המסומן באדום.</Alert>
+              <Alert severity="error">
+                יש שדות לא תקינים — תקני את המסומן באדום.
+              </Alert>
             </Box>
           )}
           {edited && (
@@ -763,4 +812,3 @@ const renderFormFields = (
 };
 
 export default AdminAdmissionRequirementsPage;
-

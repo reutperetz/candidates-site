@@ -1,5 +1,13 @@
 import { useEffect, useMemo, useState } from "react";
-import { Box, Container, Typography, Paper, Button, Divider, LinearProgress } from "@mui/material";
+import {
+  Box,
+  Container,
+  Typography,
+  Paper,
+  Button,
+  Divider,
+  LinearProgress,
+} from "@mui/material";
 import CheckCircleOutlineIcon from "@mui/icons-material/CheckCircleOutline";
 import ArrowForwardIosIcon from "@mui/icons-material/ArrowForwardIos";
 import Grid from "@mui/material/GridLegacy";
@@ -33,11 +41,13 @@ const trackOrder: Record<TrackType, number> = { A: 0, B: 1, C: 2 };
 
 type RequirementDoc = Omit<AdminRequirement, "docId">;
 
-
 function buildDisplayItems(req: AdminRequirement): RequirementDisplay[] {
   const items: RequirementDisplay[] = [];
   if (req.minPsycho !== undefined) {
-    items.push({ label: "ציון פסיכומטרי מינימלי", value: String(req.minPsycho) });
+    items.push({
+      label: "ציון פסיכומטרי מינימלי",
+      value: String(req.minPsycho),
+    });
   }
   if (req.minAverage !== undefined) {
     items.push({ label: "ממוצע בגרות מינימלי", value: String(req.minAverage) });
@@ -49,10 +59,16 @@ function buildDisplayItems(req: AdminRequirement): RequirementDisplay[] {
     items.push({ label: "ציון אנגלית מינימלי", value: String(req.minEnglish) });
   }
   if (req.mathUnits !== undefined) {
-    items.push({ label: "יחידות מתמטיקה נדרשות", value: String(req.mathUnits) });
+    items.push({
+      label: "יחידות מתמטיקה נדרשות",
+      value: String(req.mathUnits),
+    });
   }
   if (req.englishUnits !== undefined) {
-    items.push({ label: "יחידות אנגלית נדרשות", value: String(req.englishUnits) });
+    items.push({
+      label: "יחידות אנגלית נדרשות",
+      value: String(req.englishUnits),
+    });
   }
   return items;
 }
@@ -99,10 +115,12 @@ const AdmissionRequirementsPage = () => {
     () =>
       requirements
         .filter((req) => req.status === "active")
-        .sort((a, b) =>
-          trackOrder[a.track] - trackOrder[b.track] || (b.createdAt?.toMillis?.() ?? 0) - (a.createdAt?.toMillis?.() ?? 0)
+        .sort(
+          (a, b) =>
+            trackOrder[a.track] - trackOrder[b.track] ||
+            (b.createdAt?.toMillis?.() ?? 0) - (a.createdAt?.toMillis?.() ?? 0),
         ),
-    [requirements]
+    [requirements],
   );
 
   const renderRequirementBox = (r: RequirementDisplay) => (
@@ -134,10 +152,20 @@ const AdmissionRequirementsPage = () => {
   return (
     <Box dir="rtl">
       <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
-        <Typography variant="h6" align="center" fontWeight={700} color="success.main">
+        <Typography
+          variant="h6"
+          align="center"
+          fontWeight={700}
+          color="success.main"
+        >
           {"המחלקה למדעי המחשב"}
         </Typography>
-        <Typography variant="body2" align="center" color="text.secondary" mb={3}>
+        <Typography
+          variant="body2"
+          align="center"
+          color="text.secondary"
+          mb={3}
+        >
           {"מידע למועמדים - תנאי קבלה והמסלולים האפשריים"}
         </Typography>
 
@@ -180,7 +208,10 @@ const AdmissionRequirementsPage = () => {
                         <Typography variant="subtitle1" fontWeight={600}>
                           {"דרישות:"}
                         </Typography>
-                        <CheckCircleOutlineIcon color="success" fontSize="small" />
+                        <CheckCircleOutlineIcon
+                          color="success"
+                          fontSize="small"
+                        />
                       </Box>
 
                       <Grid container spacing={2} mb={2}>
@@ -188,7 +219,11 @@ const AdmissionRequirementsPage = () => {
                           items.map(renderRequirementBox)
                         ) : (
                           <Grid item xs={12}>
-                            <Typography variant="body2" color="text.secondary" align="center">
+                            <Typography
+                              variant="body2"
+                              color="text.secondary"
+                              align="center"
+                            >
                               {"אין תנאים מינימליים מוגדרים למסלול זה."}
                             </Typography>
                           </Grid>
@@ -214,7 +249,9 @@ const AdmissionRequirementsPage = () => {
                   }}
                 >
                   <Typography variant="body2" color="text.secondary">
-                    {"ניתן להתקבל גם לפי שקלול של בגרות ופסיכומטרי (לפי מדיניות הקבלה של המחלקה)."}
+                    {
+                      "ניתן להתקבל גם לפי שקלול של בגרות ופסיכומטרי (לפי מדיניות הקבלה של המחלקה)."
+                    }
                   </Typography>
                 </Paper>
               </Box>
@@ -244,7 +281,11 @@ const AdmissionRequirementsPage = () => {
               {"מעבר למחשבון סיכוי קבלה"}
             </Button>
 
-            <Button variant="text" onClick={() => navigate("/")} sx={{ borderRadius: 999 }}>
+            <Button
+              variant="text"
+              onClick={() => navigate("/")}
+              sx={{ borderRadius: 999 }}
+            >
               {"חזרה למסך הבית"}
             </Button>
           </Box>

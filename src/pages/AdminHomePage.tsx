@@ -1,5 +1,12 @@
 // src/pages/AdminHomePage.tsx
-import { Box, Container, Typography, Card, CardContent, Paper } from "@mui/material";
+import {
+  Box,
+  Container,
+  Typography,
+  Card,
+  CardContent,
+  Paper,
+} from "@mui/material";
 import Grid from "@mui/material/GridLegacy";
 import NotificationsNoneIcon from "@mui/icons-material/NotificationsNone";
 import MenuBookIcon from "@mui/icons-material/MenuBook";
@@ -50,10 +57,20 @@ const AdminHomePage = () => {
     <Box dir="rtl">
       <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
         {/* כותרת עליונה */}
-        <Typography variant="h6" align="center" fontWeight={700} color="success.main">
+        <Typography
+          variant="h6"
+          align="center"
+          fontWeight={700}
+          color="success.main"
+        >
           המחלקה למדעי המחשב
         </Typography>
-        <Typography variant="body2" align="center" color="text.secondary" mb={3}>
+        <Typography
+          variant="body2"
+          align="center"
+          color="text.secondary"
+          mb={3}
+        >
           מערכת ניהול – משתמשים, מועמדים, קורסים ותנאי קבלה
         </Typography>
 
@@ -116,7 +133,11 @@ const AdminHomePage = () => {
                   <CardContent sx={{ textAlign: "center", py: 3 }}>
                     <Box mb={1}>{item.icon}</Box>
 
-                    <Typography variant="subtitle1" fontWeight={800} sx={{ mb: 0.5 }}>
+                    <Typography
+                      variant="subtitle1"
+                      fontWeight={800}
+                      sx={{ mb: 0.5 }}
+                    >
                       {item.title}
                     </Typography>
 
@@ -135,6 +156,3 @@ const AdminHomePage = () => {
 };
 
 export default AdminHomePage;
-
-
-

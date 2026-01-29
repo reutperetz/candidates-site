@@ -68,19 +68,38 @@ const LoginPage = () => {
   return (
     <Box dir="rtl">
       <Container maxWidth="sm" sx={{ mt: 4, mb: 4 }}>
-        <Typography variant="h6" align="center" fontWeight={700} color="success.main">
+        <Typography
+          variant="h6"
+          align="center"
+          fontWeight={700}
+          color="success.main"
+        >
           המחלקה למדעי המחשב
         </Typography>
-        <Typography variant="body2" align="center" color="text.secondary" mb={3}>
+        <Typography
+          variant="body2"
+          align="center"
+          color="text.secondary"
+          mb={3}
+        >
           מידע לסטודנטים – מחלקה למדעי המחשב
         </Typography>
 
         <Paper elevation={3} sx={{ borderRadius: 3, overflow: "hidden" }}>
-          <Box sx={{ bgcolor: "success.main", color: "success.contrastText", p: 3, textAlign: "center" }}>
+          <Box
+            sx={{
+              bgcolor: "success.main",
+              color: "success.contrastText",
+              p: 3,
+              textAlign: "center",
+            }}
+          >
             <Typography variant="h6" fontWeight={700}>
               התחברות למערכת
             </Typography>
-            <Typography variant="body2">מידע לסטודנטים – מחלקה למדעי המחשב</Typography>
+            <Typography variant="body2">
+              מידע לסטודנטים – מחלקה למדעי המחשב
+            </Typography>
           </Box>
 
           <Box sx={{ p: 3, bgcolor: "background.paper" }}>
@@ -116,8 +135,15 @@ const LoginPage = () => {
                 ),
                 endAdornment: (
                   <InputAdornment position="end">
-                    <IconButton edge="end" onClick={() => setShowPassword((prev) => !prev)}>
-                      {showPassword ? <VisibilityOff fontSize="small" /> : <Visibility fontSize="small" />}
+                    <IconButton
+                      edge="end"
+                      onClick={() => setShowPassword((prev) => !prev)}
+                    >
+                      {showPassword ? (
+                        <VisibilityOff fontSize="small" />
+                      ) : (
+                        <Visibility fontSize="small" />
+                      )}
                     </IconButton>
                   </InputAdornment>
                 ),
@@ -134,7 +160,9 @@ const LoginPage = () => {
               כניסה
             </Button>
 
-            <Box sx={{ my: 2.5, display: "flex", alignItems: "center", gap: 1 }}>
+            <Box
+              sx={{ my: 2.5, display: "flex", alignItems: "center", gap: 1 }}
+            >
               <Divider sx={{ flex: 1 }} />
               <Typography variant="body2" color="text.secondary">
                 או
@@ -157,7 +185,11 @@ const LoginPage = () => {
               </Typography>
 
               {/* במקום href="#" — ניווט תקין */}
-              <Button variant="text" onClick={handleGoToRegister} sx={{ mt: 0.5 }}>
+              <Button
+                variant="text"
+                onClick={handleGoToRegister}
+                sx={{ mt: 0.5 }}
+              >
                 הרשמה עכשיו
               </Button>
             </Box>
@@ -170,7 +202,11 @@ const LoginPage = () => {
           onClose={() => setOpenSnack(false)}
           anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
         >
-          <Alert onClose={() => setOpenSnack(false)} severity="success" variant="filled">
+          <Alert
+            onClose={() => setOpenSnack(false)}
+            severity="success"
+            variant="filled"
+          >
             התחברת בהצלחה
           </Alert>
         </Snackbar>
@@ -180,4 +216,3 @@ const LoginPage = () => {
 };
 
 export default LoginPage;
-

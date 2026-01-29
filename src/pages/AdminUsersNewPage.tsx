@@ -132,7 +132,7 @@ function validateForm(
   form: CandidateForm,
   existingIds: Set<string>,
   mode: "add" | "edit",
-  editingId?: string
+  editingId?: string,
 ) {
   const errors: Partial<Record<keyof CandidateForm, string>> = {};
 
@@ -145,7 +145,8 @@ function validateForm(
 
   const id = form.idNumber.trim();
   if (!id) errors.idNumber = "חובה להזין תעודת זהות";
-  else if (!isDigitsOnly(id)) errors.idNumber = "תעודת זהות חייבת להכיל ספרות בלבד";
+  else if (!isDigitsOnly(id))
+    errors.idNumber = "תעודת זהות חייבת להכיל ספרות בלבד";
   else if (id.length !== 9) errors.idNumber = "תעודת זהות חייבת להיות 9 ספרות";
   else {
     const isSameAsEditing = mode === "edit" && editingId && id === editingId;
@@ -156,7 +157,8 @@ function validateForm(
 
   const psychoStr = form.psychometric.trim();
   if (!psychoStr) errors.psychometric = "חובה להזין ציון פסיכומטרי";
-  else if (!isDigitsOnly(psychoStr)) errors.psychometric = "פסיכומטרי חייב להיות מספר";
+  else if (!isDigitsOnly(psychoStr))
+    errors.psychometric = "פסיכומטרי חייב להיות מספר";
   else {
     const v = Number(psychoStr);
     if (v < 200 || v > 800) errors.psychometric = "טווח תקין: 200–800";
@@ -198,9 +200,9 @@ const AdminCandidatesPage = () => {
   const [candidates, setCandidates] = useState<Candidate[]>(seedCandidates);
 
   const [form, setForm] = useState<CandidateForm>(initialForm);
-  const [errors, setErrors] = useState<Partial<Record<keyof CandidateForm, string>>>(
-    {}
-  );
+  const [errors, setErrors] = useState<
+    Partial<Record<keyof CandidateForm, string>>
+  >({});
   const [saved, setSaved] = useState(false);
 
   const [query, setQuery] = useState("");
@@ -217,7 +219,10 @@ const AdminCandidatesPage = () => {
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [deleteId, setDeleteId] = useState<string | null>(null);
 
-  const existingIds = useMemo(() => new Set(candidates.map((c) => c.id)), [candidates]);
+  const existingIds = useMemo(
+    () => new Set(candidates.map((c) => c.id)),
+    [candidates],
+  );
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -225,7 +230,11 @@ const AdminCandidatesPage = () => {
 
     return candidates.filter((c) => {
       const statusText =
-        c.status === "accepted" ? "התקבל" : c.status === "pending" ? "בדיקה" : "נדחה";
+        c.status === "accepted"
+          ? "התקבל"
+          : c.status === "pending"
+            ? "בדיקה"
+            : "נדחה";
       return (
         c.id.includes(q) ||
         c.fullName.toLowerCase().includes(q) ||
@@ -236,7 +245,8 @@ const AdminCandidatesPage = () => {
   }, [candidates, query]);
 
   const handleChangeForm =
-    (field: keyof CandidateForm) => (e: React.ChangeEvent<HTMLInputElement>) => {
+    (field: keyof CandidateForm) =>
+    (e: React.ChangeEvent<HTMLInputElement>) => {
       setForm((prev) => ({ ...prev, [field]: e.target.value }));
       setSaved(false);
       setErrors((prev) => ({ ...prev, [field]: undefined }));
@@ -311,7 +321,7 @@ const AdminCandidatesPage = () => {
     };
 
     setCandidates((prev) =>
-      prev.map((c) => (c.id === editingId ? updated : c))
+      prev.map((c) => (c.id === editingId ? updated : c)),
     );
     setEditOpen(false);
     setEditingId(null);
@@ -332,14 +342,27 @@ const AdminCandidatesPage = () => {
   return (
     <Box dir="rtl">
       <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
-        <Typography variant="h6" align="center" fontWeight={700} color="success.main">
+        <Typography
+          variant="h6"
+          align="center"
+          fontWeight={700}
+          color="success.main"
+        >
           המחלקה למדעי המחשב
         </Typography>
-        <Typography variant="body2" align="center" color="text.secondary" mb={3}>
+        <Typography
+          variant="body2"
+          align="center"
+          color="text.secondary"
+          mb={3}
+        >
           מערכת ניהול – מועמדים
         </Typography>
 
-        <Paper elevation={3} sx={{ borderRadius: 3, p: 3, bgcolor: "background.paper" }}>
+        <Paper
+          elevation={3}
+          sx={{ borderRadius: 3, p: 3, bgcolor: "background.paper" }}
+        >
           <Tabs
             value={tab}
             onChange={(_e, v) => setTab(v)}
@@ -388,7 +411,14 @@ const AdminCandidatesPage = () => {
                 מספר המועמדים במערכת: {filtered.length}
               </Typography>
 
-              <Paper elevation={0} sx={{ borderRadius: 3, overflow: "hidden", bgcolor: "background.paper" }}>
+              <Paper
+                elevation={0}
+                sx={{
+                  borderRadius: 3,
+                  overflow: "hidden",
+                  bgcolor: "background.paper",
+                }}
+              >
                 <Table>
                   <TableHead>
                     <TableRow>
@@ -442,7 +472,11 @@ const AdminCandidatesPage = () => {
                     {filtered.length === 0 && (
                       <TableRow>
                         <TableCell colSpan={9} align="center">
-                          <Typography variant="body2" color="text.secondary" sx={{ py: 3 }}>
+                          <Typography
+                            variant="body2"
+                            color="text.secondary"
+                            sx={{ py: 3 }}
+                          >
                             לא נמצאו תוצאות
                           </Typography>
                         </TableCell>
@@ -518,7 +552,9 @@ const AdminCandidatesPage = () => {
                     value={form.bagrutAverage}
                     onChange={handleChangeForm("bagrutAverage")}
                     error={!!errors.bagrutAverage}
-                    helperText={errors.bagrutAverage || "טווח: 55–120 (אפשר עשרוני)"}
+                    helperText={
+                      errors.bagrutAverage || "טווח: 55–120 (אפשר עשרוני)"
+                    }
                   />
                 </Grid>
 
@@ -590,7 +626,13 @@ const AdminCandidatesPage = () => {
                 </Grid>
               </Grid>
 
-              <Box mt={4} display="flex" justifyContent="center" gap={2} flexWrap="wrap">
+              <Box
+                mt={4}
+                display="flex"
+                justifyContent="center"
+                gap={2}
+                flexWrap="wrap"
+              >
                 <Button
                   variant="contained"
                   color="success"
@@ -599,7 +641,11 @@ const AdminCandidatesPage = () => {
                 >
                   שמירה
                 </Button>
-                <Button variant="outlined" sx={{ borderRadius: 999, px: 4 }} onClick={handleReset}>
+                <Button
+                  variant="outlined"
+                  sx={{ borderRadius: 999, px: 4 }}
+                  onClick={handleReset}
+                >
                   ניקוי שדות
                 </Button>
               </Box>
@@ -617,15 +663,28 @@ const AdminCandidatesPage = () => {
       </Container>
 
       {/* ===== Dialog עריכה ===== */}
-      <Dialog open={editOpen} onClose={() => setEditOpen(false)} fullWidth maxWidth="md">
+      <Dialog
+        open={editOpen}
+        onClose={() => setEditOpen(false)}
+        fullWidth
+        maxWidth="md"
+      >
         <DialogTitle sx={{ fontWeight: 700 }}>עריכת מועמד</DialogTitle>
         <DialogContent dividers>
           <Grid container spacing={2} sx={{ mt: 0 }}>
             {(
               [
                 { key: "fullName", label: "שם מלא", required: true },
-                { key: "idNumber", label: "תעודת זהות (9 ספרות)", required: true },
-                { key: "psychometric", label: "ציון פסיכומטרי", required: true },
+                {
+                  key: "idNumber",
+                  label: "תעודת זהות (9 ספרות)",
+                  required: true,
+                },
+                {
+                  key: "psychometric",
+                  label: "ציון פסיכומטרי",
+                  required: true,
+                },
                 { key: "bagrutAverage", label: "ממוצע בגרות", required: true },
               ] as const
             ).map((f) => (
@@ -636,7 +695,10 @@ const AdminCandidatesPage = () => {
                   label={f.label}
                   value={editForm[f.key]}
                   onChange={(e) => {
-                    setEditForm((prev) => ({ ...prev, [f.key]: e.target.value }));
+                    setEditForm((prev) => ({
+                      ...prev,
+                      [f.key]: e.target.value,
+                    }));
                     setEditErrors((prev) => ({ ...prev, [f.key]: undefined }));
                   }}
                   error={!!editErrors[f.key]}
@@ -653,7 +715,10 @@ const AdminCandidatesPage = () => {
                 label="יחידות מתמטיקה"
                 value={editForm.mathUnits}
                 onChange={(e) => {
-                  setEditForm((prev) => ({ ...prev, mathUnits: e.target.value }));
+                  setEditForm((prev) => ({
+                    ...prev,
+                    mathUnits: e.target.value,
+                  }));
                   setEditErrors((prev) => ({ ...prev, mathUnits: undefined }));
                 }}
                 error={!!editErrors.mathUnits}
@@ -673,8 +738,14 @@ const AdminCandidatesPage = () => {
                 label="יחידות אנגלית"
                 value={editForm.englishUnits}
                 onChange={(e) => {
-                  setEditForm((prev) => ({ ...prev, englishUnits: e.target.value }));
-                  setEditErrors((prev) => ({ ...prev, englishUnits: undefined }));
+                  setEditForm((prev) => ({
+                    ...prev,
+                    englishUnits: e.target.value,
+                  }));
+                  setEditErrors((prev) => ({
+                    ...prev,
+                    englishUnits: undefined,
+                  }));
                 }}
                 error={!!editErrors.englishUnits}
                 helperText={editErrors.englishUnits}
@@ -693,8 +764,14 @@ const AdminCandidatesPage = () => {
                 label="מסלול מועדף"
                 value={editForm.preferredTrack}
                 onChange={(e) => {
-                  setEditForm((prev) => ({ ...prev, preferredTrack: e.target.value }));
-                  setEditErrors((prev) => ({ ...prev, preferredTrack: undefined }));
+                  setEditForm((prev) => ({
+                    ...prev,
+                    preferredTrack: e.target.value,
+                  }));
+                  setEditErrors((prev) => ({
+                    ...prev,
+                    preferredTrack: undefined,
+                  }));
                 }}
                 error={!!editErrors.preferredTrack}
                 helperText={editErrors.preferredTrack}
@@ -736,7 +813,12 @@ const AdminCandidatesPage = () => {
           <Button onClick={() => setEditOpen(false)} variant="text">
             ביטול
           </Button>
-          <Button onClick={saveEdit} variant="contained" color="success" sx={{ borderRadius: 999, px: 3 }}>
+          <Button
+            onClick={saveEdit}
+            variant="contained"
+            color="success"
+            sx={{ borderRadius: 999, px: 3 }}
+          >
             שמירת שינויים
           </Button>
         </DialogActions>
@@ -769,4 +851,3 @@ const AdminCandidatesPage = () => {
 };
 
 export default AdminCandidatesPage;
-
