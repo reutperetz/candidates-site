@@ -1,5 +1,5 @@
 // src/pages/AdminAdmissionRequirementsPage.tsx
-import { useMemo, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   Box,
   Container,
@@ -7,7 +7,6 @@ import {
   Paper,
   Tabs,
   Tab,
-  Grid,
   TextField,
   MenuItem,
   Button,
@@ -24,16 +23,31 @@ import {
   DialogContent,
   DialogActions,
   Divider,
+  LinearProgress,
 } from "@mui/material";
+
+import Grid from "@mui/material/GridLegacy";
 import AddIcon from "@mui/icons-material/Add";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
+
+import {
+  addDoc,
+  collection,
+  deleteDoc,
+  doc,
+  onSnapshot,
+  serverTimestamp,
+  updateDoc,
+  type Timestamp,
+} from "firebase/firestore";
+import { db } from "../firebase";
 
 type TrackType = "A" | "B" | "C";
 type RequirementStatus = "active" | "inactive";
 
 interface AdmissionRequirement {
-  id: number;
+  docId: string;
   track: TrackType;
   trackName: string;
 
@@ -46,28 +60,12 @@ interface AdmissionRequirement {
   englishUnits?: number; // יחידות אנגלית
 
   status: RequirementStatus;
+  createdAt?: Timestamp;
 }
 
+type RequirementDoc = Omit<AdmissionRequirement, "docId">;
+
 // נתוני דמה התחלתיים
-const initialRequirements: AdmissionRequirement[] = [
-  {
-    id: 1,
-    track: "A",
-    trackName: "מסלול א' – פסיכומטרי ישיר",
-    minPsycho: 650,
-    status: "active",
-  },
-  {
-    id: 2,
-    track: "B",
-    trackName: "מסלול ב' – סכום משולב",
-    minPsycho: 130,
-    minMath: 85,
-    minAverage: 90,
-    mathUnits: 5,
-    status: "active",
-  },
-];
 
 const statusChip = (status: RequirementStatus) => {
   switch (status) {
@@ -154,8 +152,8 @@ function validateForm(form: FormState): FormErrors {
 
   // טווחים (את יכולה לשנות לפי הדרישות שלכם)
   // פסיכומטרי: 200–800 (אם את משתמשת בשדה כמותי 50–150, תשני כאן בהתאם)
-  if (minPsycho !== undefined && !isNumInRange(minPsycho, 0, 800)) {
-    errors.minPsycho = "טווח לא תקין (לדוגמה 0–800)";
+  if (minPsycho !== undefined && !isNumInRange(minPsycho, 200, 800)) {
+    errors.minPsycho = "טווח לא תקין (לדוגמה 200–800)";
   }
 
   // ממוצע בגרות: 0–120
@@ -173,22 +171,27 @@ function validateForm(form: FormState): FormErrors {
 
   // יח"ל: 3–5 מספר שלם
   if (form.mathUnits.trim() && !isIntInRange(mathUnits, 3, 5)) {
-    errors.mathUnits = "יח\"ל מתמטיקה חייב להיות 3–5";
+    errors.mathUnits = 'יח"ל מתמטיקה חייב להיות 3–5';
   }
   if (form.englishUnits.trim() && !isIntInRange(englishUnits, 3, 5)) {
-    errors.englishUnits = "יח\"ל אנגלית חייב להיות 3–5";
+    errors.englishUnits = 'יח"ל אנגלית חייב להיות 3–5';
   }
 
   // חובה לפי מסלול (כמו הדרישה שלך “לא לקבל מה שלא תקין”)
   if (form.track === "A") {
-    if (minPsycho === undefined) errors.minPsycho = "במסלול א' חובה פסיכומטרי מינימלי";
+    if (minPsycho === undefined)
+      errors.minPsycho = "במסלול א' חובה פסיכומטרי מינימלי";
   }
 
   if (form.track === "B") {
-    if (minPsycho === undefined) errors.minPsycho = "במסלול ב' חובה פסיכומטרי/כמותי מינימלי";
-    if (minAverage === undefined) errors.minAverage = "במסלול ב' חובה ממוצע בגרות מינימלי";
-    if (minMath === undefined) errors.minMath = "במסלול ב' חובה ציון מתמטיקה מינימלי";
-    if (!isIntInRange(mathUnits, 3, 5)) errors.mathUnits = "במסלול ב' חובה יח\"ל מתמטיקה (3–5)";
+    if (minPsycho === undefined)
+      errors.minPsycho = "במסלול ב' חובה פסיכומטרי/כמותי מינימלי";
+    if (minAverage === undefined)
+      errors.minAverage = "במסלול ב' חובה ממוצע בגרות מינימלי";
+    if (minMath === undefined)
+      errors.minMath = "במסלול ב' חובה ציון מתמטיקה מינימלי";
+    if (!isIntInRange(mathUnits, 3, 5))
+      errors.mathUnits = "במסלול ב' חובה יח\"ל מתמטיקה (3–5)";
   }
 
   // מסלול C (אופציונלי) – לא מכריחים כרגע
@@ -199,10 +202,87 @@ function validateForm(form: FormState): FormErrors {
 const AdminAdmissionRequirementsPage = () => {
   const [tab, setTab] = useState(0);
 
-  // ✅ רשימה אמיתית (לא mock קבוע)
-  const [requirements, setRequirements] = useState<AdmissionRequirement[]>(
-    initialRequirements
-  );
+  //  ????? ????? (Firestore)
+  const [requirements, setRequirements] = useState<AdmissionRequirement[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  const [saveError, setSaveError] = useState("");
+  const didSeedRef = useRef(false);
+
+  const seedRequirements = async () => {
+    const seedItems = [
+      {
+        track: "A",
+        trackName:
+          "\u05de\u05e1\u05dc\u05d5\u05dc \u05d0' - \u05e4\u05e1\u05d9\u05db\u05d5\u05de\u05d8\u05e8\u05d9 \u05d9\u05e9\u05d9\u05e8",
+        minPsycho: 650,
+        status: "active",
+      },
+      {
+        track: "B",
+        trackName:
+          "\u05de\u05e1\u05dc\u05d5\u05dc \u05d1' - \u05e1\u05db\u05d5\u05dd \u05de\u05e9\u05d5\u05dc\u05d1",
+        minPsycho: 130,
+        minAverage: 90,
+        minMath: 85,
+        mathUnits: 5,
+        status: "active",
+      },
+    ];
+
+    try {
+      await Promise.all(
+        seedItems.map((item) =>
+          addDoc(collection(db, "requirements"), {
+            ...item,
+            createdAt: serverTimestamp(),
+          }),
+        ),
+      );
+    } catch (err) {
+      console.error("Failed to seed requirements", err);
+    }
+  };
+
+  useEffect(() => {
+    const unsub = onSnapshot(
+      collection(db, "requirements"),
+      (snap) => {
+        const items: AdmissionRequirement[] = snap.docs.map((d) => {
+          const data = d.data() as Partial<RequirementDoc>;
+          return {
+            docId: d.id,
+            track: data.track ?? "A",
+            trackName: String(data.trackName ?? ""),
+            minPsycho: data.minPsycho ?? undefined,
+            minAverage: data.minAverage ?? undefined,
+            minMath: data.minMath ?? undefined,
+            minEnglish: data.minEnglish ?? undefined,
+            mathUnits: data.mathUnits ?? undefined,
+            englishUnits: data.englishUnits ?? undefined,
+            status: data.status ?? "active",
+            createdAt: data.createdAt,
+          };
+        });
+        items.sort(
+          (a, b) =>
+            (b.createdAt?.toMillis?.() ?? 0) - (a.createdAt?.toMillis?.() ?? 0),
+        );
+
+        if (items.length === 0 && !didSeedRef.current) {
+          didSeedRef.current = true;
+          seedRequirements();
+        }
+
+        setRequirements(items);
+        setIsLoading(false);
+      },
+      () => {
+        setIsLoading(false);
+      },
+    );
+    return () => unsub();
+  }, []);
 
   // טופס הוספה
   const [form, setForm] = useState<FormState>(emptyForm);
@@ -218,10 +298,6 @@ const AdminAdmissionRequirementsPage = () => {
   const [editErrors, setEditErrors] = useState<FormErrors>({});
   const [edited, setEdited] = useState(false);
 
-  const nextId = useMemo(() => {
-    return requirements.length ? Math.max(...requirements.map((r) => r.id)) + 1 : 1;
-  }, [requirements]);
-
   const handleChange =
     (field: keyof FormState) =>
     (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -230,13 +306,13 @@ const AdminAdmissionRequirementsPage = () => {
       setErrors((prev) => ({ ...prev, [field]: undefined }));
     };
 
-  const handleSave = () => {
+  const handleSave = async () => {
     const v = validateForm(form);
     setErrors(v);
     if (Object.values(v).some(Boolean)) return;
+    setSaveError("");
 
-    const newReq: AdmissionRequirement = {
-      id: nextId,
+    const payload = {
       track: form.track as TrackType,
       trackName: form.trackName.trim(),
       minPsycho: toNumberOrUndef(form.minPsycho),
@@ -246,14 +322,22 @@ const AdminAdmissionRequirementsPage = () => {
       mathUnits: toNumberOrUndef(form.mathUnits),
       englishUnits: toNumberOrUndef(form.englishUnits),
       status: form.status,
+      createdAt: serverTimestamp(),
     };
 
-    setRequirements((prev) => [newReq, ...prev]);
-    setSaved(true);
-    setForm(emptyForm);
-    setErrors({});
-    // חוזרים לרשימה כדי “לראות שזה נשמר”
-    setTab(0);
+    try {
+      await addDoc(collection(db, "requirements"), payload);
+      setSaved(true);
+      setForm(emptyForm);
+      setErrors({});
+      setTab(0);
+    } catch (err) {
+      console.error("Failed to add requirement", err);
+      setSaved(false);
+      setSaveError(
+        "\u05e9\u05d2\u05d9\u05d0\u05d4 \u05d1\u05e9\u05de\u05d9\u05e8\u05d4. \u05e0\u05e1\u05d9 \u05e9\u05d5\u05d1.",
+      );
+    }
   };
 
   const handleReset = () => {
@@ -288,14 +372,13 @@ const AdminAdmissionRequirementsPage = () => {
       setEditErrors((prev) => ({ ...prev, [field]: undefined }));
     };
 
-  const saveEdit = () => {
+  const saveEdit = async () => {
     const v = validateForm(editForm);
     setEditErrors(v);
     if (Object.values(v).some(Boolean)) return;
     if (!selected) return;
 
-    const updated: AdmissionRequirement = {
-      id: selected.id,
+    const updated = {
       track: editForm.track as TrackType,
       trackName: editForm.trackName.trim(),
       minPsycho: toNumberOrUndef(editForm.minPsycho),
@@ -307,12 +390,17 @@ const AdminAdmissionRequirementsPage = () => {
       status: editForm.status,
     };
 
-    setRequirements((prev) => prev.map((x) => (x.id === selected.id ? updated : x)));
-    setEdited(true);
-    setTimeout(() => {
-      setEditOpen(false);
-      setSelected(null);
-    }, 600);
+    try {
+      await updateDoc(doc(db, "requirements", selected.docId), updated);
+      setEdited(true);
+      setTimeout(() => {
+        setEditOpen(false);
+        setSelected(null);
+      }, 600);
+    } catch (err) {
+      console.error("Failed to update requirement", err);
+      setEdited(false);
+    }
   };
 
   const openDelete = (r: AdmissionRequirement) => {
@@ -320,11 +408,17 @@ const AdminAdmissionRequirementsPage = () => {
     setDeleteOpen(true);
   };
 
-  const confirmDelete = () => {
+  const confirmDelete = async () => {
     if (!selected) return;
-    setRequirements((prev) => prev.filter((x) => x.id !== selected.id));
-    setDeleteOpen(false);
-    setSelected(null);
+    try {
+      await deleteDoc(doc(db, "requirements", selected.docId));
+      setDeleteOpen(false);
+      setSelected(null);
+    } catch (err) {
+      console.error("Failed to delete requirement", err);
+      setDeleteOpen(false);
+      setSelected(null);
+    }
   };
 
   const cancelDelete = () => {
@@ -334,8 +428,10 @@ const AdminAdmissionRequirementsPage = () => {
 
   const renderFormFields = (
     current: FormState,
-    onChange: (f: keyof FormState) => any,
-    currentErrors: FormErrors
+    onChange: (
+      f: keyof FormState,
+    ) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void,
+    currentErrors: FormErrors,
   ) => (
     <Grid container spacing={2}>
       <Grid item xs={12} md={4}>
@@ -363,7 +459,9 @@ const AdminAdmissionRequirementsPage = () => {
           value={current.trackName}
           onChange={onChange("trackName")}
           error={!!currentErrors.trackName}
-          helperText={currentErrors.trackName || "לדוגמה: מסלול ב' – סכום משולב"}
+          helperText={
+            currentErrors.trackName || "לדוגמה: מסלול ב' – סכום משולב"
+          }
         />
       </Grid>
 
@@ -467,14 +565,27 @@ const AdminAdmissionRequirementsPage = () => {
   return (
     <Box dir="rtl">
       <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
-        <Typography variant="h6" align="center" fontWeight={700} color="success.main">
+        <Typography
+          variant="h6"
+          align="center"
+          fontWeight={700}
+          color="success.main"
+        >
           המחלקה למדעי המחשב
         </Typography>
-        <Typography variant="body2" align="center" color="text.secondary" mb={3}>
+        <Typography
+          variant="body2"
+          align="center"
+          color="text.secondary"
+          mb={3}
+        >
           מערכת ניהול – תנאי קבלה
         </Typography>
 
-        <Paper elevation={3} sx={{ borderRadius: 3, p: 3, bgcolor: "#f7fbf7" }}>
+        <Paper
+          elevation={3}
+          sx={{ borderRadius: 3, p: 3, bgcolor: "background.paper" }}
+        >
           <Tabs
             value={tab}
             onChange={(_e, v) => setTab(v)}
@@ -484,6 +595,8 @@ const AdminAdmissionRequirementsPage = () => {
             <Tab label="רשימת תנאי קבלה" />
             <Tab label="הוספת תנאי קבלה חדש" />
           </Tabs>
+
+          {isLoading && <LinearProgress sx={{ mb: 2 }} />}
 
           {/* ===== TAB 0: LIST ===== */}
           {tab === 0 && (
@@ -514,7 +627,14 @@ const AdminAdmissionRequirementsPage = () => {
                 מספר תנאי הקבלה במערכת: {requirements.length}
               </Typography>
 
-              <Paper elevation={0} sx={{ borderRadius: 3, overflow: "hidden", bgcolor: "white" }}>
+              <Paper
+                elevation={0}
+                sx={{
+                  borderRadius: 3,
+                  overflow: "hidden",
+                  bgcolor: "background.paper",
+                }}
+              >
                 <Table>
                   <TableHead>
                     <TableRow>
@@ -532,7 +652,7 @@ const AdminAdmissionRequirementsPage = () => {
 
                   <TableBody>
                     {requirements.map((r) => (
-                      <TableRow key={r.id}>
+                      <TableRow key={r.docId}>
                         <TableCell>
                           <Stack direction="row" spacing={1}>
                             <Button
@@ -587,9 +707,20 @@ const AdminAdmissionRequirementsPage = () => {
                 אפשר לשמור רק אם כל השדות הנדרשים למסלול תקינים.
               </Typography>
 
-              {renderFormFields(form, handleChange as any, errors)}
+              {renderFormFields(form, handleChange, errors)}
+              {saveError && (
+                <Box mt={2}>
+                  <Alert severity="error">{saveError}</Alert>
+                </Box>
+              )}
 
-              <Box mt={4} display="flex" justifyContent="center" gap={2} flexWrap="wrap">
+              <Box
+                mt={4}
+                display="flex"
+                justifyContent="center"
+                gap={2}
+                flexWrap="wrap"
+              >
                 <Button
                   variant="contained"
                   color="success"
@@ -609,7 +740,9 @@ const AdminAdmissionRequirementsPage = () => {
 
               {Object.values(errors).some(Boolean) && (
                 <Box mt={3}>
-                  <Alert severity="error">יש שדות לא תקינים — תקני את המסומן באדום.</Alert>
+                  <Alert severity="error">
+                    יש שדות לא תקינים — תקני את המסומן באדום.
+                  </Alert>
                 </Box>
               )}
             </Box>
@@ -618,13 +751,20 @@ const AdminAdmissionRequirementsPage = () => {
       </Container>
 
       {/* ===== EDIT DIALOG ===== */}
-      <Dialog open={editOpen} onClose={() => setEditOpen(false)} fullWidth maxWidth="md">
+      <Dialog
+        open={editOpen}
+        onClose={() => setEditOpen(false)}
+        fullWidth
+        maxWidth="md"
+      >
         <DialogTitle sx={{ fontWeight: 700 }}>עריכת תנאי קבלה</DialogTitle>
         <DialogContent dividers>
-          {renderFormFields(editForm, handleEditChange as any, editErrors)}
+          {renderFormFields(editForm, handleEditChange, editErrors)}
           {Object.values(editErrors).some(Boolean) && (
             <Box mt={2}>
-              <Alert severity="error">יש שדות לא תקינים — תקני את המסומן באדום.</Alert>
+              <Alert severity="error">
+                יש שדות לא תקינים — תקני את המסומן באדום.
+              </Alert>
             </Box>
           )}
           {edited && (
@@ -672,4 +812,3 @@ const AdminAdmissionRequirementsPage = () => {
 };
 
 export default AdminAdmissionRequirementsPage;
-

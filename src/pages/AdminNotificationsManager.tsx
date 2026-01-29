@@ -67,7 +67,10 @@ export default function AdminNotificationsManager() {
   const [tab, setTab] = useState(1); // ברירת מחדל: רשימה
   const [items, setItems] = useState<NotificationItem[]>(initialNotifications);
 
-  const nextId = useMemo(() => (items.length ? Math.max(...items.map((x) => x.id)) + 1 : 1), [items]);
+  const nextId = useMemo(
+    () => (items.length ? Math.max(...items.map((x) => x.id)) + 1 : 1),
+    [items],
+  );
 
   const [form, setForm] = useState<FormState>(emptyForm);
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -78,7 +81,10 @@ export default function AdminNotificationsManager() {
 
   const [deleteId, setDeleteId] = useState<number | null>(null);
 
-  const [snack, setSnack] = useState<{ open: boolean; message: string }>({ open: false, message: "" });
+  const [snack, setSnack] = useState<{ open: boolean; message: string }>({
+    open: false,
+    message: "",
+  });
 
   const validate = (f: FormState) => {
     const e: Record<string, string> = {};
@@ -131,8 +137,13 @@ export default function AdminNotificationsManager() {
       p.map((x) =>
         x.id !== editId
           ? x
-          : { ...x, title: editForm.title.trim(), content: editForm.content.trim(), status: editForm.status }
-      )
+          : {
+              ...x,
+              title: editForm.title.trim(),
+              content: editForm.content.trim(),
+              status: editForm.status,
+            },
+      ),
     );
     setEditId(null);
     setSnack({ open: true, message: "ההודעה עודכנה" });
@@ -147,16 +158,35 @@ export default function AdminNotificationsManager() {
 
   return (
     <Container maxWidth="lg" sx={{ mt: 4 }} dir="rtl">
-      <Typography variant="h5" textAlign="center" fontWeight={700} color="success.main">
+      <Typography
+        variant="h5"
+        textAlign="center"
+        fontWeight={700}
+        color="success.main"
+      >
         המחלקה למדעי המחשב
       </Typography>
 
-      <Typography variant="body2" textAlign="center" mb={3} color="text.secondary">
+      <Typography
+        variant="body2"
+        textAlign="center"
+        mb={3}
+        color="text.secondary"
+      >
         מערכת ניהול – הודעות
       </Typography>
 
       <Paper elevation={3} sx={{ borderRadius: 3, p: 2, mb: 3 }}>
-        <Tabs value={tab} onChange={(_, v) => setTab(v)} centered textColor="success" indicatorColor="success">
+        <Tabs
+          value={tab}
+          onChange={(_, v) => setTab(v)}
+          centered
+          sx={{
+            "& .MuiTabs-indicator": { bgcolor: "success.main" },
+            "& .MuiTab-root": { fontWeight: 600 },
+            "& .MuiTab-root.Mui-selected": { color: "success.main" },
+          }}
+        >
           <Tab label="📢 יצירת הודעה חדשה" />
           <Tab label="📄 רשימת הודעות" />
         </Tabs>
@@ -201,7 +231,12 @@ export default function AdminNotificationsManager() {
               label="סטטוס"
               select
               value={form.status}
-              onChange={(e) => setForm((p) => ({ ...p, status: e.target.value as "active" | "inactive" }))}
+              onChange={(e) =>
+                setForm((p) => ({
+                  ...p,
+                  status: e.target.value as "active" | "inactive",
+                }))
+              }
             >
               <MenuItem value="active">פעיל</MenuItem>
               <MenuItem value="inactive">לא פעיל</MenuItem>
@@ -216,7 +251,11 @@ export default function AdminNotificationsManager() {
                 <Button variant="outlined" onClick={resetForm}>
                   ביטול
                 </Button>
-                <Button variant="contained" color="success" onClick={createNotification}>
+                <Button
+                  variant="contained"
+                  color="success"
+                  onClick={createNotification}
+                >
                   שמירה
                 </Button>
               </Stack>
@@ -229,7 +268,12 @@ export default function AdminNotificationsManager() {
       {tab === 1 && (
         <Paper elevation={3} sx={{ p: 4, borderRadius: 3 }}>
           <Box display="flex" justifyContent="flex-start" mb={3}>
-            <Button variant="contained" startIcon={<AddIcon />} color="success" onClick={() => setTab(0)}>
+            <Button
+              variant="contained"
+              startIcon={<AddIcon />}
+              color="success"
+              onClick={() => setTab(0)}
+            >
               יצירת הודעה
             </Button>
           </Box>
@@ -290,7 +334,12 @@ export default function AdminNotificationsManager() {
       )}
 
       {/* עריכה */}
-      <Dialog open={editId != null} onClose={() => setEditId(null)} fullWidth maxWidth="md">
+      <Dialog
+        open={editId != null}
+        onClose={() => setEditId(null)}
+        fullWidth
+        maxWidth="md"
+      >
         <DialogTitle>עריכת הודעה</DialogTitle>
         <DialogContent>
           <Box display="flex" flexDirection="column" gap={2} sx={{ mt: 1 }}>
@@ -324,7 +373,12 @@ export default function AdminNotificationsManager() {
               label="סטטוס"
               select
               value={editForm.status}
-              onChange={(e) => setEditForm((p) => ({ ...p, status: e.target.value as "active" | "inactive" }))}
+              onChange={(e) =>
+                setEditForm((p) => ({
+                  ...p,
+                  status: e.target.value as "active" | "inactive",
+                }))
+              }
             >
               <MenuItem value="active">פעיל</MenuItem>
               <MenuItem value="inactive">לא פעיל</MenuItem>
@@ -364,4 +418,3 @@ export default function AdminNotificationsManager() {
     </Container>
   );
 }
-

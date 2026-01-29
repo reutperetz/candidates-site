@@ -9,17 +9,23 @@ import {
   Chip,
   Container,
   Divider,
-  Grid,
+  LinearProgress,
   Snackbar,
   TextField,
   Typography,
 } from "@mui/material";
+
+import Grid from "@mui/material/GridLegacy";
 import AssignmentIcon from "@mui/icons-material/Assignment";
 import PersonAddAlt1Icon from "@mui/icons-material/PersonAddAlt1";
 import MenuBookIcon from "@mui/icons-material/MenuBook";
 import RuleIcon from "@mui/icons-material/Rule";
 import HelpCenterIcon from "@mui/icons-material/HelpCenter";
 import { useNavigate } from "react-router-dom";
+
+// Firestore
+import { addDoc, collection, serverTimestamp } from "firebase/firestore";
+import { db } from "../firebase";
 
 type CandidateForm = {
   idNumber: string; // ת"ז
@@ -42,27 +48,28 @@ const PHONE_REGEX = /^\d{9,10}$/; // ישראל לרוב 9-10 ספרות (כול
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 function clampNumberStr(value: string) {
-  // מאפשר ריק, אחרת רק ספרות
   if (value === "") return "";
   return value.replace(/[^\d]/g, "");
 }
 
-function FormsPage() {
+const emptyForm: CandidateForm = {
+  idNumber: "",
+  fullName: "",
+  phone: "",
+  email: "",
+  psychometric: "",
+  bagrutAvg: "",
+  mathUnits: "",
+  mathGrade: "",
+  englishUnits: "",
+  englishGrade: "",
+  preferredTrack: "",
+};
+
+export default function FormsPage() {
   const navigate = useNavigate();
 
-  const [form, setForm] = useState<CandidateForm>({
-    idNumber: "",
-    fullName: "",
-    phone: "",
-    email: "",
-    psychometric: "",
-    bagrutAvg: "",
-    mathUnits: "",
-    mathGrade: "",
-    englishUnits: "",
-    englishGrade: "",
-    preferredTrack: "",
-  });
+  const [form, setForm] = useState<CandidateForm>(emptyForm);
 
   const [touched, setTouched] = useState<Record<keyof CandidateForm, boolean>>({
     idNumber: false,
@@ -83,16 +90,17 @@ function FormsPage() {
     type: "success" | "error";
     message: string;
   }>({ open: false, type: "success", message: "" });
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const cardBaseStyle = useMemo(
     () => ({
       height: "100%",
-      boxShadow: "0 4px 12px rgba(0,0,0,0.08)",
+      boxShadow: 2,
       borderRadius: 3,
       overflow: "hidden",
-      backgroundColor: "#ffffff",
+      backgroundColor: "background.paper",
     }),
-    []
+    [],
   );
 
   const setField = (key: keyof CandidateForm, value: string) => {
@@ -108,21 +116,22 @@ function FormsPage() {
 
     // ת"ז
     if (!form.idNumber.trim()) e.idNumber = "שדה חובה";
-    else if (!ID_REGEX.test(form.idNumber)) e.idNumber = "תעודת זהות חייבת להיות 9 ספרות בלבד";
+    else if (!ID_REGEX.test(form.idNumber))
+      e.idNumber = "תעודת זהות חייבת להיות 9 ספרות בלבד";
 
     // שם מלא
     if (!form.fullName.trim()) e.fullName = "שדה חובה";
     else {
       const words = form.fullName.trim().split(/\s+/);
       if (words.length < 2) e.fullName = "יש להזין לפחות שתי מילים";
-      // רק עברית/אנגלית/רווחים/מקף/גרש — אם בא לך יותר קשוח תגידי
       const nameOk = /^[A-Za-z\u0590-\u05FF\s'’-]+$/.test(form.fullName.trim());
       if (!nameOk) e.fullName = "השם יכול להכיל אותיות ורווחים בלבד";
     }
 
     // טלפון
     if (!form.phone.trim()) e.phone = "שדה חובה";
-    else if (!PHONE_REGEX.test(form.phone)) e.phone = "טלפון חייב להיות 9–10 ספרות בלבד";
+    else if (!PHONE_REGEX.test(form.phone))
+      e.phone = "טלפון חייב להיות 9–10 ספרות בלבד";
 
     // אימייל
     if (!form.email.trim()) e.email = "שדה חובה";
@@ -146,7 +155,8 @@ function FormsPage() {
 
     // יחידות מתמטיקה 3/4/5
     if (!form.mathUnits.trim()) e.mathUnits = "שדה חובה";
-    else if (!["3", "4", "5"].includes(form.mathUnits)) e.mathUnits = "אפשר לבחור רק 3 / 4 / 5";
+    else if (!["3", "4", "5"].includes(form.mathUnits))
+      e.mathUnits = "אפשר לבחור רק 3 / 4 / 5";
 
     // ציון מתמטיקה 0-100
     if (!form.mathGrade.trim()) e.mathGrade = "שדה חובה";
@@ -158,7 +168,8 @@ function FormsPage() {
 
     // יחידות אנגלית 3/4/5
     if (!form.englishUnits.trim()) e.englishUnits = "שדה חובה";
-    else if (!["3", "4", "5"].includes(form.englishUnits)) e.englishUnits = "אפשר לבחור רק 3 / 4 / 5";
+    else if (!["3", "4", "5"].includes(form.englishUnits))
+      e.englishUnits = "אפשר לבחור רק 3 / 4 / 5";
 
     // ציון אנגלית 0-100
     if (!form.englishGrade.trim()) e.englishGrade = "שדה חובה";
@@ -176,7 +187,7 @@ function FormsPage() {
 
   const isValid = Object.keys(errors).length === 0;
 
-  const onSubmit = () => {
+  const onSubmit = async () => {
     // נוגעים בהכל כדי שיראו הודעות
     setTouched({
       idNumber: true,
@@ -201,94 +212,103 @@ function FormsPage() {
       return;
     }
 
-    // סטטוס לא נבחר ע"י מועמד — נקבע אוטומטית
-    const payload = {
-      ...form,
-      status: "חדש",
-      createdAt: new Date().toISOString(),
-    };
+    setIsSubmitting(true);
 
-    const key = "candidate_submissions";
-    const existing = localStorage.getItem(key);
-    const arr = existing ? (JSON.parse(existing) as any[]) : [];
-    arr.push(payload);
-    localStorage.setItem(key, JSON.stringify(arr));
+    try {
+      // Firestore: doc id נוצר אוטומטית
+      const payload = {
+        ...form,
+        status: "חדש" as const,
+        createdAt: serverTimestamp(),
+      };
 
-    setSnack({
-      open: true,
-      type: "success",
-      message: "המועמדות נשלחה בהצלחה ✅ נחזור אלייך בהקדם.",
-    });
+      const ref = await addDoc(
+        collection(db, "candidate_submissions"),
+        payload,
+      );
 
-    // אופציונלי: איפוס
-    setForm({
-      idNumber: "",
-      fullName: "",
-      phone: "",
-      email: "",
-      psychometric: "",
-      bagrutAvg: "",
-      mathUnits: "",
-      mathGrade: "",
-      englishUnits: "",
-      englishGrade: "",
-      preferredTrack: "",
-    });
-    setTouched({
-      idNumber: false,
-      fullName: false,
-      phone: false,
-      email: false,
-      psychometric: false,
-      bagrutAvg: false,
-      mathUnits: false,
-      mathGrade: false,
-      englishUnits: false,
-      englishGrade: false,
-      preferredTrack: false,
-    });
+      setSnack({
+        open: true,
+        type: "success",
+        message: `המועמדות נשלחה בהצלחה ✅ (מספר פנייה: ${ref.id})`,
+      });
+
+      // איפוס
+      setForm(emptyForm);
+      setTouched({
+        idNumber: false,
+        fullName: false,
+        phone: false,
+        email: false,
+        psychometric: false,
+        bagrutAvg: false,
+        mathUnits: false,
+        mathGrade: false,
+        englishUnits: false,
+        englishGrade: false,
+        preferredTrack: false,
+      });
+    } catch {
+      setSnack({
+        open: true,
+        type: "error",
+        message: "שגיאה בשליחה. נסי שוב.",
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const showError = (key: keyof CandidateForm) => touched[key] && !!errors[key];
 
   return (
-    <Box sx={{ backgroundColor: "#f5f5f5", py: 6 }}>
+    <Box sx={{ bgcolor: "background.default", py: 6 }}>
       <Container maxWidth="lg" dir="rtl">
         {/* כותרת */}
         <Box textAlign="center" mb={4}>
+          {isSubmitting && <LinearProgress sx={{ mb: 2 }} />}
           <Chip
             label="הגשת מועמדות"
             sx={{
               mb: 2,
-              bgcolor: "#e8f5e9",
-              color: "#2e7d32",
+              bgcolor: "success.light",
+              color: "success.main",
               fontWeight: 600,
             }}
           />
           <Typography
             variant="h4"
             component="h1"
-            sx={{ color: "#2e7d32", fontWeight: 700, mb: 1 }}
+            sx={{ color: "success.main", fontWeight: 700, mb: 1 }}
           >
             טפסים – Forms
           </Typography>
           <Typography variant="body1" sx={{ maxWidth: 900, mx: "auto" }}>
-            כאן אפשר להגיש מועמדות ללימודים, לעיין בקורסים ובתנאי הקבלה, ולקבל עזרה במידת הצורך.
+            כאן אפשר להגיש מועמדות ללימודים, לעיין בקורסים ובתנאי הקבלה, ולקבל
+            עזרה במידת הצורך.
           </Typography>
         </Box>
 
         {/* טופס מועמדות */}
-        <Card sx={{ ...cardBaseStyle, borderTop: "4px solid #2e7d32", mb: 4 }}>
+        <Card
+          sx={{
+            ...cardBaseStyle,
+            borderTop: "4px solid",
+            borderTopColor: "success.main",
+            mb: 4,
+          }}
+        >
           <CardContent sx={{ direction: "rtl", textAlign: "right" }}>
             <Box display="flex" alignItems="center" gap={1} mb={1.5}>
-              <PersonAddAlt1Icon sx={{ color: "#2e7d32" }} />
+              <PersonAddAlt1Icon sx={{ color: "success.main" }} />
               <Typography variant="h6" fontWeight={700}>
                 טופס הגשת מועמדות
               </Typography>
             </Box>
 
-            <Typography variant="body2" sx={{ mb: 3, color: "#455a64" }}>
-              כל השדות חובה. לאחר השליחה תקבלי אישור, והמערכת תסמן את המועמדות כ״חדש״.
+            <Typography variant="body2" sx={{ mb: 3, color: "text.secondary" }}>
+              כל השדות חובה. לאחר השליחה תקבלי אישור, והמערכת תסמן את המועמדות
+              כ״חדש״.
             </Typography>
 
             <Grid container spacing={2}>
@@ -298,10 +318,14 @@ function FormsPage() {
                   required
                   label="תעודת זהות"
                   value={form.idNumber}
-                  onChange={(e) => setField("idNumber", clampNumberStr(e.target.value))}
+                  onChange={(e) =>
+                    setField("idNumber", clampNumberStr(e.target.value))
+                  }
                   onBlur={() => markTouched("idNumber")}
                   error={showError("idNumber")}
-                  helperText={showError("idNumber") ? errors.idNumber : "9 ספרות בלבד"}
+                  helperText={
+                    showError("idNumber") ? errors.idNumber : "9 ספרות בלבד"
+                  }
                   inputProps={{ inputMode: "numeric" }}
                 />
               </Grid>
@@ -315,7 +339,9 @@ function FormsPage() {
                   onChange={(e) => setField("fullName", e.target.value)}
                   onBlur={() => markTouched("fullName")}
                   error={showError("fullName")}
-                  helperText={showError("fullName") ? errors.fullName : "לפחות שתי מילים"}
+                  helperText={
+                    showError("fullName") ? errors.fullName : "לפחות שתי מילים"
+                  }
                 />
               </Grid>
 
@@ -325,7 +351,9 @@ function FormsPage() {
                   required
                   label="טלפון"
                   value={form.phone}
-                  onChange={(e) => setField("phone", clampNumberStr(e.target.value))}
+                  onChange={(e) =>
+                    setField("phone", clampNumberStr(e.target.value))
+                  }
                   onBlur={() => markTouched("phone")}
                   error={showError("phone")}
                   helperText={showError("phone") ? errors.phone : "9–10 ספרות"}
@@ -342,7 +370,9 @@ function FormsPage() {
                   onChange={(e) => setField("email", e.target.value)}
                   onBlur={() => markTouched("email")}
                   error={showError("email")}
-                  helperText={showError("email") ? errors.email : "לדוגמה: name@mail.com"}
+                  helperText={
+                    showError("email") ? errors.email : "לדוגמה: name@mail.com"
+                  }
                 />
               </Grid>
 
@@ -355,7 +385,11 @@ function FormsPage() {
                   onChange={(e) => setField("preferredTrack", e.target.value)}
                   onBlur={() => markTouched("preferredTrack")}
                   error={showError("preferredTrack")}
-                  helperText={showError("preferredTrack") ? errors.preferredTrack : "לדוגמה: מדעי המחשב (בוקר)"}
+                  helperText={
+                    showError("preferredTrack")
+                      ? errors.preferredTrack
+                      : "לדוגמה: מדעי המחשב (בוקר)"
+                  }
                 />
               </Grid>
 
@@ -365,10 +399,14 @@ function FormsPage() {
                   required
                   label="ציון פסיכומטרי כללי"
                   value={form.psychometric}
-                  onChange={(e) => setField("psychometric", clampNumberStr(e.target.value))}
+                  onChange={(e) =>
+                    setField("psychometric", clampNumberStr(e.target.value))
+                  }
                   onBlur={() => markTouched("psychometric")}
                   error={showError("psychometric")}
-                  helperText={showError("psychometric") ? errors.psychometric : "200–800"}
+                  helperText={
+                    showError("psychometric") ? errors.psychometric : "200–800"
+                  }
                   inputProps={{ inputMode: "numeric" }}
                 />
               </Grid>
@@ -379,10 +417,14 @@ function FormsPage() {
                   required
                   label="ממוצע בגרות"
                   value={form.bagrutAvg}
-                  onChange={(e) => setField("bagrutAvg", clampNumberStr(e.target.value))}
+                  onChange={(e) =>
+                    setField("bagrutAvg", clampNumberStr(e.target.value))
+                  }
                   onBlur={() => markTouched("bagrutAvg")}
                   error={showError("bagrutAvg")}
-                  helperText={showError("bagrutAvg") ? errors.bagrutAvg : "0–120"}
+                  helperText={
+                    showError("bagrutAvg") ? errors.bagrutAvg : "0–120"
+                  }
                   inputProps={{ inputMode: "numeric" }}
                 />
               </Grid>
@@ -393,10 +435,14 @@ function FormsPage() {
                   required
                   label="יחידות מתמטיקה"
                   value={form.mathUnits}
-                  onChange={(e) => setField("mathUnits", e.target.value.replace(/[^\d]/g, ""))}
+                  onChange={(e) =>
+                    setField("mathUnits", e.target.value.replace(/[^\d]/g, ""))
+                  }
                   onBlur={() => markTouched("mathUnits")}
                   error={showError("mathUnits")}
-                  helperText={showError("mathUnits") ? errors.mathUnits : "3 / 4 / 5"}
+                  helperText={
+                    showError("mathUnits") ? errors.mathUnits : "3 / 4 / 5"
+                  }
                   inputProps={{ inputMode: "numeric" }}
                 />
               </Grid>
@@ -407,10 +453,14 @@ function FormsPage() {
                   required
                   label="ציון מתמטיקה"
                   value={form.mathGrade}
-                  onChange={(e) => setField("mathGrade", clampNumberStr(e.target.value))}
+                  onChange={(e) =>
+                    setField("mathGrade", clampNumberStr(e.target.value))
+                  }
                   onBlur={() => markTouched("mathGrade")}
                   error={showError("mathGrade")}
-                  helperText={showError("mathGrade") ? errors.mathGrade : "0–100"}
+                  helperText={
+                    showError("mathGrade") ? errors.mathGrade : "0–100"
+                  }
                   inputProps={{ inputMode: "numeric" }}
                 />
               </Grid>
@@ -421,10 +471,19 @@ function FormsPage() {
                   required
                   label="יחידות אנגלית"
                   value={form.englishUnits}
-                  onChange={(e) => setField("englishUnits", e.target.value.replace(/[^\d]/g, ""))}
+                  onChange={(e) =>
+                    setField(
+                      "englishUnits",
+                      e.target.value.replace(/[^\d]/g, ""),
+                    )
+                  }
                   onBlur={() => markTouched("englishUnits")}
                   error={showError("englishUnits")}
-                  helperText={showError("englishUnits") ? errors.englishUnits : "3 / 4 / 5"}
+                  helperText={
+                    showError("englishUnits")
+                      ? errors.englishUnits
+                      : "3 / 4 / 5"
+                  }
                   inputProps={{ inputMode: "numeric" }}
                 />
               </Grid>
@@ -435,10 +494,14 @@ function FormsPage() {
                   required
                   label="ציון אנגלית"
                   value={form.englishGrade}
-                  onChange={(e) => setField("englishGrade", clampNumberStr(e.target.value))}
+                  onChange={(e) =>
+                    setField("englishGrade", clampNumberStr(e.target.value))
+                  }
                   onBlur={() => markTouched("englishGrade")}
                   error={showError("englishGrade")}
-                  helperText={showError("englishGrade") ? errors.englishGrade : "0–100"}
+                  helperText={
+                    showError("englishGrade") ? errors.englishGrade : "0–100"
+                  }
                   inputProps={{ inputMode: "numeric" }}
                 />
               </Grid>
@@ -447,13 +510,17 @@ function FormsPage() {
             <Box mt={3} display="flex" justifyContent="flex-start" gap={1}>
               <Button
                 variant="contained"
+                color="success"
                 startIcon={<AssignmentIcon />}
-                sx={{ bgcolor: "#2e7d32" }}
                 onClick={onSubmit}
+                disabled={isSubmitting}
               >
                 שליחת מועמדות
               </Button>
-              <Button variant="outlined" onClick={() => navigate("/admission-requirements")}>
+              <Button
+                variant="outlined"
+                onClick={() => navigate("/admission-requirements")}
+              >
                 תנאי קבלה
               </Button>
               <Button variant="outlined" onClick={() => navigate("/courses")}>
@@ -463,21 +530,35 @@ function FormsPage() {
           </CardContent>
         </Card>
 
-        {/* כרטיסי מידע שימושיים במקום "תכנון הפרויקט" */}
+        {/* כרטיסי מידע */}
         <Grid container spacing={3} sx={{ mb: 4 }}>
           <Grid item xs={12} md={4}>
-            <Card sx={{ ...cardBaseStyle, borderTop: "4px solid #388e3c" }}>
+            <Card
+              sx={{
+                ...cardBaseStyle,
+                borderTop: "4px solid",
+                borderTopColor: "success.dark",
+              }}
+            >
               <CardContent sx={{ direction: "rtl", textAlign: "right" }}>
                 <Box display="flex" alignItems="center" gap={1} mb={1.5}>
-                  <RuleIcon sx={{ color: "#388e3c" }} />
+                  <RuleIcon sx={{ color: "success.dark" }} />
                   <Typography variant="h6" fontWeight={700}>
                     איך יודעים אם עומדים בתנאי קבלה?
                   </Typography>
                 </Box>
-                <Typography variant="body2" sx={{ color: "#455a64", mb: 2 }}>
-                  מומלץ לבדוק תנאי קבלה לפי המסלול המבוקש, ולהיעזר במחשבון הסיכוי.
+                <Typography
+                  variant="body2"
+                  sx={{ color: "text.secondary", mb: 2 }}
+                >
+                  מומלץ לבדוק תנאי קבלה לפי המסלול המבוקש, ולהיעזר במחשבון
+                  הסיכוי.
                 </Typography>
-                <Button fullWidth variant="outlined" onClick={() => navigate("/admission-requirements")}>
+                <Button
+                  fullWidth
+                  variant="outlined"
+                  onClick={() => navigate("/admission-requirements")}
+                >
                   מעבר לתנאי קבלה
                 </Button>
               </CardContent>
@@ -485,18 +566,31 @@ function FormsPage() {
           </Grid>
 
           <Grid item xs={12} md={4}>
-            <Card sx={{ ...cardBaseStyle, borderTop: "4px solid #2e7d32" }}>
+            <Card
+              sx={{
+                ...cardBaseStyle,
+                borderTop: "4px solid",
+                borderTopColor: "success.main",
+              }}
+            >
               <CardContent sx={{ direction: "rtl", textAlign: "right" }}>
                 <Box display="flex" alignItems="center" gap={1} mb={1.5}>
-                  <MenuBookIcon sx={{ color: "#2e7d32" }} />
+                  <MenuBookIcon sx={{ color: "success.main" }} />
                   <Typography variant="h6" fontWeight={700}>
                     הקורסים בתואר
                   </Typography>
                 </Box>
-                <Typography variant="body2" sx={{ color: "#455a64", mb: 2 }}>
+                <Typography
+                  variant="body2"
+                  sx={{ color: "text.secondary", mb: 2 }}
+                >
                   אפשר לעיין ברשימת הקורסים ולבדוק אילו קורסים נלמדים בכל מסלול.
                 </Typography>
-                <Button fullWidth variant="outlined" onClick={() => navigate("/courses")}>
+                <Button
+                  fullWidth
+                  variant="outlined"
+                  onClick={() => navigate("/courses")}
+                >
                   מעבר לקורסים
                 </Button>
               </CardContent>
@@ -504,18 +598,31 @@ function FormsPage() {
           </Grid>
 
           <Grid item xs={12} md={4}>
-            <Card sx={{ ...cardBaseStyle, borderTop: "4px solid #4caf50" }}>
+            <Card
+              sx={{
+                ...cardBaseStyle,
+                borderTop: "4px solid",
+                borderTopColor: "success.light",
+              }}
+            >
               <CardContent sx={{ direction: "rtl", textAlign: "right" }}>
                 <Box display="flex" alignItems="center" gap={1} mb={1.5}>
-                  <HelpCenterIcon sx={{ color: "#4caf50" }} />
+                  <HelpCenterIcon sx={{ color: "success.light" }} />
                   <Typography variant="h6" fontWeight={700}>
                     צריכים עזרה?
                   </Typography>
                 </Box>
-                <Typography variant="body2" sx={{ color: "#455a64", mb: 2 }}>
+                <Typography
+                  variant="body2"
+                  sx={{ color: "text.secondary", mb: 2 }}
+                >
                   בעמוד העזרה תמצאי שאלות נפוצות ודרכי יצירת קשר.
                 </Typography>
-                <Button fullWidth variant="outlined" onClick={() => navigate("/help")}>
+                <Button
+                  fullWidth
+                  variant="outlined"
+                  onClick={() => navigate("/help")}
+                >
                   מעבר לעזרה
                 </Button>
               </CardContent>
@@ -526,22 +633,37 @@ function FormsPage() {
         {/* קישורים מהירים */}
         <Box mt={2}>
           <Divider sx={{ mb: 3 }} />
-          <Typography variant="h6" sx={{ mb: 2, fontWeight: 700, color: "#2e7d32" }}>
+          <Typography
+            variant="h6"
+            sx={{ mb: 2, fontWeight: 700, color: "success.main" }}
+          >
             קישורים מהירים
           </Typography>
           <Grid container spacing={2}>
             <Grid item xs={12} md={4}>
-              <Button fullWidth variant="outlined" onClick={() => navigate("/admission-calculator")}>
+              <Button
+                fullWidth
+                variant="outlined"
+                onClick={() => navigate("/admission-calculator")}
+              >
                 מחשבון סיכוי קבלה
               </Button>
             </Grid>
             <Grid item xs={12} md={4}>
-              <Button fullWidth variant="outlined" onClick={() => navigate("/login")}>
+              <Button
+                fullWidth
+                variant="outlined"
+                onClick={() => navigate("/login")}
+              >
                 התחברות
               </Button>
             </Grid>
             <Grid item xs={12} md={4}>
-              <Button fullWidth variant="outlined" onClick={() => navigate("/help")}>
+              <Button
+                fullWidth
+                variant="outlined"
+                onClick={() => navigate("/help")}
+              >
                 תמיכה ועזרה
               </Button>
             </Grid>
@@ -567,5 +689,3 @@ function FormsPage() {
     </Box>
   );
 }
-
-export default FormsPage;

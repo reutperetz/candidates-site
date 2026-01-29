@@ -1,5 +1,13 @@
 // src/pages/AdminHomePage.tsx
-import { Box, Container, Typography, Grid, Card, CardContent, Paper } from "@mui/material";
+import {
+  Box,
+  Container,
+  Typography,
+  Card,
+  CardContent,
+  Paper,
+} from "@mui/material";
+import Grid from "@mui/material/GridLegacy";
 import NotificationsNoneIcon from "@mui/icons-material/NotificationsNone";
 import MenuBookIcon from "@mui/icons-material/MenuBook";
 import GroupOutlinedIcon from "@mui/icons-material/GroupOutlined";
@@ -49,10 +57,20 @@ const AdminHomePage = () => {
     <Box dir="rtl">
       <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
         {/* כותרת עליונה */}
-        <Typography variant="h6" align="center" fontWeight={700} color="success.main">
+        <Typography
+          variant="h6"
+          align="center"
+          fontWeight={700}
+          color="success.main"
+        >
           המחלקה למדעי המחשב
         </Typography>
-        <Typography variant="body2" align="center" color="text.secondary" mb={3}>
+        <Typography
+          variant="body2"
+          align="center"
+          color="text.secondary"
+          mb={3}
+        >
           מערכת ניהול – משתמשים, מועמדים, קורסים ותנאי קבלה
         </Typography>
 
@@ -62,7 +80,7 @@ const AdminHomePage = () => {
           sx={{
             borderRadius: 3,
             overflow: "hidden",
-            bgcolor: "#f7fbf7",
+            bgcolor: "background.paper",
             p: { xs: 2, md: 3 },
           }}
         >
@@ -70,7 +88,7 @@ const AdminHomePage = () => {
           <Box
             sx={{
               bgcolor: "success.main",
-              color: "white",
+              color: "success.contrastText",
               borderRadius: 3,
               p: 3,
               textAlign: "center",
@@ -98,24 +116,28 @@ const AdminHomePage = () => {
                   }}
                   sx={{
                     borderRadius: 3,
-                    bgcolor: "white",
+                    bgcolor: "background.paper",
                     cursor: "pointer",
-                    boxShadow: "0 2px 6px rgba(0,0,0,0.06)",
+                    boxShadow: 2,
                     transition: "0.2s",
                     outline: "none",
                     "&:hover": {
-                      boxShadow: "0 6px 16px rgba(0,0,0,0.12)",
+                      boxShadow: 6,
                       transform: "translateY(-2px)",
                     },
                     "&:focus-visible": {
-                      boxShadow: "0 0 0 3px rgba(46,125,50,0.25)",
+                      boxShadow: 6,
                     },
                   }}
                 >
                   <CardContent sx={{ textAlign: "center", py: 3 }}>
                     <Box mb={1}>{item.icon}</Box>
 
-                    <Typography variant="subtitle1" fontWeight={800} sx={{ mb: 0.5 }}>
+                    <Typography
+                      variant="subtitle1"
+                      fontWeight={800}
+                      sx={{ mb: 0.5 }}
+                    >
                       {item.title}
                     </Typography>
 
@@ -134,6 +156,3 @@ const AdminHomePage = () => {
 };
 
 export default AdminHomePage;
-
-
-

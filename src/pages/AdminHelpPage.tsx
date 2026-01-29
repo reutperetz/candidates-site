@@ -21,7 +21,10 @@ import SupportAgentIcon from "@mui/icons-material/SupportAgent";
 
 const AdminHelpPage = () => {
   return (
-    <Box dir="rtl" sx={{ bgcolor: "#f5f7f5", minHeight: "100vh", py: 4 }}>
+    <Box
+      dir="rtl"
+      sx={{ bgcolor: "background.default", minHeight: "100vh", py: 4 }}
+    >
       <Container maxWidth="md">
         {/* כותרת עליונה */}
         <Box textAlign="center" mb={3}>
@@ -36,7 +39,7 @@ const AdminHelpPage = () => {
         {/* קופסת מדריך מנהל */}
         <Paper
           elevation={3}
-          sx={{ p: 3, mb: 3, borderRadius: 3, bgcolor: "#ffffff" }}
+          sx={{ p: 3, mb: 3, borderRadius: 3, bgcolor: "background.paper" }}
         >
           <Stack direction="row" spacing={1} alignItems="center" mb={2}>
             <HelpOutlineIcon color="action" />
@@ -59,25 +62,19 @@ const AdminHelpPage = () => {
                 <ListItemIcon>
                   <HelpOutlineIcon color="action" />
                 </ListItemIcon>
-                <ListItemText
-                  primary="כדי להוסיף קורס חדש, לחצי על 'הוספת קורס' ומלאי את פרטי הקורס."
-                />
+                <ListItemText primary="כדי להוסיף קורס חדש, לחצי על 'הוספת קורס' ומלאי את פרטי הקורס." />
               </ListItem>
               <ListItem>
                 <ListItemIcon>
                   <HelpOutlineIcon color="action" />
                 </ListItemIcon>
-                <ListItemText
-                  primary="ניתן לעדכן קוד, שם, נקודות זכות, סוג, שנה וסמסטר לכל קורס."
-                />
+                <ListItemText primary="ניתן לעדכן קוד, שם, נקודות זכות, סוג, שנה וסמסטר לכל קורס." />
               </ListItem>
               <ListItem>
                 <ListItemIcon>
                   <HelpOutlineIcon color="action" />
                 </ListItemIcon>
-                <ListItemText
-                  primary="למחיקת קורס קיים, השתמשי בכפתור מחיקה בטבלת הקורסים."
-                />
+                <ListItemText primary="למחיקת קורס קיים, השתמשי בכפתור מחיקה בטבלת הקורסים." />
               </ListItem>
             </List>
           </Box>
@@ -97,25 +94,19 @@ const AdminHelpPage = () => {
                 <ListItemIcon>
                   <HelpOutlineIcon color="action" />
                 </ListItemIcon>
-                <ListItemText
-                  primary="ניתן להגדיר מסלולי קבלה שונים (פסיכומטרי, ממוצע בגרות, מסלול משולב ועוד)."
-                />
+                <ListItemText primary="ניתן להגדיר מסלולי קבלה שונים (פסיכומטרי, ממוצע בגרות, מסלול משולב ועוד)." />
               </ListItem>
               <ListItem>
                 <ListItemIcon>
                   <HelpOutlineIcon color="action" />
                 </ListItemIcon>
-                <ListItemText
-                  primary="לכל מסלול אפשר להגדיר סף פסיכומטרי, סף בגרות, יחידות מתמטיקה ואנגלית."
-                />
+                <ListItemText primary="לכל מסלול אפשר להגדיר סף פסיכומטרי, סף בגרות, יחידות מתמטיקה ואנגלית." />
               </ListItem>
               <ListItem>
                 <ListItemIcon>
                   <HelpOutlineIcon color="action" />
                 </ListItemIcon>
-                <ListItemText
-                  primary="מומלץ לעדכן את תנאי הקבלה לפני פתיחת הרשמה חדשה."
-                />
+                <ListItemText primary="מומלץ לעדכן את תנאי הקבלה לפני פתיחת הרשמה חדשה." />
               </ListItem>
             </List>
           </Box>
@@ -135,25 +126,19 @@ const AdminHelpPage = () => {
                 <ListItemIcon>
                   <HelpOutlineIcon color="action" />
                 </ListItemIcon>
-                <ListItemText
-                  primary="כל מועמד חייב למלא את כל הפרטים הנדרשים בטופס ההרשמה."
-                />
+                <ListItemText primary="כל מועמד חייב למלא את כל הפרטים הנדרשים בטופס ההרשמה." />
               </ListItem>
               <ListItem>
                 <ListItemIcon>
                   <HelpOutlineIcon color="action" />
                 </ListItemIcon>
-                <ListItemText
-                  primary="במסך המועמדים ניתן לראות סטטוס הרשמה: ממתין, חסר מסמכים, התקבל ועוד."
-                />
+                <ListItemText primary="במסך המועמדים ניתן לראות סטטוס הרשמה: ממתין, חסר מסמכים, התקבל ועוד." />
               </ListItem>
               <ListItem>
                 <ListItemIcon>
                   <HelpOutlineIcon color="action" />
                 </ListItemIcon>
-                <ListItemText
-                  primary="מומלץ לוודא שכל הציונים מוזנים לפני קבלת החלטה סופית."
-                />
+                <ListItemText primary="מומלץ לוודא שכל הציונים מוזנים לפני קבלת החלטה סופית." />
               </ListItem>
             </List>
           </Box>
@@ -173,25 +158,19 @@ const AdminHelpPage = () => {
                 <ListItemIcon>
                   <HelpOutlineIcon color="action" />
                 </ListItemIcon>
-                <ListItemText
-                  primary="משתמשי מערכת יכולים לגשת למסכי הניהול בהתאם להרשאות שהוגדרו."
-                />
+                <ListItemText primary="משתמשי מערכת יכולים לגשת למסכי הניהול בהתאם להרשאות שהוגדרו." />
               </ListItem>
               <ListItem>
                 <ListItemIcon>
                   <HelpOutlineIcon color="action" />
                 </ListItemIcon>
-                <ListItemText
-                  primary="חשוב לעדכן תפקידים: מנהל, מזכירות, רכזת קורסים וכו'."
-                />
+                <ListItemText primary="חשוב לעדכן תפקידים: מנהל, מזכירות, רכזת קורסים וכו'." />
               </ListItem>
               <ListItem>
                 <ListItemIcon>
                   <HelpOutlineIcon color="action" />
                 </ListItemIcon>
-                <ListItemText
-                  primary="ניתן לחסום משתמש במקרה של עזיבה או שימוש לא תקין במערכת."
-                />
+                <ListItemText primary="ניתן לחסום משתמש במקרה של עזיבה או שימוש לא תקין במערכת." />
               </ListItem>
             </List>
           </Box>
@@ -304,4 +283,3 @@ const AdminHelpPage = () => {
 };
 
 export default AdminHelpPage;
-

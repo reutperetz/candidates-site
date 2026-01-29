@@ -3,7 +3,6 @@ import { useEffect, useMemo, useState } from "react";
 import {
   Box,
   Container,
-  Grid,
   Card,
   CardContent,
   Typography,
@@ -14,11 +13,18 @@ import {
   Alert,
 } from "@mui/material";
 
+import Grid from "@mui/material/GridLegacy";
 import NotificationsActiveIcon from "@mui/icons-material/NotificationsActive";
 import AssignmentTurnedInIcon from "@mui/icons-material/AssignmentTurnedIn";
 import MenuBookIcon from "@mui/icons-material/MenuBook";
 import AssessmentIcon from "@mui/icons-material/Assessment";
 import { useLocation, useNavigate } from "react-router-dom";
+
+type HomeLocationState = {
+  loginSuccess?: boolean;
+  isGuest?: boolean;
+  scrollTo?: "register";
+};
 
 type RegisterForm = {
   fullName: string;
@@ -65,20 +71,19 @@ function HomePage() {
   const [toastOpen, setToastOpen] = useState(false);
   const [toastText, setToastText] = useState("התחברת בהצלחה");
   const [form, setForm] = useState<RegisterForm>(initialRegister);
-  const [errors, setErrors] = useState<Partial<Record<keyof RegisterForm, string>>>({});
+  const [errors, setErrors] = useState<
+    Partial<Record<keyof RegisterForm, string>>
+  >({});
 
-  const state = (location.state || {}) as any;
+  const state = (location.state ?? {}) as HomeLocationState;
 
-  // הודעת התחברות + גלילה להרשמה
-  useEffect(() => {
-    if (state?.loginSuccess) {
-      setToastText(state?.isGuest ? "התחברת בהצלחה (אורח)" : "התחברת בהצלחה");
-      setToastOpen(true);
-
-      // ננקה state כדי שלא יקפוץ שוב ברענון/ניווט
-      navigate(location.pathname, { replace: true, state: {} });
-    }
-  }, [state?.loginSuccess]); // eslint-disable-line react-hooks/exhaustive-deps
+  const loginToastText = state?.isGuest
+    ? "???????????? ???????????? (????????)"
+    : "???????????? ????????????";
+  const showLoginToast = Boolean(state?.loginSuccess);
+  const showLocalToast = toastOpen;
+  const showToast = showLocalToast || showLoginToast;
+  const currentToastText = showLocalToast ? toastText : loginToastText;
 
   useEffect(() => {
     if (state?.scrollTo === "register") {
@@ -148,7 +153,7 @@ function HomePage() {
         email: form.email.trim(),
         studyTrack: form.studyTrack,
         plannedYear: form.plannedYear,
-      })
+      }),
     );
 
     setToastText("נרשמת בהצלחה! ניתן כעת להתחבר.");
@@ -164,13 +169,25 @@ function HomePage() {
   return (
     <Container maxWidth="lg" sx={{ mt: 6, mb: 6 }} dir="rtl">
       <Snackbar
-        open={toastOpen}
+        open={showToast}
         autoHideDuration={2500}
-        onClose={() => setToastOpen(false)}
+        onClose={() => {
+          if (showLocalToast) setToastOpen(false);
+          if (showLoginToast)
+            navigate(location.pathname, { replace: true, state: {} });
+        }}
         anchorOrigin={{ vertical: "top", horizontal: "center" }}
       >
-        <Alert onClose={() => setToastOpen(false)} severity="success" sx={{ width: "100%" }}>
-          {toastText}
+        <Alert
+          onClose={() => {
+            if (showLocalToast) setToastOpen(false);
+            if (showLoginToast)
+              navigate(location.pathname, { replace: true, state: {} });
+          }}
+          severity="success"
+          sx={{ width: "100%" }}
+        >
+          {currentToastText}
         </Alert>
       </Snackbar>
 
@@ -179,9 +196,10 @@ function HomePage() {
         sx={{
           mb: 4,
           borderRadius: 3,
-          boxShadow: "0 4px 15px rgba(0,0,0,0.12)",
-          background: "linear-gradient(135deg, #2e7d32 0%, #4caf50 100%)",
-          color: "white",
+          boxShadow: 4,
+          background: (theme) =>
+            `linear-gradient(135deg, ${theme.palette.success.dark} 0%, ${theme.palette.success.main} 100%)`,
+          color: "success.contrastText",
         }}
       >
         <CardContent sx={{ py: 4, textAlign: "center" }}>
@@ -189,8 +207,8 @@ function HomePage() {
             ברוכים הבאים!
           </Typography>
           <Typography variant="body1">
-            כאן תוכלו למצוא את כל המידע הדרוש על תהליך הקבלה למחלקה למדעי
-            המחשב: הרשמה, תנאי קבלה, קורסים ומידע נוסף שיסייע לכם לקבל החלטה.
+            כאן תוכלו למצוא את כל המידע הדרוש על תהליך הקבלה למחלקה למדעי המחשב:
+            הרשמה, תנאי קבלה, קורסים ומידע נוסף שיסייע לכם לקבל החלטה.
           </Typography>
         </CardContent>
       </Card>
@@ -208,7 +226,11 @@ function HomePage() {
             onClick={() => navigate("/help")}
           >
             <CardContent
-              sx={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}
+              sx={{
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "space-between",
+              }}
             >
               <Box sx={{ textAlign: "right" }}>
                 <Typography variant="subtitle1" fontWeight={700}>
@@ -218,7 +240,9 @@ function HomePage() {
                   עדכונים ומידע חדש מהמכללה
                 </Typography>
               </Box>
-              <NotificationsActiveIcon sx={{ fontSize: 36, color: "#2e7d32", ml: 1 }} />
+              <NotificationsActiveIcon
+                sx={{ fontSize: 36, color: "success.main", ml: 1 }}
+              />
             </CardContent>
           </Card>
         </Grid>
@@ -234,7 +258,11 @@ function HomePage() {
             onClick={() => navigate("/forms")}
           >
             <CardContent
-              sx={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}
+              sx={{
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "space-between",
+              }}
             >
               <Box sx={{ textAlign: "right" }}>
                 <Typography variant="subtitle1" fontWeight={700}>
@@ -244,7 +272,9 @@ function HomePage() {
                   בדיקת מצב הבקשה שלך להרשמה
                 </Typography>
               </Box>
-              <AssignmentTurnedInIcon sx={{ fontSize: 36, color: "#2e7d32", ml: 1 }} />
+              <AssignmentTurnedInIcon
+                sx={{ fontSize: 36, color: "success.main", ml: 1 }}
+              />
             </CardContent>
           </Card>
         </Grid>
@@ -260,7 +290,11 @@ function HomePage() {
             onClick={() => navigate("/management")}
           >
             <CardContent
-              sx={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}
+              sx={{
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "space-between",
+              }}
             >
               <Box sx={{ textAlign: "right" }}>
                 <Typography variant="subtitle1" fontWeight={700}>
@@ -270,7 +304,9 @@ function HomePage() {
                   צפייה בקורסים ונתוני המסלול במחלקה
                 </Typography>
               </Box>
-              <MenuBookIcon sx={{ fontSize: 36, color: "#2e7d32", ml: 1 }} />
+              <MenuBookIcon
+                sx={{ fontSize: 36, color: "success.main", ml: 1 }}
+              />
             </CardContent>
           </Card>
         </Grid>
@@ -286,7 +322,11 @@ function HomePage() {
             onClick={() => navigate("/admission-calculator")}
           >
             <CardContent
-              sx={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}
+              sx={{
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "space-between",
+              }}
             >
               <Box sx={{ textAlign: "right" }}>
                 <Typography variant="subtitle1" fontWeight={700}>
@@ -296,7 +336,9 @@ function HomePage() {
                   הערכת סיכויי הקבלה על בסיס הנתונים שלך
                 </Typography>
               </Box>
-              <AssessmentIcon sx={{ fontSize: 36, color: "#2e7d32", ml: 1 }} />
+              <AssessmentIcon
+                sx={{ fontSize: 36, color: "success.main", ml: 1 }}
+              />
             </CardContent>
           </Card>
         </Grid>
@@ -304,7 +346,10 @@ function HomePage() {
 
       {/* ------- טופס הרשמה מרכזי ------- */}
       <Box id="register-form" mb={2} textAlign="center">
-        <Typography variant="h5" sx={{ fontWeight: 700, color: "#2e7d32", mb: 1 }}>
+        <Typography
+          variant="h5"
+          sx={{ fontWeight: 700, color: "success.main", mb: 1 }}
+        >
           טופס הרשמה לתואר במדעי המחשב
         </Typography>
         <Typography variant="body2" color="text.secondary">
@@ -318,13 +363,19 @@ function HomePage() {
           mx: "auto",
           borderRadius: 3,
           boxShadow: "0 4px 15px rgba(0,0,0,0.10)",
-          borderTop: "5px solid #2e7d32",
+          borderTop: "5px solid",
+          borderTopColor: "success.main",
         }}
       >
         <CardContent>
           <Typography
             variant="h6"
-            sx={{ fontWeight: 700, mb: 3, textAlign: "center", color: "#2e7d32" }}
+            sx={{
+              fontWeight: 700,
+              mb: 3,
+              textAlign: "center",
+              color: "success.main",
+            }}
           >
             טופס הרשמה
           </Typography>
@@ -355,7 +406,11 @@ function HomePage() {
                 label="תעודת זהות (9 ספרות)"
                 value={form.idNumber}
                 onChange={handleChange("idNumber")}
-                inputProps={{ inputMode: "numeric", pattern: "[0-9]*", maxLength: 9 }}
+                inputProps={{
+                  inputMode: "numeric",
+                  pattern: "[0-9]*",
+                  maxLength: 9,
+                }}
                 error={!!errors.idNumber}
                 helperText={errors.idNumber}
               />
@@ -368,7 +423,11 @@ function HomePage() {
                 label="טלפון נייד (05XXXXXXXX)"
                 value={form.phone}
                 onChange={handleChange("phone")}
-                inputProps={{ inputMode: "numeric", pattern: "[0-9]*", maxLength: 10 }}
+                inputProps={{
+                  inputMode: "numeric",
+                  pattern: "[0-9]*",
+                  maxLength: 10,
+                }}
                 error={!!errors.phone}
                 helperText={errors.phone}
               />
@@ -470,16 +529,31 @@ function HomePage() {
             </Grid>
           </Grid>
 
-          <Box mt={3} display="flex" justifyContent="space-between" flexWrap="wrap" gap={1}>
+          <Box
+            mt={3}
+            display="flex"
+            justifyContent="space-between"
+            flexWrap="wrap"
+            gap={1}
+          >
             <Button variant="text" color="inherit" onClick={handleReset}>
               נקה טופס
             </Button>
 
             <Box display="flex" gap={1}>
-              <Button variant="outlined" color="success" onClick={() => navigate("/forms")}>
+              <Button
+                variant="outlined"
+                color="success"
+                onClick={() => navigate("/forms")}
+              >
                 מעבר למסך הטפסים
               </Button>
-              <Button variant="contained" color="success" sx={{ px: 4 }} onClick={handleRegisterSubmit}>
+              <Button
+                variant="contained"
+                color="success"
+                sx={{ px: 4 }}
+                onClick={handleRegisterSubmit}
+              >
                 הרשמה
               </Button>
             </Box>

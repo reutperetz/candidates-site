@@ -18,10 +18,16 @@ import {
   Select,
   MenuItem,
   Chip,
+  LinearProgress,
 } from "@mui/material";
+import { alpha } from "@mui/material/styles";
 import MenuBookIcon from "@mui/icons-material/MenuBook";
+import { useEffect, useState } from "react";
+import { collection, getDocs } from "firebase/firestore";
+import { db } from "../firebase";
 
 type Course = {
+  docId: string;
   code: string;
   name: string;
   year: string;
@@ -29,95 +35,59 @@ type Course = {
   type: "חובה" | "בחירה";
   credits: number;
   prerequisites: string;
+  status?: string;
 };
 
-const COURSES: Course[] = [
-  {
-    code: "CS101",
-    name: "מבוא למדעי המחשב",
-    year: "שנה א׳",
-    semester: "סמסטר א׳",
-    type: "חובה",
-    credits: 4,
-    prerequisites: "-",
-  },
-  {
-    code: "CS102",
-    name: "תכנות מונחה עצמים",
-    year: "שנה א׳",
-    semester: "סמסטר ב׳",
-    type: "חובה",
-    credits: 4,
-    prerequisites: "CS101",
-  },
-  {
-    code: "MATH101",
-    name: "אינטגרלים ודיפרנציאלים 1",
-    year: "שנה א׳",
-    semester: "סמסטר א׳",
-    type: "חובה",
-    credits: 5,
-    prerequisites: "-",
-  },
-  {
-    code: "CS201",
-    name: "מבני נתונים",
-    year: "שנה ב׳",
-    semester: "סמסטר א׳",
-    type: "חובה",
-    credits: 4,
-    prerequisites: "CS102",
-  },
-  {
-    code: "CS202",
-    name: "אלגוריתמים",
-    year: "שנה ב׳",
-    semester: "סמסטר ב׳",
-    type: "חובה",
-    credits: 4,
-    prerequisites: "CS201",
-  },
-  {
-    code: "CS230",
-    name: "פיתוח אפליקציות ווב",
-    year: "שנה ב׳",
-    semester: "סמסטר ב׳",
-    type: "בחירה",
-    credits: 3,
-    prerequisites: "CS102",
-  },
-  {
-    code: "CS301",
-    name: "פרויקט גמר במדעי המחשב",
-    year: "שנה ג׳",
-    semester: "סמסטר ב׳",
-    type: "חובה",
-    credits: 4,
-    prerequisites: "סיום רוב קורסי החובה",
-  },
-  {
-    code: "CS310",
-    name: "סדנת נושאים מתקדמים ב-AI",
-    year: "שנה ג׳",
-    semester: "סמסטר א׳",
-    type: "בחירה",
-    credits: 3,
-    prerequisites: "CS202",
-  },
-];
-
-import { useState } from "react";
+type CourseDoc = Omit<Course, "docId" | "credits"> & {
+  credits?: number;
+  points?: number;
+};
 
 function CoursesPage() {
+  const [courses, setCourses] = useState<Course[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    let active = true;
+    const load = async () => {
+      try {
+        const snap = await getDocs(collection(db, "courses"));
+        const items: Course[] = snap.docs.map((d) => {
+          const data = d.data() as Partial<CourseDoc>;
+          return {
+            docId: d.id,
+            code: String(data.code ?? ""),
+            name: String(data.name ?? ""),
+            year: String(data.year ?? ""),
+            semester: String(data.semester ?? ""),
+            type: data.type ?? "\u05d7\u05d5\u05d1\u05d4",
+            credits: Number(data.points ?? data.credits ?? 0),
+            prerequisites: String(data.prerequisites ?? "-"),
+            status: data.status ?? "active",
+          };
+        });
+        if (active) setCourses(items);
+      } finally {
+        if (active) setIsLoading(false);
+      }
+    };
+    load();
+    return () => {
+      active = false;
+    };
+  }, []);
+
   const [search, setSearch] = useState("");
   const [semesterFilter, setSemesterFilter] = useState<"הכל" | "א" | "ב">(
-    "הכל"
+    "הכל",
   );
-  const [typeFilter, setTypeFilter] = useState<"הכל" | "חובה" | "בחירה">(
-    "הכל"
+  const [typeFilter, setTypeFilter] = useState<"הכל" | "חובה" | "בחירה">("הכל");
+
+  const activeCourses = courses.filter(
+    (course) => course.status !== "not-active",
   );
 
-  const filteredCourses = COURSES.filter((course) => {
+  const filteredCourses = activeCourses.filter((course) => {
     const matchesSearch =
       course.name.includes(search) ||
       course.code.includes(search) ||
@@ -127,8 +97,8 @@ function CoursesPage() {
       semesterFilter === "הכל"
         ? true
         : semesterFilter === "א"
-        ? course.semester.includes("א")
-        : course.semester.includes("ב");
+          ? course.semester.includes("א")
+          : course.semester.includes("ב");
 
     const matchesType =
       typeFilter === "הכל" ? true : course.type === typeFilter;
@@ -143,13 +113,13 @@ function CoursesPage() {
         <Typography
           variant="h4"
           component="h1"
-          sx={{ color: "#2e7d32", fontWeight: 700, mb: 1 }}
+          sx={{ color: "success.main", fontWeight: 700, mb: 1 }}
         >
           קורסים – רשימת הקורסים בתואר
         </Typography>
         <Typography variant="body1" sx={{ maxWidth: 900, mx: "auto" }}>
-          מסך זה מציג רשימה מרוכזת של כל קורסי מדעי המחשב, כולל שנה, סמסטר,
-          נק״ז וסוג (חובה/בחירה). ניתן לבצע חיפוש וסינון לפי סמסטר וסוג קורס.
+          מסך זה מציג רשימה מרוכזת של כל קורסי מדעי המחשב, כולל שנה, סמסטר, נק״ז
+          וסוג (חובה/בחירה). ניתן לבצע חיפוש וסינון לפי סמסטר וסוג קורס.
         </Typography>
       </Box>
 
@@ -157,11 +127,13 @@ function CoursesPage() {
       <Card
         sx={{
           borderRadius: 3,
-          boxShadow: "0 2px 8px rgba(0,0,0,0.08)",
-          borderTop: "4px solid #2e7d32",
+          boxShadow: 2,
+          borderTop: "4px solid",
+          borderTopColor: "success.main",
         }}
       >
         <CardContent>
+          {isLoading && <LinearProgress sx={{ mb: 2 }} />}
           {/* כותרת + פילטרים */}
           <Box
             display="flex"
@@ -172,14 +144,17 @@ function CoursesPage() {
             mb={3}
           >
             <Box display="flex" alignItems="center" gap={1.5}>
-              <MenuBookIcon sx={{ color: "#2e7d32" }} />
+              <MenuBookIcon sx={{ color: "success.main" }} />
               <Typography variant="h6" fontWeight={600}>
                 רשימת הקורסים במחלקה למדעי המחשב
               </Typography>
               <Chip
-                label={`${filteredCourses.length} מתוך ${COURSES.length} קורסים`}
+                label={`${filteredCourses.length} מתוך ${activeCourses.length} קורסים`}
                 size="small"
-                sx={{ backgroundColor: "#e8f5e9", color: "#2e7d32" }}
+                sx={(theme) => ({
+                  bgcolor: alpha(theme.palette.success.main, 0.15),
+                  color: theme.palette.success.main,
+                })}
               />
             </Box>
 
@@ -221,9 +196,7 @@ function CoursesPage() {
                   label="סוג קורס"
                   value={typeFilter}
                   onChange={(e) =>
-                    setTypeFilter(
-                      e.target.value as "הכל" | "חובה" | "בחירה"
-                    )
+                    setTypeFilter(e.target.value as "הכל" | "חובה" | "בחירה")
                   }
                 >
                   <MenuItem value="הכל">כל הקורסים</MenuItem>
@@ -250,7 +223,7 @@ function CoursesPage() {
               </TableHead>
               <TableBody>
                 {filteredCourses.map((course) => (
-                  <TableRow key={course.code} hover>
+                  <TableRow key={course.docId} hover>
                     <TableCell align="right">{course.code}</TableCell>
                     <TableCell align="right">{course.name}</TableCell>
                     <TableCell align="right">{course.credits}</TableCell>
@@ -260,9 +233,13 @@ function CoursesPage() {
                         size="small"
                         sx={{
                           backgroundColor:
-                            course.type === "חובה" ? "#e8f5e9" : "#e3f2fd",
+                            course.type === "חובה"
+                              ? "success.light"
+                              : "info.light",
                           color:
-                            course.type === "חובה" ? "#2e7d32" : "#1565c0",
+                            course.type === "חובה"
+                              ? "success.main"
+                              : "info.main",
                         }}
                       />
                     </TableCell>
@@ -272,7 +249,7 @@ function CoursesPage() {
                   </TableRow>
                 ))}
 
-                {filteredCourses.length === 0 && (
+                {!isLoading && filteredCourses.length === 0 && (
                   <TableRow>
                     <TableCell
                       colSpan={7}

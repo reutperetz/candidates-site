@@ -1,5 +1,5 @@
 // src/pages/AdminFaqManager.tsx
-import { useMemo, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   Box,
   Container,
@@ -22,54 +22,140 @@ import {
   DialogTitle,
   DialogContent,
   DialogActions,
+  LinearProgress,
 } from "@mui/material";
 import AddIcon from "@mui/icons-material/Add";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
 
+import {
+  addDoc,
+  collection,
+  deleteDoc,
+  doc,
+  onSnapshot,
+  serverTimestamp,
+  updateDoc,
+  type Timestamp,
+} from "firebase/firestore";
+import { db } from "../firebase";
+
 type FaqStatus = "active" | "inactive";
 
 interface FaqItem {
-  id: number;
+  docId: string;
   question: string;
   answer: string;
   status: FaqStatus;
-  createdAt: string;
+  createdAt?: Timestamp;
 }
 
-const initialFaqs: FaqItem[] = [
-  {
-    id: 1,
-    question: "איך אני יודע אם כל המסמכים התקבלו?",
-    answer: "ניתן לבדוק את סטטוס ההרשמה בכל רגע מתוך אזור 'האיזור האישי' במערכת המועמדים.",
-    status: "active",
-    createdAt: "30/11/2025",
-  },
-];
+type FaqDoc = Omit<FaqItem, "docId">;
 
 const statusChip = (status: FaqStatus) =>
-  status === "active" ? <Chip label="פעיל" color="success" size="small" /> : <Chip label="לא פעיל" size="small" />;
+  status === "active" ? (
+    <Chip label="פעיל" color="success" size="small" />
+  ) : (
+    <Chip label="לא פעיל" size="small" />
+  );
 
-function nowDateDMY() {
-  const d = new Date();
-  const dd = String(d.getDate()).padStart(2, "0");
-  const mm = String(d.getMonth() + 1).padStart(2, "0");
-  const yyyy = d.getFullYear();
-  return `${dd}/${mm}/${yyyy}`;
+function formatDate(value?: Timestamp) {
+  if (!value?.toDate) return "";
+  return value.toDate().toLocaleDateString("he-IL");
 }
 
 export default function AdminFaqManager() {
   const [tab, setTab] = useState(0);
-  const [faqs, setFaqs] = useState<FaqItem[]>(initialFaqs);
+  const [faqs, setFaqs] = useState<FaqItem[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
-  const nextId = useMemo(() => (faqs.length ? Math.max(...faqs.map((x) => x.id)) + 1 : 1), [faqs]);
+  const didSeedRef = useRef(false);
+
+  const seedFaqs = async () => {
+    const seedItems = [
+      {
+        question:
+          "\u05d0\u05d9\u05da \u05d0\u05e0\u05d9 \u05d9\u05d5\u05d3\u05e2 \u05d0\u05dd \u05db\u05dc \u05d4\u05de\u05e1\u05de\u05db\u05d9\u05dd \u05d4\u05ea\u05e7\u05d1\u05dc\u05d5?",
+        answer:
+          "\u05e0\u05d9\u05ea\u05df \u05dc\u05d1\u05d3\u05d5\u05e7 \u05d0\u05ea \u05e1\u05d8\u05d8\u05d5\u05e1 \u05d4\u05d4\u05e8\u05e9\u05de\u05d4 \u05d1\u05db\u05dc \u05e8\u05d2\u05e2 \u05de\u05ea\u05d5\u05da \u05d0\u05d6\u05d5\u05e8 \u05d4\u05d0\u05d9\u05d6\u05d5\u05e8 \u05d4\u05d0\u05d9\u05e9\u05d9 \u05d1\u05de\u05e2\u05e8\u05db\u05ea.",
+        status: "active",
+      },
+      {
+        question:
+          "\u05de\u05d4\u05dd \u05ea\u05e0\u05d0\u05d9 \u05d4\u05e7\u05d1\u05dc\u05d4 \u05d4\u05e2\u05d9\u05e7\u05e8\u05d9\u05d9\u05dd?",
+        answer:
+          "\u05ea\u05e0\u05d0\u05d9 \u05d4\u05e7\u05d1\u05dc\u05d4 \u05de\u05ea\u05d1\u05e1\u05e1\u05d9\u05dd \u05e2\u05dc \u05e6\u05d9\u05d5\u05df \u05e4\u05e1\u05d9\u05db\u05d5\u05de\u05d8\u05e8\u05d9, \u05de\u05de\u05d5\u05e6\u05e2 \u05d1\u05d2\u05e8\u05d5\u05ea \u05d5\u05d9\u05d7\u05d9\u05d3\u05d5\u05ea \u05dc\u05d9\u05de\u05d5\u05d3 \u05d1\u05de\u05ea\u05de\u05d8\u05d9\u05e7\u05d4 \u05d5\u05d1\u05d0\u05e0\u05d2\u05dc\u05d9\u05ea.",
+        status: "active",
+      },
+      {
+        question:
+          "\u05db\u05de\u05d4 \u05d6\u05de\u05df \u05e0\u05de\u05e9\u05da \u05d4\u05ea\u05d5\u05d0\u05e8?",
+        answer:
+          "\u05de\u05e9\u05da \u05d4\u05dc\u05d9\u05de\u05d5\u05d3\u05d9\u05dd \u05d4\u05de\u05dc\u05d0 \u05d4\u05d5\u05d0 \u05d1\u05d3\u05e8\u05da-\u05db\u05dc\u05dc \u05e9\u05dc\u05d5\u05e9 \u05e9\u05e0\u05d9\u05dd \u05d0\u05e7\u05d3\u05de\u05d9\u05d5\u05ea.",
+        status: "active",
+      },
+    ];
+
+    try {
+      await Promise.all(
+        seedItems.map((item) =>
+          addDoc(collection(db, "faqs"), {
+            ...item,
+            createdAt: serverTimestamp(),
+          }),
+        ),
+      );
+    } catch (err) {
+      console.error("Failed to seed FAQs", err);
+    }
+  };
+
+  useEffect(() => {
+    const unsub = onSnapshot(
+      collection(db, "faqs"),
+      (snap) => {
+        const items: FaqItem[] = snap.docs.map((d) => {
+          const data = d.data() as Partial<FaqDoc>;
+          return {
+            docId: d.id,
+            question: String(data.question ?? ""),
+            answer: String(data.answer ?? ""),
+            status: data.status ?? "active",
+            createdAt: data.createdAt,
+          };
+        });
+        items.sort(
+          (a, b) =>
+            (b.createdAt?.toMillis?.() ?? 0) - (a.createdAt?.toMillis?.() ?? 0),
+        );
+
+        if (items.length === 0 && !didSeedRef.current) {
+          didSeedRef.current = true;
+          seedFaqs();
+        }
+
+        setFaqs(items);
+        setIsLoading(false);
+      },
+      () => {
+        setIsLoading(false);
+      },
+    );
+    return () => unsub();
+  }, []);
 
   const [question, setQuestion] = useState("");
   const [answer, setAnswer] = useState("");
   const [status, setStatus] = useState<FaqStatus>("active");
-  const [errors, setErrors] = useState<{ question?: string; answer?: string }>({});
+  const [errors, setErrors] = useState<{ question?: string; answer?: string }>(
+    {},
+  );
 
-  const [snack, setSnack] = useState<{ open: boolean; msg: string; severity: "success" | "error" }>({
+  const [snack, setSnack] = useState<{
+    open: boolean;
+    msg: string;
+    severity: "success" | "error";
+  }>({
     open: false,
     msg: "",
     severity: "success",
@@ -94,24 +180,38 @@ export default function AdminFaqManager() {
     return !e.question && !e.answer;
   };
 
-  const createFaq = () => {
+  const createFaq = async () => {
     if (!validate()) {
-      setSnack({ open: true, msg: "אי אפשר לשמור – יש שדות חסרים", severity: "error" });
+      setSnack({
+        open: true,
+        msg: "אי אפשר לשמור – יש שדות חסרים",
+        severity: "error",
+      });
       return;
     }
 
-    const newFaq: FaqItem = {
-      id: nextId,
-      question: question.trim(),
-      answer: answer.trim(),
-      status,
-      createdAt: nowDateDMY(),
-    };
-
-    setFaqs((prev) => [newFaq, ...prev]);
-    setSnack({ open: true, msg: "שאלה נפוצה נוספה בהצלחה", severity: "success" });
-    resetForm();
-    setTab(0);
+    try {
+      await addDoc(collection(db, "faqs"), {
+        question: question.trim(),
+        answer: answer.trim(),
+        status,
+        createdAt: serverTimestamp(),
+      });
+      setSnack({
+        open: true,
+        msg: "שאלה נפוצה נוספה בהצלחה",
+        severity: "success",
+      });
+      resetForm();
+      setTab(0);
+    } catch (err) {
+      console.error("Failed to add FAQ", err);
+      setSnack({
+        open: true,
+        msg: "אי אפשר לשמור – יש שדות חסרים",
+        severity: "error",
+      });
+    }
   };
 
   const openEdit = (item: FaqItem) => {
@@ -123,23 +223,39 @@ export default function AdminFaqManager() {
     setEditOpen(true);
   };
 
-  const saveEdit = () => {
+  const saveEdit = async () => {
     if (!selected) return;
     if (!validate()) {
-      setSnack({ open: true, msg: "אי אפשר לשמור – יש שדות חסרים", severity: "error" });
+      setSnack({
+        open: true,
+        msg: "אי אפשר לשמור – יש שדות חסרים",
+        severity: "error",
+      });
       return;
     }
 
-    setFaqs((prev) =>
-      prev.map((x) =>
-        x.id === selected.id ? { ...x, question: question.trim(), answer: answer.trim(), status } : x
-      )
-    );
-
-    setEditOpen(false);
-    setSelected(null);
-    setSnack({ open: true, msg: "השאלה עודכנה בהצלחה", severity: "success" });
-    resetForm();
+    try {
+      await updateDoc(doc(db, "faqs", selected.docId), {
+        question: question.trim(),
+        answer: answer.trim(),
+        status,
+      });
+      setEditOpen(false);
+      setSelected(null);
+      setSnack({
+        open: true,
+        msg: "השאלה עודכנה בהצלחה",
+        severity: "success",
+      });
+      resetForm();
+    } catch (err) {
+      console.error("Failed to update FAQ", err);
+      setSnack({
+        open: true,
+        msg: "אי אפשר לשמור – יש שדות חסרים",
+        severity: "error",
+      });
+    }
   };
 
   const openDelete = (item: FaqItem) => {
@@ -147,21 +263,41 @@ export default function AdminFaqManager() {
     setDeleteOpen(true);
   };
 
-  const confirmDelete = () => {
+  const confirmDelete = async () => {
     if (!selected) return;
-    setFaqs((prev) => prev.filter((x) => x.id !== selected.id));
-    setDeleteOpen(false);
-    setSelected(null);
-    setSnack({ open: true, msg: "השאלה נמחקה", severity: "success" });
+    try {
+      await deleteDoc(doc(db, "faqs", selected.docId));
+      setDeleteOpen(false);
+      setSelected(null);
+      setSnack({
+        open: true,
+        msg: "השאלה נמחקה",
+        severity: "success",
+      });
+    } catch (err) {
+      console.error("Failed to delete FAQ", err);
+      setDeleteOpen(false);
+      setSelected(null);
+    }
   };
 
   return (
     <Box dir="rtl">
       <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
-        <Typography variant="h6" align="center" fontWeight={700} color="success.main">
+        <Typography
+          variant="h6"
+          align="center"
+          fontWeight={700}
+          color="success.main"
+        >
           המחלקה למדעי המחשב
         </Typography>
-        <Typography variant="body2" align="center" color="text.secondary" mb={3}>
+        <Typography
+          variant="body2"
+          align="center"
+          color="text.secondary"
+          mb={3}
+        >
           מערכת ניהול – שאלות נפוצות
         </Typography>
 
@@ -170,9 +306,13 @@ export default function AdminFaqManager() {
             value={tab}
             onChange={(_, v) => setTab(v)}
             centered
-            textColor="success"
-            indicatorColor="success"
-            sx={{ "& .MuiTab-root": { fontWeight: 600 } }}
+            textColor="primary"
+            indicatorColor="primary"
+            sx={{
+              "& .MuiTab-root": { fontWeight: 600 },
+              "& .MuiTab-root.Mui-selected": { color: "success.main" },
+              "& .MuiTabs-indicator": { backgroundColor: "success.main" },
+            }}
           >
             <Tab label="רשימת שאלות נפוצות" />
             <Tab label="יצירת שאלה נפוצה חדשה" />
@@ -181,7 +321,15 @@ export default function AdminFaqManager() {
 
         {tab === 0 && (
           <Paper elevation={3} sx={{ p: 3, borderRadius: 3 }}>
-            <Box mb={2} display="flex" justifyContent="space-between" alignItems="center" flexWrap="wrap" gap={2}>
+            {isLoading && <LinearProgress sx={{ mb: 2 }} />}
+            <Box
+              mb={2}
+              display="flex"
+              justifyContent="space-between"
+              alignItems="center"
+              flexWrap="wrap"
+              gap={2}
+            >
               <Typography variant="h5" fontWeight={600}>
                 רשימת שאלות נפוצות
               </Typography>
@@ -204,7 +352,14 @@ export default function AdminFaqManager() {
               מספר השאלות במערכת: {faqs.length}
             </Typography>
 
-            <Paper elevation={0} sx={{ borderRadius: 3, overflow: "hidden", bgcolor: "white" }}>
+            <Paper
+              elevation={0}
+              sx={{
+                borderRadius: 3,
+                overflow: "hidden",
+                bgcolor: "background.paper",
+              }}
+            >
               <Table>
                 <TableHead>
                   <TableRow>
@@ -217,7 +372,7 @@ export default function AdminFaqManager() {
                 </TableHead>
                 <TableBody>
                   {faqs.map((item) => (
-                    <TableRow key={item.id}>
+                    <TableRow key={item.docId}>
                       <TableCell>
                         <Stack direction="row" spacing={1}>
                           <Button
@@ -241,7 +396,7 @@ export default function AdminFaqManager() {
                         </Stack>
                       </TableCell>
                       <TableCell>{statusChip(item.status)}</TableCell>
-                      <TableCell>{item.createdAt}</TableCell>
+                      <TableCell>{formatDate(item.createdAt) || "-"}</TableCell>
                       <TableCell sx={{ maxWidth: 400 }}>
                         <Typography noWrap>{item.answer}</Typography>
                       </TableCell>
@@ -301,8 +456,18 @@ export default function AdminFaqManager() {
                 <option value="inactive">לא פעיל</option>
               </TextField>
 
-              <Box mt={2} display="flex" justifyContent="space-between" flexWrap="wrap" gap={2}>
-                <Button variant="text" color="success" onClick={() => setTab(0)}>
+              <Box
+                mt={2}
+                display="flex"
+                justifyContent="space-between"
+                flexWrap="wrap"
+                gap={2}
+              >
+                <Button
+                  variant="text"
+                  color="success"
+                  onClick={() => setTab(0)}
+                >
                   ⬅ חזרה לרשימת שאלות
                 </Button>
 
@@ -315,7 +480,11 @@ export default function AdminFaqManager() {
                   >
                     ביטול
                   </Button>
-                  <Button variant="contained" color="success" onClick={createFaq}>
+                  <Button
+                    variant="contained"
+                    color="success"
+                    onClick={createFaq}
+                  >
                     שמירה
                   </Button>
                 </Stack>
@@ -326,7 +495,12 @@ export default function AdminFaqManager() {
       </Container>
 
       {/* EDIT */}
-      <Dialog open={editOpen} onClose={() => setEditOpen(false)} fullWidth maxWidth="md">
+      <Dialog
+        open={editOpen}
+        onClose={() => setEditOpen(false)}
+        fullWidth
+        maxWidth="md"
+      >
         <DialogTitle>עריכת שאלה נפוצה</DialogTitle>
         <DialogContent>
           <Box mt={1} display="flex" flexDirection="column" gap={2}>
@@ -393,11 +567,14 @@ export default function AdminFaqManager() {
         onClose={() => setSnack((s) => ({ ...s, open: false }))}
         anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
       >
-        <Alert severity={snack.severity} variant="filled" sx={{ width: "100%" }}>
+        <Alert
+          severity={snack.severity}
+          variant="filled"
+          sx={{ width: "100%" }}
+        >
           {snack.msg}
         </Alert>
       </Snackbar>
     </Box>
   );
 }
-

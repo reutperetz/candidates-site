@@ -14,8 +14,13 @@ import {
   Stack,
   Chip,
 } from "@mui/material";
+import { alpha } from "@mui/material/styles";
 import MenuIcon from "@mui/icons-material/Menu";
 import { useLocation, useNavigate } from "react-router-dom";
+import { useThemeMode } from "../theme/themeContext";
+import Tooltip from "@mui/material/Tooltip";
+import DarkModeIcon from "@mui/icons-material/DarkMode";
+import LightModeIcon from "@mui/icons-material/LightMode";
 
 type UserMode = "candidate" | "admin";
 
@@ -23,8 +28,14 @@ const candidateNav = [
   { label: "Home / מסך הבית", path: "/" },
   { label: "Forms / טפסים", path: "/forms" },
   { label: "Courses / קורסים", path: "/courses" },
-  { label: "Admission Calculator / מחשבון סיכוי קבלה", path: "/admission-calculator" },
-  { label: "Admission Requirements / תנאי קבלה", path: "/admission-requirements" },
+  {
+    label: "Admission Calculator / מחשבון סיכוי קבלה",
+    path: "/admission-calculator",
+  },
+  {
+    label: "Admission Requirements / תנאי קבלה",
+    path: "/admission-requirements",
+  },
   { label: "Help / עזרה", path: "/help" },
   { label: "Login / התחברות", path: "/login" },
 ];
@@ -34,7 +45,10 @@ const adminNav = [
   { label: "System Users / משתמשי מערכת", path: "/admin/users" },
   { label: "Candidates / מועמדים", path: "/admin/candidates" },
   { label: "Courses / קורסים", path: "/admin/courses" },
-  { label: "Admission Requirements / תנאי קבלה", path: "/admin/admission-requirements" },
+  {
+    label: "Admission Requirements / תנאי קבלה",
+    path: "/admin/admission-requirements",
+  },
   { label: "Notifications / הודעות", path: "/admin/notifications" },
   { label: "FAQ / שאלות נפוצות", path: "/admin/faq" },
   { label: "Help / עזרה", path: "/admin/help" },
@@ -47,10 +61,13 @@ interface HeaderProps {
 
 function Header({ userMode, onChangeMode }: HeaderProps) {
   const [drawerOpen, setDrawerOpen] = useState(false);
-  const [authUser, setAuthUser] = useState<string | null>(localStorage.getItem("authUser"));
+  const [authUser, setAuthUser] = useState<string | null>(
+    localStorage.getItem("authUser"),
+  );
 
   const navigate = useNavigate();
   const location = useLocation();
+  const { mode, toggleMode: toggleColorMode } = useThemeMode();
 
   useEffect(() => {
     const sync = () => setAuthUser(localStorage.getItem("authUser"));
@@ -93,10 +110,11 @@ function Header({ userMode, onChangeMode }: HeaderProps) {
     <>
       <AppBar
         position="static"
-        sx={{
-          background: "linear-gradient(135deg, #33691e 0%, #607d8b 100%)",
-          boxShadow: "0 2px 8px rgba(0,0,0,0.15)",
-        }}
+        sx={(theme) => ({
+          background: `linear-gradient(135deg, ${theme.palette.primary.dark} 0%, ${theme.palette.secondary.main} 100%)`,
+          color: theme.palette.primary.contrastText,
+          boxShadow: theme.shadows[4],
+        })}
       >
         <Toolbar sx={{ direction: "rtl" }}>
           <IconButton
@@ -111,10 +129,12 @@ function Header({ userMode, onChangeMode }: HeaderProps) {
 
           <Typography
             variant="h6"
-            onClick={() => handleNavigate(userMode === "admin" ? "/admin" : "/")}
+            onClick={() =>
+              handleNavigate(userMode === "admin" ? "/admin" : "/")
+            }
             sx={{
               flexGrow: 1,
-              color: "white",
+              color: "inherit",
               fontWeight: 700,
               cursor: "pointer",
               letterSpacing: "0.5px",
@@ -132,7 +152,10 @@ function Header({ userMode, onChangeMode }: HeaderProps) {
                 <Chip
                   label={`מחובר/ת: ${authUser}`}
                   size="small"
-                  sx={{ bgcolor: "rgba(255,255,255,0.18)", color: "white" }}
+                  sx={(theme) => ({
+                    bgcolor: alpha(theme.palette.common.white, 0.18),
+                    color: "inherit",
+                  })}
                 />
                 <Button
                   variant="outlined"
@@ -146,7 +169,22 @@ function Header({ userMode, onChangeMode }: HeaderProps) {
             )}
           </Stack>
 
-          <Stack direction="row" spacing={1} sx={{ display: { xs: "none", md: "flex" } }}>
+          {/* כפתור Dark/Light גלובלי */}
+          <Tooltip title={mode === "dark" ? "מצב בהיר" : "מצב כהה"}>
+            <IconButton
+              onClick={toggleColorMode}
+              color="inherit"
+              sx={{ mr: 1 }}
+            >
+              {mode === "dark" ? <LightModeIcon /> : <DarkModeIcon />}
+            </IconButton>
+          </Tooltip>
+
+          <Stack
+            direction="row"
+            spacing={1}
+            sx={{ display: { xs: "none", md: "flex" } }}
+          >
             <Button
               variant={userMode === "candidate" ? "contained" : "outlined"}
               color="secondary"
@@ -187,18 +225,32 @@ function Header({ userMode, onChangeMode }: HeaderProps) {
                 selected={location.pathname === item.path}
                 onClick={() => handleNavigate(item.path)}
               >
-                <ListItemText primary={item.label} primaryTypographyProps={{ sx: { textAlign: "right" } }} />
+                <ListItemText
+                  primary={item.label}
+                  primaryTypographyProps={{ sx: { textAlign: "right" } }}
+                />
               </ListItemButton>
             ))}
           </List>
 
           <Box sx={{ p: 2, display: "grid", gap: 1 }}>
-            <Button fullWidth variant="outlined" onClick={toggleMode} size="small">
+            <Button
+              fullWidth
+              variant="outlined"
+              onClick={toggleMode}
+              size="small"
+            >
               מעבר ל־{userMode === "candidate" ? "מצב Admin" : "מצב מועמד"}
             </Button>
 
             {authUser && (
-              <Button fullWidth variant="outlined" color="secondary" onClick={handleLogout} size="small">
+              <Button
+                fullWidth
+                variant="outlined"
+                color="secondary"
+                onClick={handleLogout}
+                size="small"
+              >
                 התנתקות
               </Button>
             )}
