@@ -20,6 +20,7 @@ import {
   MenuItem,
   Alert,
   LinearProgress,
+  Snackbar,
 } from "@mui/material";
 
 import Grid from "@mui/material/GridLegacy";
@@ -159,6 +160,10 @@ const AdminCoursesPage = () => {
   const [savedMsg, setSavedMsg] = useState<string>("");
   const [editingDocId, setEditingDocId] = useState<string | null>(null);
   const [saveError, setSaveError] = useState("");
+  const handleSnackClose = () => {
+    setSavedMsg("");
+    setSaveError("");
+  };
   const didSeedRef = useRef(false);
   const lastHandledIdRef = useRef<string | null>(null);
   const courseIdRef = useRef<string | undefined>(undefined);
@@ -713,6 +718,22 @@ const AdminCoursesPage = () => {
           )}
         </Paper>
       </Container>
+
+      <Snackbar
+        open={!!savedMsg || !!saveError}
+        autoHideDuration={2500}
+        onClose={handleSnackClose}
+        anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
+      >
+        <Alert
+          onClose={handleSnackClose}
+          severity={savedMsg ? "success" : "error"}
+          variant="filled"
+          sx={{ width: "100%" }}
+        >
+          {savedMsg || saveError}
+        </Alert>
+      </Snackbar>
     </Box>
   );
 };

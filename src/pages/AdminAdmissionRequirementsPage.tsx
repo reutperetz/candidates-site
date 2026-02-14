@@ -24,6 +24,7 @@ import {
   DialogActions,
   Divider,
   LinearProgress,
+  Snackbar,
 } from "@mui/material";
 
 import Grid from "@mui/material/GridLegacy";
@@ -203,6 +204,11 @@ const AdminAdmissionRequirementsPage = () => {
 
   const [saveError, setSaveError] = useState("");
   const didSeedRef = useRef(false);
+  const [snack, setSnack] = useState<{ open: boolean; msg: string; severity: "success" | "error" }>({
+    open: false,
+    msg: "",
+    severity: "success",
+  });
 
   const seedRequirements = async () => {
     const seedItems = [
@@ -317,6 +323,7 @@ const AdminAdmissionRequirementsPage = () => {
     try {
       await addDoc(collection(db, "requirements"), payload);
       setSaved(true);
+      setSnack({ open: true, msg: "תנאי קבלה נשמר בהצלחה.", severity: "success" });
       setForm(emptyForm);
       setErrors({});
       setTab(0);
@@ -324,6 +331,7 @@ const AdminAdmissionRequirementsPage = () => {
       console.error("Failed to add requirement", err);
       setSaved(false);
       setSaveError("\u05e9\u05d2\u05d9\u05d0\u05d4 \u05d1\u05e9\u05de\u05d9\u05e8\u05d4. \u05e0\u05e1\u05d9 \u05e9\u05d5\u05d1.");
+      setSnack({ open: true, msg: "שגיאה בשמירה. נסי שוב.", severity: "error" });
     }
   };
 
@@ -380,6 +388,7 @@ const AdminAdmissionRequirementsPage = () => {
     try {
       await updateDoc(doc(db, "requirements", selected.docId), updated);
       setEdited(true);
+      setSnack({ open: true, msg: "עודכן בהצלחה.", severity: "success" });
       setTimeout(() => {
         setEditOpen(false);
         setSelected(null);
@@ -387,6 +396,7 @@ const AdminAdmissionRequirementsPage = () => {
     } catch (err) {
       console.error("Failed to update requirement", err);
       setEdited(false);
+      setSnack({ open: true, msg: "שגיאה בעדכון. נסי שוב.", severity: "error" });
     }
   };
 
@@ -401,10 +411,12 @@ const AdminAdmissionRequirementsPage = () => {
       await deleteDoc(doc(db, "requirements", selected.docId));
       setDeleteOpen(false);
       setSelected(null);
+      setSnack({ open: true, msg: "נמחק בהצלחה.", severity: "success" });
     } catch (err) {
       console.error("Failed to delete requirement", err);
       setDeleteOpen(false);
       setSelected(null);
+      setSnack({ open: true, msg: "שגיאה במחיקה. נסי שוב.", severity: "error" });
     }
   };
 
@@ -758,6 +770,22 @@ const renderFormFields = (
           </Button>
         </DialogActions>
       </Dialog>
+
+      <Snackbar
+        open={snack.open}
+        autoHideDuration={2500}
+        onClose={() => setSnack({ open: false, msg: "", severity: snack.severity })}
+        anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
+      >
+        <Alert
+          onClose={() => setSnack({ open: false, msg: "", severity: snack.severity })}
+          severity={snack.severity}
+          variant="filled"
+          sx={{ width: "100%" }}
+        >
+          {snack.msg}
+        </Alert>
+      </Snackbar>
     </Box>
   );
 };
