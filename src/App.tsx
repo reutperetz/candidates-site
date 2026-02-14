@@ -115,6 +115,14 @@ function App() {
             }
           />
           <Route
+            path="/admin/candidates/:candidateId"
+            element={
+              <AdminOnly isDesktop={isDesktop}>
+                <AdminCandidatesPage />
+              </AdminOnly>
+            }
+          />
+          <Route
             path="/admin/courses"
             element={
               <AdminOnly isDesktop={isDesktop}>
@@ -140,6 +148,14 @@ function App() {
           />
           <Route
             path="/admin/admission-requirements"
+            element={
+              <AdminOnly isDesktop={isDesktop}>
+                <AdminAdmissionRequirementsPage />
+              </AdminOnly>
+            }
+          />
+          <Route
+            path="/admin/admission-requirements/:requirementId"
             element={
               <AdminOnly isDesktop={isDesktop}>
                 <AdminAdmissionRequirementsPage />

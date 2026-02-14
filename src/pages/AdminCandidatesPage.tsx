@@ -1,5 +1,6 @@
 ﻿// src/pages/AdminCandidatesPage.tsx
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { useParams } from "react-router-dom";
 import {
   Box,
   Container,
@@ -147,6 +148,7 @@ function coerceStatus(v: unknown): CandidateStatus {
 const normalize = (value: string) => value.trim().toLowerCase();
 
 const AdminCandidatesPage = () => {
+  const { candidateId } = useParams();
   // 0 = רשימה, 1 = הוספה
   const [tab, setTab] = useState(0);
 
@@ -175,6 +177,8 @@ const AdminCandidatesPage = () => {
     null
   );
   const [isLoading, setIsLoading] = useState(true);
+  const [missingCandidateId, setMissingCandidateId] = useState<string | null>(null);
+  const lastHandledIdRef = useRef<string | null>(null);
 
   useEffect(() => {
     const unsub = onSnapshot(
@@ -521,6 +525,25 @@ const AdminCandidatesPage = () => {
     setEditOpen(true);
   };
 
+  useEffect(() => {
+    if (!candidateId) {
+      lastHandledIdRef.current = null;
+      setMissingCandidateId(null);
+      return;
+    }
+
+    if (lastHandledIdRef.current === candidateId) return;
+
+    const match = candidates.find((c) => c.docId === candidateId);
+    if (match) {
+      setMissingCandidateId(null);
+      openEdit(match);
+    } else {
+      setMissingCandidateId(candidateId);
+    }
+    lastHandledIdRef.current = candidateId;
+  }, [candidateId, candidates]);
+
   const saveEdit = async () => {
     if (!editDocId) return;
 
@@ -593,6 +616,11 @@ const AdminCandidatesPage = () => {
 
         <Paper elevation={3} sx={{ borderRadius: 3, p: 3, bgcolor: "background.paper" }}>
           {(isLoading || tracksLoading) && <LinearProgress sx={{ mb: 2 }} />}
+          {!!missingCandidateId && (
+            <Alert severity="error" sx={{ mb: 2 }}>
+              מועמד עם המזהה "{missingCandidateId}" לא נמצא במערכת.
+            </Alert>
+          )}
           <Tabs
             value={tab}
             onChange={(_, v) => setTab(v)}

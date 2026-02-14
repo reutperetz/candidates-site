@@ -1,5 +1,6 @@
 // src/pages/AdminAdmissionRequirementsPage.tsx
 import { useEffect, useRef, useState } from "react";
+import { useParams } from "react-router-dom";
 import {
   Box,
   Container,
@@ -196,6 +197,7 @@ function validateForm(form: FormState): FormErrors {
 }
 
 const AdminAdmissionRequirementsPage = () => {
+  const { requirementId } = useParams();
   const [tab, setTab] = useState(0);
 
   //  ????? ????? (Firestore)
@@ -282,6 +284,8 @@ const AdminAdmissionRequirementsPage = () => {
   const [form, setForm] = useState<FormState>(emptyForm);
   const [errors, setErrors] = useState<FormErrors>({});
   const [saved, setSaved] = useState(false);
+  const [missingRequirementId, setMissingRequirementId] = useState<string | null>(null);
+  const lastHandledIdRef = useRef<string | null>(null);
 
   // עריכה/מחיקה
   const [editOpen, setEditOpen] = useState(false);
@@ -358,6 +362,25 @@ const AdminAdmissionRequirementsPage = () => {
     setEdited(false);
     setEditOpen(true);
   };
+
+  useEffect(() => {
+    if (!requirementId) {
+      lastHandledIdRef.current = null;
+      setMissingRequirementId(null);
+      return;
+    }
+
+    if (lastHandledIdRef.current === requirementId) return;
+
+    const match = requirements.find((r) => r.docId === requirementId);
+    if (match) {
+      setMissingRequirementId(null);
+      openEdit(match);
+    } else {
+      setMissingRequirementId(requirementId);
+    }
+    lastHandledIdRef.current = requirementId;
+  }, [requirementId, requirements]);
 
   const handleEditChange =
     (field: keyof FormState) =>
@@ -581,6 +604,11 @@ const renderFormFields = (
           </Tabs>
 
           {isLoading && <LinearProgress sx={{ mb: 2 }} />}
+          {!!missingRequirementId && (
+            <Alert severity="error" sx={{ mb: 2 }}>
+              תנאי קבלה עם המזהה "{missingRequirementId}" לא נמצא במערכת.
+            </Alert>
+          )}
 
 
           {/* ===== TAB 0: LIST ===== */}
