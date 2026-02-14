@@ -1,4 +1,4 @@
-// src/pages/AdminCandidatesPage.tsx
+﻿// src/pages/AdminCandidatesPage.tsx
 import { useEffect, useMemo, useState } from "react";
 import {
   Box,
@@ -45,8 +45,15 @@ import {
 import { db } from "../firebase";
 
 type CandidateStatus = "accepted" | "pending" | "rejected";
-type PreferredTrack = "בוקר" | "ערב";
+type TrackStatus = "active" | "inactive";
 type Units = 3 | 4 | 5;
+
+type StudyTrack = {
+  docId: string;
+  code: string;
+  name: string;
+  status: TrackStatus;
+};
 
 interface Candidate {
   docId: string; // Firestore Document ID
@@ -56,7 +63,8 @@ interface Candidate {
   bagrutAverage: number; // 60-120
   mathUnits: Units;
   englishUnits: Units;
-  preferredTrack: PreferredTrack;
+  preferredTrackId: string;
+  preferredTrackName: string;
   status: CandidateStatus;
   createdAtText: string; // dd/mm/yyyy לתצוגה
   createdAt?: Timestamp; // לשמירה/מיון (אופציונלי)
@@ -89,7 +97,7 @@ type FormState = {
   bagrutAverage: string;
   mathUnits: string;
   englishUnits: string;
-  preferredTrack: string;
+  preferredTrackId: string;
   status: string;
 };
 
@@ -100,7 +108,7 @@ const emptyForm: FormState = {
   bagrutAverage: "",
   mathUnits: "",
   englishUnits: "",
-  preferredTrack: "",
+  preferredTrackId: "",
   status: "",
 };
 
@@ -136,14 +144,14 @@ function coerceStatus(v: unknown): CandidateStatus {
   return v === "accepted" || v === "pending" || v === "rejected" ? v : "pending";
 }
 
-function coerceTrack(v: unknown): PreferredTrack {
-  return v === "בוקר" || v === "ערב" ? v : "בוקר";
-}
+const normalize = (value: string) => value.trim().toLowerCase();
 
 const AdminCandidatesPage = () => {
   // 0 = רשימה, 1 = הוספה
   const [tab, setTab] = useState(0);
 
+  const [tracks, setTracks] = useState<StudyTrack[]>([]);
+  const [tracksLoading, setTracksLoading] = useState(true);
   const [candidates, setCandidates] = useState<Candidate[]>([]);
   const [query, setQuery] = useState("");
 
@@ -167,6 +175,30 @@ const AdminCandidatesPage = () => {
     null
   );
   const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const unsub = onSnapshot(
+      collection(db, "study_tracks"),
+      (snap) => {
+        const items: StudyTrack[] = snap.docs.map((d) => {
+          const data = d.data() as Partial<StudyTrack>;
+          return {
+            docId: d.id,
+            code: String(data.code ?? ""),
+            name: String(data.name ?? ""),
+            status: (data.status === "active" || data.status === "inactive"
+              ? data.status
+              : "inactive") as TrackStatus,
+          };
+        });
+        setTracks(items);
+        setTracksLoading(false);
+      },
+      () => setTracksLoading(false)
+    );
+
+    return () => unsub();
+  }, []);
 
   // ===== Firestore: טעינה בזמן אמת =====
   useEffect(() => {
@@ -199,7 +231,12 @@ const AdminCandidatesPage = () => {
               bagrutAverage: Number(data.bagrutAverage ?? 0),
               mathUnits: coerceUnits(data.mathUnits),
               englishUnits: coerceUnits(data.englishUnits),
-              preferredTrack: coerceTrack(data.preferredTrack),
+              preferredTrackId: String(data.preferredTrackId ?? ""),
+              preferredTrackName: String(
+                data.preferredTrackName ??
+                  (data as { preferredTrack?: unknown }).preferredTrack ??
+                  ""
+              ),
               status: coerceStatus(data.status),
               createdAtText,
               createdAt: createdAtTs,
@@ -228,6 +265,27 @@ const AdminCandidatesPage = () => {
     return () => unsub();
   }, []);
 
+  const trackById = useMemo(() => {
+    const map: Record<string, StudyTrack> = {};
+    tracks.forEach((t) => {
+      map[t.docId] = t;
+    });
+    return map;
+  }, [tracks]);
+
+  const activeTracks = useMemo(
+    () => tracks.filter((t) => t.status === "active"),
+    [tracks]
+  );
+
+  const getTrackLabel = (c: Candidate) => {
+    const track = trackById[c.preferredTrackId];
+    return track?.name || c.preferredTrackName || "";
+  };
+
+  const isActiveTrackId = (trackId: string) =>
+    trackById[trackId]?.status === "active";
+
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
     if (!q) return candidates;
@@ -238,11 +296,11 @@ const AdminCandidatesPage = () => {
       return (
         c.fullName.toLowerCase().includes(q) ||
         c.idNumber.includes(q) ||
-        c.preferredTrack.includes(q) ||
+        getTrackLabel(c).toLowerCase().includes(q) ||
         statusText.includes(q)
       );
     });
-  }, [candidates, query]);
+  }, [candidates, query, trackById]);
 
   const onChangeForm =
     (field: keyof FormState) => (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -278,7 +336,9 @@ const AdminCandidatesPage = () => {
     if (form.englishUnits && ![3, 4, 5].includes(eu ?? -1))
       errors.englishUnits = "יחידות אנגלית: 3/4/5 בלבד";
 
-    if (!form.preferredTrack) errors.preferredTrack = "שדה חובה";
+    if (!form.preferredTrackId) errors.preferredTrackId = "שדה חובה";
+    else if (!isActiveTrackId(form.preferredTrackId))
+      errors.preferredTrackId = "לא ניתן לבחור מסלול לא פעיל";
     if (!form.status) errors.status = "שדה חובה";
 
     return errors;
@@ -288,7 +348,8 @@ const AdminCandidatesPage = () => {
     const requiredOk =
       isHebrewNameLike(form.fullName) &&
       isIsraeliId9Digits(form.idNumber) &&
-      !!form.preferredTrack &&
+      !!form.preferredTrackId &&
+      isActiveTrackId(form.preferredTrackId) &&
       !!form.status;
 
     const psycho = toIntSafe(form.psychometric);
@@ -303,7 +364,7 @@ const AdminCandidatesPage = () => {
       (!form.englishUnits || [3, 4, 5].includes(eu ?? -1));
 
     return requiredOk && optionalOk;
-  }, [form]);
+  }, [form, trackById]);
 
   // ===== Add =====
   const handleAddCandidate = async () => {
@@ -315,7 +376,7 @@ const AdminCandidatesPage = () => {
         bagrutAverage: true,
         mathUnits: true,
         englishUnits: true,
-        preferredTrack: true,
+        preferredTrackId: true,
         status: true,
       });
       return;
@@ -330,6 +391,12 @@ const AdminCandidatesPage = () => {
       return;
     }
 
+    const selectedTrack = trackById[form.preferredTrackId];
+    if (!selectedTrack || selectedTrack.status !== "active") {
+      setSnack({ open: true, msg: "לא ניתן לבחור מסלול לא פעיל" });
+      return;
+    }
+
     try {
       const payload = {
         idNumber,
@@ -338,7 +405,8 @@ const AdminCandidatesPage = () => {
         bagrutAverage: toIntSafe(form.bagrutAverage) ?? 0,
         mathUnits: coerceUnits(toIntSafe(form.mathUnits) ?? 3),
         englishUnits: coerceUnits(toIntSafe(form.englishUnits) ?? 3),
-        preferredTrack: form.preferredTrack as PreferredTrack,
+        preferredTrackId: selectedTrack.docId,
+        preferredTrackName: selectedTrack.name,
         status: form.status as CandidateStatus,
         createdAt: serverTimestamp(),
         createdAtText: formatDateIL(new Date()),
@@ -348,7 +416,8 @@ const AdminCandidatesPage = () => {
       console.log("[SaveCandidate] collection:", "candidates");
       console.log("[SaveCandidate] payload:", {
         idNumber: payload.idNumber,
-        preferredTrack: payload.preferredTrack,
+        preferredTrackId: payload.preferredTrackId,
+        preferredTrackName: payload.preferredTrackName,
         status: payload.status,
         mathUnits: payload.mathUnits,
         englishUnits: payload.englishUnits,
@@ -402,7 +471,9 @@ const AdminCandidatesPage = () => {
     if (editForm.englishUnits && ![3, 4, 5].includes(eu ?? -1))
       errors.englishUnits = "יחידות אנגלית: 3/4/5 בלבד";
 
-    if (!editForm.preferredTrack) errors.preferredTrack = "שדה חובה";
+    if (!editForm.preferredTrackId) errors.preferredTrackId = "שדה חובה";
+    else if (!isActiveTrackId(editForm.preferredTrackId))
+      errors.preferredTrackId = "לא ניתן לבחור מסלול לא פעיל";
     if (!editForm.status) errors.status = "שדה חובה";
 
     return errors;
@@ -412,7 +483,8 @@ const AdminCandidatesPage = () => {
     const requiredOk =
       isHebrewNameLike(editForm.fullName) &&
       isIsraeliId9Digits(editForm.idNumber) &&
-      !!editForm.preferredTrack &&
+      !!editForm.preferredTrackId &&
+      isActiveTrackId(editForm.preferredTrackId) &&
       !!editForm.status;
 
     const psycho = toIntSafe(editForm.psychometric);
@@ -427,10 +499,14 @@ const AdminCandidatesPage = () => {
       (!editForm.englishUnits || [3, 4, 5].includes(eu ?? -1));
 
     return requiredOk && optionalOk;
-  }, [editForm]);
+  }, [editForm, trackById]);
 
   const openEdit = (c: Candidate) => {
     setEditDocId(c.docId);
+    const fallbackTrackId =
+      c.preferredTrackId ||
+      tracks.find((t) => normalize(t.name) === normalize(c.preferredTrackName))?.docId ||
+      "";
     setEditForm({
       fullName: c.fullName,
       idNumber: c.idNumber,
@@ -438,7 +514,7 @@ const AdminCandidatesPage = () => {
       bagrutAverage: String(c.bagrutAverage || ""),
       mathUnits: String(c.mathUnits || ""),
       englishUnits: String(c.englishUnits || ""),
-      preferredTrack: c.preferredTrack,
+      preferredTrackId: fallbackTrackId,
       status: c.status,
     });
     setEditTouched({});
@@ -456,9 +532,15 @@ const AdminCandidatesPage = () => {
         bagrutAverage: true,
         mathUnits: true,
         englishUnits: true,
-        preferredTrack: true,
+        preferredTrackId: true,
         status: true,
       });
+      return;
+    }
+
+    const selectedTrack = trackById[editForm.preferredTrackId];
+    if (!selectedTrack || selectedTrack.status !== "active") {
+      setSnack({ open: true, msg: "לא ניתן לבחור מסלול לא פעיל" });
       return;
     }
 
@@ -469,7 +551,8 @@ const AdminCandidatesPage = () => {
         bagrutAverage: toIntSafe(editForm.bagrutAverage) ?? 0,
         mathUnits: coerceUnits(toIntSafe(editForm.mathUnits) ?? 3),
         englishUnits: coerceUnits(toIntSafe(editForm.englishUnits) ?? 3),
-        preferredTrack: editForm.preferredTrack as PreferredTrack,
+        preferredTrackId: selectedTrack.docId,
+        preferredTrackName: selectedTrack.name,
         status: editForm.status as CandidateStatus,
       });
 
@@ -509,7 +592,7 @@ const AdminCandidatesPage = () => {
         </Typography>
 
         <Paper elevation={3} sx={{ borderRadius: 3, p: 3, bgcolor: "background.paper" }}>
-          {isLoading && <LinearProgress sx={{ mb: 2 }} />}
+          {(isLoading || tracksLoading) && <LinearProgress sx={{ mb: 2 }} />}
           <Tabs
             value={tab}
             onChange={(_, v) => setTab(v)}
@@ -599,7 +682,7 @@ const AdminCandidatesPage = () => {
                           </Stack>
                         </TableCell>
                         <TableCell>{statusChip(c.status)}</TableCell>
-                        <TableCell>{c.preferredTrack}</TableCell>
+                        <TableCell>{getTrackLabel(c)}</TableCell>
                         <TableCell>{c.englishUnits}</TableCell>
                         <TableCell>{c.mathUnits}</TableCell>
                         <TableCell>{c.bagrutAverage || "-"}</TableCell>
@@ -737,14 +820,26 @@ const AdminCandidatesPage = () => {
                     fullWidth
                     required
                     label="מסלול מועדף"
-                    value={form.preferredTrack}
-                    onChange={onChangeForm("preferredTrack")}
-                    error={!!formErrors.preferredTrack && !!formTouched.preferredTrack}
-                    helperText={formTouched.preferredTrack ? formErrors.preferredTrack : " "}
+                    value={form.preferredTrackId}
+                    onChange={onChangeForm("preferredTrackId")}
+                    error={!!formErrors.preferredTrackId && !!formTouched.preferredTrackId}
+                    helperText={
+                      formTouched.preferredTrackId
+                        ? formErrors.preferredTrackId
+                        : tracksLoading
+                          ? "טוען מסלולים..."
+                          : activeTracks.length === 0
+                            ? "אין מסלולים פעילים - יש ליצור מסלול"
+                            : " "
+                    }
+                    disabled={tracksLoading || activeTracks.length === 0}
                   >
                     <MenuItem value="">בחרי</MenuItem>
-                    <MenuItem value="בוקר">בוקר</MenuItem>
-                    <MenuItem value="ערב">ערב</MenuItem>
+                    {activeTracks.map((track) => (
+                      <MenuItem key={track.docId} value={track.docId}>
+                        {track.name}
+                      </MenuItem>
+                    ))}
                   </TextField>
                 </Grid>
 
@@ -903,17 +998,20 @@ const AdminCandidatesPage = () => {
                 fullWidth
                 required
                 label="מסלול מועדף"
-                value={editForm.preferredTrack}
+                value={editForm.preferredTrackId}
                 onChange={(e) => {
-                  setEditForm((p) => ({ ...p, preferredTrack: e.target.value }));
-                  setEditTouched((t) => ({ ...t, preferredTrack: true }));
+                  setEditForm((p) => ({ ...p, preferredTrackId: e.target.value }));
+                  setEditTouched((t) => ({ ...t, preferredTrackId: true }));
                 }}
-                error={!!editErrors.preferredTrack && !!editTouched.preferredTrack}
-                helperText={editTouched.preferredTrack ? editErrors.preferredTrack : " "}
+                error={!!editErrors.preferredTrackId && !!editTouched.preferredTrackId}
+                helperText={editTouched.preferredTrackId ? editErrors.preferredTrackId : " "}
               >
                 <MenuItem value="">בחרי</MenuItem>
-                <MenuItem value="בוקר">בוקר</MenuItem>
-                <MenuItem value="ערב">ערב</MenuItem>
+                {tracks.map((track) => (
+                  <MenuItem key={track.docId} value={track.docId} disabled={track.status !== "active"}>
+                    {track.name}{track.status !== "active" ? " (לא פעיל)" : ""}
+                  </MenuItem>
+                ))}
               </TextField>
             </Grid>
 

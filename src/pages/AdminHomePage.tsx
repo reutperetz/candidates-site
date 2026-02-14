@@ -1,10 +1,11 @@
-// src/pages/AdminHomePage.tsx
+﻿// src/pages/AdminHomePage.tsx
 import { Box, Container, Typography, Card, CardContent, Paper } from "@mui/material";
 import Grid from "@mui/material/GridLegacy";
 import NotificationsNoneIcon from "@mui/icons-material/NotificationsNone";
 import MenuBookIcon from "@mui/icons-material/MenuBook";
 import GroupOutlinedIcon from "@mui/icons-material/GroupOutlined";
 import PersonOutlineIcon from "@mui/icons-material/PersonOutline";
+import AltRouteIcon from "@mui/icons-material/AltRoute";
 import { useNavigate } from "react-router-dom";
 
 type QuickCard = {
@@ -35,6 +36,12 @@ const AdminHomePage = () => {
       subtitle: "צפייה ועדכון סטטוס מועמדים",
       icon: <PersonOutlineIcon color="success" sx={{ fontSize: 34 }} />,
       to: "/admin/candidates",
+    },
+    {
+      title: "ניהול מסלולי לימוד",
+      subtitle: "הגדרה ותחזוקה של מסלולים (בוקר/ערב וכו')",
+      icon: <AltRouteIcon color="success" sx={{ fontSize: 34 }} />,
+      to: "/admin/study-tracks",
     },
     {
       title: "משתמשי מערכת",
@@ -135,6 +142,3 @@ const AdminHomePage = () => {
 };
 
 export default AdminHomePage;
-
-
-

@@ -19,6 +19,8 @@ import AssignmentTurnedInIcon from "@mui/icons-material/AssignmentTurnedIn";
 import MenuBookIcon from "@mui/icons-material/MenuBook";
 import AssessmentIcon from "@mui/icons-material/Assessment";
 import { useLocation, useNavigate } from "react-router-dom";
+import { collection, onSnapshot } from "firebase/firestore";
+import { db } from "../firebase";
 
 type HomeLocationState = {
   loginSuccess?: boolean;
@@ -33,9 +35,17 @@ type RegisterForm = {
   email: string;
   password: string;
   confirmPassword: string;
-  studyTrack: "" | "morning" | "evening";
+  studyTrackId: string;
   plannedYear: "" | "2025" | "2026" | "2027";
   notes: string;
+};
+
+type TrackStatus = "active" | "inactive";
+
+type StudyTrack = {
+  docId: string;
+  name: string;
+  status: TrackStatus;
 };
 
 const initialRegister: RegisterForm = {
@@ -45,7 +55,7 @@ const initialRegister: RegisterForm = {
   email: "",
   password: "",
   confirmPassword: "",
-  studyTrack: "",
+  studyTrackId: "",
   plannedYear: "",
   notes: "",
 };
@@ -73,16 +83,63 @@ function HomePage() {
   const [form, setForm] = useState<RegisterForm>(initialRegister);
   const [errors, setErrors] = useState<Partial<Record<keyof RegisterForm, string>>>({});
 
+  const [tracks, setTracks] = useState<StudyTrack[]>([]);
+  const [tracksLoading, setTracksLoading] = useState(true);
+
   const state = (location.state ?? {}) as HomeLocationState;
 
+  useEffect(() => {
+    const unsub = onSnapshot(
+      collection(db, "study_tracks"),
+      (snap) => {
+        const items: StudyTrack[] = snap.docs.map((doc) => {
+          const data = doc.data() as Partial<StudyTrack>;
+          return {
+            docId: doc.id,
+            name: String(data.name ?? ""),
+            status:
+              data.status === "active" || data.status === "inactive" ? data.status : "inactive",
+          };
+        });
+        setTracks(items);
+        setTracksLoading(false);
+      },
+      () => setTracksLoading(false)
+    );
+
+    return () => unsub();
+  }, []);
+
+  const activeTracks = useMemo(
+    () => tracks.filter((track) => track.status === "active"),
+    [tracks]
+  );
+
+  const fallbackTracks = useMemo<StudyTrack[]>(
+    () => [
+      { docId: "fallback-morning", name: "מסלול בוקר", status: "active" },
+      { docId: "fallback-evening", name: "מסלול ערב", status: "active" },
+    ],
+    []
+  );
+
+  const selectableTracks = activeTracks.length > 0 ? activeTracks : fallbackTracks;
+
+  const trackById = useMemo(() => {
+    const map: Record<string, StudyTrack> = {};
+    [...tracks, ...fallbackTracks].forEach((track) => {
+      map[track.docId] = track;
+    });
+    return map;
+  }, [tracks, fallbackTracks]);
+
   const loginToastText = state?.isGuest
-    ? "???????????? ???????????? (????????)"
-    : "???????????? ????????????";
+    ? "התחברת בהצלחה (אורח/ת)"
+    : "התחברת בהצלחה";
   const showLoginToast = Boolean(state?.loginSuccess);
   const showLocalToast = toastOpen;
   const showToast = showLocalToast || showLoginToast;
   const currentToastText = showLocalToast ? toastText : loginToastText;
-
 
   useEffect(() => {
     if (state?.scrollTo === "register") {
@@ -127,8 +184,10 @@ function HomePage() {
       if (form.confirmPassword !== form.password) {
         nextErrors.confirmPassword = "אימות סיסמה לא תואם לסיסמה.";
       }
-      if (!form.studyTrack) {
-        nextErrors.studyTrack = "נא לבחור מסלול לימודים מועדף.";
+      if (!form.studyTrackId) {
+        nextErrors.studyTrackId = "נא לבחור מסלול לימודים מועדף.";
+      } else if (trackById[form.studyTrackId]?.status !== "active") {
+        nextErrors.studyTrackId = "לא ניתן לבחור מסלול לא פעיל.";
       }
       if (!form.plannedYear) {
         nextErrors.plannedYear = "נא לבחור שנת התחלה מתוכננת.";
@@ -137,9 +196,10 @@ function HomePage() {
       setErrors(nextErrors);
       return Object.keys(nextErrors).length === 0;
     };
-  }, [form]);
+  }, [form, trackById]);
 
   const handleRegisterSubmit = () => {
+    const selectedTrack = trackById[form.studyTrackId];
     if (!validateRegister()) return;
 
     // דמו: שומרים משתמש מקומי ומראים הודעה
@@ -150,8 +210,10 @@ function HomePage() {
         idNumber: form.idNumber,
         phone: form.phone,
         email: form.email.trim(),
-        studyTrack: form.studyTrack,
+        studyTrackId: form.studyTrackId,
+        studyTrackName: selectedTrack?.name ?? "",
         plannedYear: form.plannedYear,
+        registeredAt: new Date().toISOString(),
       })
     );
 
@@ -204,8 +266,8 @@ function HomePage() {
             ברוכים הבאים!
           </Typography>
           <Typography variant="body1">
-            כאן תוכלו למצוא את כל המידע הדרוש על תהליך הקבלה למחלקה למדעי
-            המחשב: הרשמה, תנאי קבלה, קורסים ומידע נוסף שיסייע לכם לקבל החלטה.
+            כאן תוכלו למצוא את כל המידע הדרוש על תהליך הקבלה למחלקה למדעי המחשב:
+            הרשמה, תנאי קבלה, קורסים ומידע נוסף שיסייע לכם לקבל החלטה.
           </Typography>
         </CardContent>
       </Card>
@@ -440,16 +502,28 @@ function HomePage() {
                 fullWidth
                 size="small"
                 label="מסלול לימודים מועדף"
-                value={form.studyTrack}
-                onChange={handleChange("studyTrack")}
-                error={!!errors.studyTrack}
-                helperText={errors.studyTrack}
+                value={form.studyTrackId}
+                onChange={handleChange("studyTrackId")}
+                error={!!errors.studyTrackId}
+                helperText={
+                  errors.studyTrackId
+                    ? errors.studyTrackId
+                    : tracksLoading
+                      ? "טוען מסלולים..."
+                      : selectableTracks.length === 0
+                        ? "לא זמינים מסלולים כרגע."
+                        : " "
+                }
+                disabled={tracksLoading}
               >
                 <MenuItem value="">
                   <em>לא נבחר</em>
                 </MenuItem>
-                <MenuItem value="morning">מסלול בוקר</MenuItem>
-                <MenuItem value="evening">מסלול ערב</MenuItem>
+                {selectableTracks.map((track) => (
+                  <MenuItem key={track.docId} value={track.docId}>
+                    {track.name}
+                  </MenuItem>
+                ))}
               </TextField>
             </Grid>
 

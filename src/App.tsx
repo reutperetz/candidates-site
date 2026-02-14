@@ -14,6 +14,7 @@ import HelpPage from "./pages/HelpPage";
 import CoursesPage from "./pages/CoursesPage";
 import AdmissionCalculatorPage from "./pages/AdmissionCalculatorPage";
 import AdmissionRequirementsPage from "./pages/AdmissionRequirementsPage";
+import CandidateProcessStatusPage from "./pages/CandidateProcessStatusPage";
 import LoginPage from "./pages/LoginPage";
 
 // אדמין
@@ -25,6 +26,7 @@ import AdminUsersNewPage from "./pages/AdminUsersNewPage";
 import AdminNotificationsManagerPage from "./pages/AdminNotificationsManager";
 import AdminFaqManagerPage from "./pages/AdminFaqManager";
 import AdminHelpPage from "./pages/AdminHelpPage";
+import AdminStudyTracksPage from "./pages/AdminStudyTracksPage";
 
 // 🔹 טעינה ראשונית ל-Local Storage
 import { initLocalStorage } from "./utils/initLocalStorage";
@@ -81,6 +83,7 @@ function App() {
           <Route path="/" element={<HomePage />} />
           <Route path="/forms" element={<FormsPage />} />
           <Route path="/help" element={<HelpPage />} />
+          <Route path="/process-status" element={<CandidateProcessStatusPage />} />
           <Route path="/courses" element={<CoursesPage />} />
           <Route
             path="/admission-calculator"
@@ -114,6 +117,14 @@ function App() {
             element={
               <AdminOnly isDesktop={isDesktop}>
                 <AdminCoursesPage />
+              </AdminOnly>
+            }
+          />
+          <Route
+            path="/admin/study-tracks"
+            element={
+              <AdminOnly isDesktop={isDesktop}>
+                <AdminStudyTracksPage />
               </AdminOnly>
             }
           />

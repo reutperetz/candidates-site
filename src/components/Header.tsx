@@ -27,6 +27,7 @@ type UserMode = "candidate" | "admin";
 const candidateNav = [
   { label: "Home / מסך הבית", path: "/" },
   { label: "Forms / טפסים", path: "/forms" },
+  { label: "Process Status / סטטוס מועמדות", path: "/process-status" },
   { label: "Courses / קורסים", path: "/courses" },
   { label: "Admission Calculator / מחשבון סיכוי קבלה", path: "/admission-calculator" },
   { label: "Admission Requirements / תנאי קבלה", path: "/admission-requirements" },
@@ -38,6 +39,7 @@ const adminNav = [
   { label: "Admin Home / מסך מנהל", path: "/admin" },
   { label: "System Users / משתמשי מערכת", path: "/admin/users" },
   { label: "Candidates / מועמדים", path: "/admin/candidates" },
+  { label: "Study Tracks / מסלולי לימוד", path: "/admin/study-tracks" },
   { label: "Courses / קורסים", path: "/admin/courses" },
   { label: "Admission Requirements / תנאי קבלה", path: "/admin/admission-requirements" },
   { label: "Notifications / הודעות", path: "/admin/notifications" },

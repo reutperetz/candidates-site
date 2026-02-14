@@ -1,5 +1,5 @@
 // src/pages/FormsPage.tsx
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   Alert,
   Box,
@@ -10,6 +10,7 @@ import {
   Container,
   Divider,
   LinearProgress,
+  MenuItem,
   Snackbar,
   TextField,
   Typography,
@@ -24,8 +25,16 @@ import HelpCenterIcon from "@mui/icons-material/HelpCenter";
 import { useNavigate } from "react-router-dom";
 
 // Firestore
-import { addDoc, collection, serverTimestamp } from "firebase/firestore";
+import { addDoc, collection, onSnapshot, serverTimestamp } from "firebase/firestore";
 import { db } from "../firebase";
+
+type TrackStatus = "active" | "inactive";
+
+type StudyTrack = {
+  docId: string;
+  name: string;
+  status: TrackStatus;
+};
 
 type CandidateForm = {
   idNumber: string; // ת"ז
@@ -40,7 +49,7 @@ type CandidateForm = {
   englishUnits: string; // 3/4/5
   englishGrade: string; // 0-100
 
-  preferredTrack: string; // מסלול מועדף
+  preferredTrackId: string;
 };
 
 const ID_REGEX = /^\d{9}$/;
@@ -63,7 +72,7 @@ const emptyForm: CandidateForm = {
   mathGrade: "",
   englishUnits: "",
   englishGrade: "",
-  preferredTrack: "",
+  preferredTrackId: "",
 };
 
 export default function FormsPage() {
@@ -82,7 +91,7 @@ export default function FormsPage() {
     mathGrade: false,
     englishUnits: false,
     englishGrade: false,
-    preferredTrack: false,
+    preferredTrackId: false,
   });
 
   const [snack, setSnack] = useState<{
@@ -91,6 +100,54 @@ export default function FormsPage() {
     message: string;
   }>({ open: false, type: "success", message: "" });
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const [tracks, setTracks] = useState<StudyTrack[]>([]);
+  const [tracksLoading, setTracksLoading] = useState(true);
+
+  useEffect(() => {
+    const unsub = onSnapshot(
+      collection(db, "study_tracks"),
+      (snap) => {
+        const items: StudyTrack[] = snap.docs.map((doc) => {
+          const data = doc.data() as Partial<StudyTrack>;
+          return {
+            docId: doc.id,
+            name: String(data.name ?? ""),
+            status:
+              data.status === "active" || data.status === "inactive" ? data.status : "inactive",
+          };
+        });
+        setTracks(items);
+        setTracksLoading(false);
+      },
+      () => setTracksLoading(false)
+    );
+
+    return () => unsub();
+  }, []);
+
+  const activeTracks = useMemo(
+    () => tracks.filter((track) => track.status === "active"),
+    [tracks]
+  );
+
+  const fallbackTracks = useMemo<StudyTrack[]>(
+    () => [
+      { docId: "fallback-morning", name: "מסלול בוקר", status: "active" },
+      { docId: "fallback-evening", name: "מסלול ערב", status: "active" },
+    ],
+    []
+  );
+
+  const selectableTracks = activeTracks.length > 0 ? activeTracks : fallbackTracks;
+
+  const trackById = useMemo(() => {
+    const map: Record<string, StudyTrack> = {};
+    [...tracks, ...fallbackTracks].forEach((track) => {
+      map[track.docId] = track;
+    });
+    return map;
+  }, [tracks, fallbackTracks]);
 
   const cardBaseStyle = useMemo(
     () => ({
@@ -177,10 +234,12 @@ export default function FormsPage() {
     }
 
     // מסלול מועדף
-    if (!form.preferredTrack.trim()) e.preferredTrack = "שדה חובה";
+    if (!form.preferredTrackId.trim()) e.preferredTrackId = "שדה חובה";
+    else if (trackById[form.preferredTrackId]?.status !== "active")
+      e.preferredTrackId = "לא ניתן לבחור מסלול לא פעיל";
 
     return e;
-  }, [form]);
+  }, [form, trackById]);
 
   const isValid = Object.keys(errors).length === 0;
 
@@ -197,7 +256,7 @@ export default function FormsPage() {
       mathGrade: true,
       englishUnits: true,
       englishGrade: true,
-      preferredTrack: true,
+      preferredTrackId: true,
     });
 
     if (!isValid) {
@@ -212,9 +271,11 @@ export default function FormsPage() {
     setIsSubmitting(true);
 
     try {
+      const selectedTrack = trackById[form.preferredTrackId];
       // Firestore: doc id נוצר אוטומטית
       const payload = {
         ...form,
+        preferredTrackName: selectedTrack?.name ?? "",
         status: "חדש" as const,
         createdAt: serverTimestamp(),
       };
@@ -240,7 +301,7 @@ export default function FormsPage() {
         mathGrade: false,
         englishUnits: false,
         englishGrade: false,
-        preferredTrack: false,
+        preferredTrackId: false,
       });
     } catch {
       setSnack({
@@ -260,7 +321,7 @@ export default function FormsPage() {
       <Container maxWidth="lg" dir="rtl">
         {/* כותרת */}
         <Box textAlign="center" mb={4}>
-          {isSubmitting && <LinearProgress sx={{ mb: 2 }} />}
+          {(isSubmitting || tracksLoading) && <LinearProgress sx={{ mb: 2 }} />}
           <Chip
             label="הגשת מועמדות"
             sx={{
@@ -353,19 +414,34 @@ export default function FormsPage() {
 
               <Grid item xs={12} md={6}>
                 <TextField
+                  select
                   fullWidth
                   required
                   label="מסלול מועדף"
-                  value={form.preferredTrack}
-                  onChange={(e) => setField("preferredTrack", e.target.value)}
-                  onBlur={() => markTouched("preferredTrack")}
-                  error={showError("preferredTrack")}
+                  value={form.preferredTrackId}
+                  onChange={(e) => setField("preferredTrackId", e.target.value)}
+                  onBlur={() => markTouched("preferredTrackId")}
+                  error={showError("preferredTrackId")}
                   helperText={
-                    showError("preferredTrack")
-                      ? errors.preferredTrack
-                      : "לדוגמה: מדעי המחשב (בוקר)"
+                    showError("preferredTrackId")
+                      ? errors.preferredTrackId
+                      : tracksLoading
+                        ? "טוען מסלולים..."
+                        : selectableTracks.length === 0
+                          ? "לא זמינים מסלולים כרגע"
+                          : "בחרי מסלול מתאים"
                   }
-                />
+                  disabled={tracksLoading}
+                >
+                  <MenuItem value="">
+                    <em>לא נבחר</em>
+                  </MenuItem>
+                  {selectableTracks.map((track) => (
+                    <MenuItem key={track.docId} value={track.docId}>
+                      {track.name}
+                    </MenuItem>
+                  ))}
+                </TextField>
               </Grid>
 
               <Grid item xs={12} md={4}>
