@@ -27,6 +27,7 @@ type UserMode = "candidate" | "admin";
 const candidateNav = [
   { label: "Home / מסך הבית", path: "/" },
   { label: "Forms / טפסים", path: "/forms" },
+  { label: "Study Tracks / מסלולי לימוד", path: "/study-tracks" },
   { label: "Process Status / סטטוס מועמדות", path: "/process-status" },
   { label: "Courses / קורסים", path: "/courses" },
   { label: "Admission Calculator / מחשבון סיכוי קבלה", path: "/admission-calculator" },

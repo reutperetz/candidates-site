@@ -15,6 +15,7 @@ import CoursesPage from "./pages/CoursesPage";
 import AdmissionCalculatorPage from "./pages/AdmissionCalculatorPage";
 import AdmissionRequirementsPage from "./pages/AdmissionRequirementsPage";
 import CandidateProcessStatusPage from "./pages/CandidateProcessStatusPage";
+import CandidateStudyTracksPage from "./pages/CandidateStudyTracksPage";
 import LoginPage from "./pages/LoginPage";
 
 // אדמין
@@ -84,6 +85,7 @@ function App() {
           <Route path="/forms" element={<FormsPage />} />
           <Route path="/help" element={<HelpPage />} />
           <Route path="/process-status" element={<CandidateProcessStatusPage />} />
+          <Route path="/study-tracks" element={<CandidateStudyTracksPage />} />
           <Route path="/courses" element={<CoursesPage />} />
           <Route
             path="/admission-calculator"
