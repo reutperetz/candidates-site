@@ -1,4 +1,4 @@
-// src/pages/FormsPage.tsx
+﻿// src/pages/FormsPage.tsx
 import { useEffect, useMemo, useState } from "react";
 import {
   Alert,
@@ -23,6 +23,7 @@ import MenuBookIcon from "@mui/icons-material/MenuBook";
 import RuleIcon from "@mui/icons-material/Rule";
 import HelpCenterIcon from "@mui/icons-material/HelpCenter";
 import { useNavigate } from "react-router-dom";
+import styles from "./FormsPage.module.css";
 
 // Firestore
 import { addDoc, collection, onSnapshot, serverTimestamp } from "firebase/firestore";
@@ -149,17 +150,6 @@ export default function FormsPage() {
     return map;
   }, [tracks, fallbackTracks]);
 
-  const cardBaseStyle = useMemo(
-    () => ({
-      height: "100%",
-      boxShadow: 2,
-      borderRadius: 3,
-      overflow: "hidden",
-      backgroundColor: "background.paper",
-    }),
-    []
-  );
-
   const setField = (key: keyof CandidateForm, value: string) => {
     setForm((prev) => ({ ...prev, [key]: value }));
   };
@@ -173,14 +163,15 @@ export default function FormsPage() {
 
     // ת"ז
     if (!form.idNumber.trim()) e.idNumber = "שדה חובה";
-    else if (!ID_REGEX.test(form.idNumber)) e.idNumber = "תעודת זהות חייבת להיות 9 ספרות בלבד";
+    else if (!ID_REGEX.test(form.idNumber))
+      e.idNumber = "תעודת זהות חייבת להיות 9 ספרות בלבד";
 
     // שם מלא
     if (!form.fullName.trim()) e.fullName = "שדה חובה";
     else {
       const words = form.fullName.trim().split(/\s+/);
       if (words.length < 2) e.fullName = "יש להזין לפחות שתי מילים";
-      const nameOk = /^[A-Za-z\u0590-\u05FF\s'’-]+$/.test(form.fullName.trim());
+      const nameOk = /^[A-Za-z\u0590-\u05FF\s'-]+$/.test(form.fullName.trim());
       if (!nameOk) e.fullName = "השם יכול להכיל אותיות ורווחים בלבד";
     }
 
@@ -210,7 +201,8 @@ export default function FormsPage() {
 
     // יחידות מתמטיקה 3/4/5
     if (!form.mathUnits.trim()) e.mathUnits = "שדה חובה";
-    else if (!["3", "4", "5"].includes(form.mathUnits)) e.mathUnits = "אפשר לבחור רק 3 / 4 / 5";
+    else if (!["3", "4", "5"].includes(form.mathUnits))
+      e.mathUnits = "אפשר לבחור רק 3 / 4 / 5";
 
     // ציון מתמטיקה 0-100
     if (!form.mathGrade.trim()) e.mathGrade = "שדה חובה";
@@ -263,7 +255,7 @@ export default function FormsPage() {
       setSnack({
         open: true,
         type: "error",
-        message: "יש לתקן את השדות המסומנים לפני השליחה.",
+        message: "יש למלא את כל השדות החובה לפני השליחה.",
       });
       return;
     }
@@ -317,43 +309,36 @@ export default function FormsPage() {
   const showError = (key: keyof CandidateForm) => touched[key] && !!errors[key];
 
   return (
-    <Box sx={{ bgcolor: "background.default", py: 6 }}>
+    <Box className={styles.pageSection}>
       <Container maxWidth="lg" dir="rtl">
         {/* כותרת */}
-        <Box textAlign="center" mb={4}>
-          {(isSubmitting || tracksLoading) && <LinearProgress sx={{ mb: 2 }} />}
+        <Box className={styles.header}>
+          {(isSubmitting || tracksLoading) && (
+            <LinearProgress className={styles.progress} />
+          )}
           <Chip
             label="הגשת מועמדות"
-            sx={{
-              mb: 2,
-              bgcolor: "success.light",
-              color: "success.main",
-              fontWeight: 600,
-            }}
+            className={styles.headerChip}
           />
-          <Typography
-            variant="h4"
-            component="h1"
-            sx={{ color: "success.main", fontWeight: 700, mb: 1 }}
-          >
+          <Typography variant="h4" component="h1" className={styles.headerTitle}>
             טפסים – Forms
           </Typography>
-          <Typography variant="body1" sx={{ maxWidth: 900, mx: "auto" }}>
+          <Typography variant="body1" className={styles.headerSubtitle}>
             כאן אפשר להגיש מועמדות ללימודים, לעיין בקורסים ובתנאי הקבלה, ולקבל עזרה במידת הצורך.
           </Typography>
         </Box>
 
         {/* טופס מועמדות */}
-        <Card sx={{ ...cardBaseStyle, borderTop: "4px solid", borderTopColor: "success.main", mb: 4 }}>
-          <CardContent sx={{ direction: "rtl", textAlign: "right" }}>
-            <Box display="flex" alignItems="center" gap={1} mb={1.5}>
-              <PersonAddAlt1Icon sx={{ color: "success.main" }} />
+        <Card className={`${styles.cardBase} ${styles.cardTopSuccess}`}>
+          <CardContent className={styles.cardContentRtl}>
+            <Box className={styles.formHeaderRow}>
+              <PersonAddAlt1Icon className={styles.iconSuccess} />
               <Typography variant="h6" fontWeight={700}>
                 טופס הגשת מועמדות
               </Typography>
             </Box>
 
-            <Typography variant="body2" sx={{ mb: 3, color: "text.secondary" }}>
+            <Typography variant="body2" className={styles.formDescription}>
               כל השדות חובה. לאחר השליחה תקבלי אישור, והמערכת תסמן את המועמדות כ״חדש״.
             </Typography>
 
@@ -529,7 +514,7 @@ export default function FormsPage() {
               </Grid>
             </Grid>
 
-            <Box mt={3} display="flex" justifyContent="flex-start" gap={1}>
+            <Box className={styles.submitRow}>
               <Button
                 variant="contained"
                 color="success"
@@ -550,36 +535,36 @@ export default function FormsPage() {
         </Card>
 
         {/* כרטיסי מידע */}
-        <Grid container spacing={3} sx={{ mb: 4 }}>
+        <Grid container spacing={3} className={styles.infoGrid}>
           <Grid item xs={12} md={4}>
-            <Card sx={{ ...cardBaseStyle, borderTop: "4px solid", borderTopColor: "success.dark" }}>
-              <CardContent sx={{ direction: "rtl", textAlign: "right" }}>
-                <Box display="flex" alignItems="center" gap={1} mb={1.5}>
-                  <RuleIcon sx={{ color: "success.dark" }} />
+            <Card className={`${styles.cardBase} ${styles.cardTopDark}`}>
+              <CardContent className={styles.cardContentRtl}>
+                <Box className={styles.infoHeaderRow}>
+                  <RuleIcon className={styles.iconDark} />
                   <Typography variant="h6" fontWeight={700}>
                     איך יודעים אם עומדים בתנאי קבלה?
                   </Typography>
                 </Box>
-                <Typography variant="body2" sx={{ color: "text.secondary", mb: 2 }}>
+                <Typography variant="body2" className={styles.infoDescription}>
                   מומלץ לבדוק תנאי קבלה לפי המסלול המבוקש, ולהיעזר במחשבון הסיכוי.
                 </Typography>
                 <Button fullWidth variant="outlined" onClick={() => navigate("/admission-requirements")}>
-                  מעבר לתנאי קבלה
+                  מעבר לתנאי קבלה 
                 </Button>
               </CardContent>
             </Card>
           </Grid>
 
           <Grid item xs={12} md={4}>
-            <Card sx={{ ...cardBaseStyle, borderTop: "4px solid", borderTopColor: "success.main" }}>
-              <CardContent sx={{ direction: "rtl", textAlign: "right" }}>
-                <Box display="flex" alignItems="center" gap={1} mb={1.5}>
-                  <MenuBookIcon sx={{ color: "success.main" }} />
+            <Card className={`${styles.cardBase} ${styles.cardTopMain}`}>
+              <CardContent className={styles.cardContentRtl}>
+                <Box className={styles.infoHeaderRow}>
+                  <MenuBookIcon className={styles.iconSuccess} />
                   <Typography variant="h6" fontWeight={700}>
                     הקורסים בתואר
                   </Typography>
                 </Box>
-                <Typography variant="body2" sx={{ color: "text.secondary", mb: 2 }}>
+                <Typography variant="body2" className={styles.infoDescription}>
                   אפשר לעיין ברשימת הקורסים ולבדוק אילו קורסים נלמדים בכל מסלול.
                 </Typography>
                 <Button fullWidth variant="outlined" onClick={() => navigate("/courses")}>
@@ -590,15 +575,15 @@ export default function FormsPage() {
           </Grid>
 
           <Grid item xs={12} md={4}>
-            <Card sx={{ ...cardBaseStyle, borderTop: "4px solid", borderTopColor: "success.light" }}>
-              <CardContent sx={{ direction: "rtl", textAlign: "right" }}>
-                <Box display="flex" alignItems="center" gap={1} mb={1.5}>
-                  <HelpCenterIcon sx={{ color: "success.light" }} />
+            <Card className={`${styles.cardBase} ${styles.cardTopLight}`}>
+              <CardContent className={styles.cardContentRtl}>
+                <Box className={styles.infoHeaderRow}>
+                  <HelpCenterIcon className={styles.iconLight} />
                   <Typography variant="h6" fontWeight={700}>
                     צריכים עזרה?
                   </Typography>
                 </Box>
-                <Typography variant="body2" sx={{ color: "text.secondary", mb: 2 }}>
+                <Typography variant="body2" className={styles.infoDescription}>
                   בעמוד העזרה תמצאי שאלות נפוצות ודרכי יצירת קשר.
                 </Typography>
                 <Button fullWidth variant="outlined" onClick={() => navigate("/help")}>
@@ -610,9 +595,9 @@ export default function FormsPage() {
         </Grid>
 
         {/* קישורים מהירים */}
-        <Box mt={2}>
-          <Divider sx={{ mb: 3 }} />
-          <Typography variant="h6" sx={{ mb: 2, fontWeight: 700, color: "success.main" }}>
+        <Box className={styles.quickLinks}>
+          <Divider className={styles.quickLinksDivider} />
+          <Typography variant="h6" className={styles.quickLinksTitle}>
             קישורים מהירים
           </Typography>
           <Grid container spacing={2}>
@@ -644,7 +629,7 @@ export default function FormsPage() {
             onClose={() => setSnack((s) => ({ ...s, open: false }))}
             severity={snack.type}
             variant="filled"
-            sx={{ width: "100%" }}
+            className={styles.snackAlert}
           >
             {snack.message}
           </Alert>
@@ -653,3 +638,6 @@ export default function FormsPage() {
     </Box>
   );
 }
+
+
+

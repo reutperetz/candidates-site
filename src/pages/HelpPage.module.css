@@ -1,0 +1,160 @@
+.container {
+  margin-top: 48px;
+  margin-bottom: 48px;
+}
+
+.hero {
+  text-align: center;
+  margin-bottom: 32px;
+}
+
+.heroTitle {
+  color: #2e7d32;
+  font-weight: 700;
+  margin-bottom: 8px;
+}
+
+.heroSubtitle {
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.faqCard {
+  margin-bottom: 32px;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  border-top: 4px solid #2e7d32;
+}
+
+.faqCardContent {
+  padding-bottom: 8px;
+}
+
+.progress {
+  margin-bottom: 16px;
+}
+
+.faqHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+}
+
+.faqHeaderLeft {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.iconSuccess {
+  color: #2e7d32;
+}
+
+.chip {
+  background-color: #c8e6c9;
+  color: #2e7d32;
+}
+
+.accordion {
+  margin-bottom: 8px;
+  border-radius: 8px;
+  border: 1px solid #e0e0e0;
+}
+
+.accordion :global(.MuiAccordionSummary-content) {
+  align-items: center;
+  gap: 12px;
+}
+
+.accordionSummary {
+  min-height: 48px;
+}
+
+.questionIndex {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background-color: #c8e6c9;
+  color: #2e7d32;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 14px;
+  margin-left: 8px;
+}
+
+.questionText {
+  font-weight: 500;
+}
+
+.accordionDetails {
+  padding-top: 0;
+  padding-bottom: 16px;
+  padding-left: 32px;
+  padding-right: 32px;
+}
+
+.helpBanner {
+  border-radius: 16px;
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.2);
+  background: linear-gradient(135deg, #1b5e20 0%, #2e7d32 100%);
+  color: #ffffff;
+  max-width: 900px;
+  margin: 32px auto 0;
+}
+
+.helpBannerContent {
+  padding-top: 20px;
+  padding-bottom: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.helpBannerText {
+  text-align: right;
+}
+
+.helpBannerTitle {
+  font-weight: 700;
+  margin-bottom: 4px;
+}
+
+.helpBannerIcon {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  border: 2px solid rgba(255, 255, 255, 0.8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.helpBannerChatIcon {
+  font-size: 26px;
+}
+
+.quickLinksCard {
+  margin-top: 24px;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+  border: 1px solid #e0e0e0;
+}
+
+.quickLinksTitle {
+  font-weight: 700;
+  margin-bottom: 8px;
+}
+
+.quickLinksSubtitle {
+  margin-bottom: 16px;
+}
+
+.quickLinksButtons {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+}

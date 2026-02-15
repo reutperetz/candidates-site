@@ -1,4 +1,4 @@
-// src/pages/HomePage.tsx
+﻿// src/pages/HomePage.tsx
 import { useEffect, useMemo, useState } from "react";
 import {
   Box,
@@ -12,7 +12,6 @@ import {
   Snackbar,
   Alert,
 } from "@mui/material";
-
 import Grid from "@mui/material/GridLegacy";
 import NotificationsActiveIcon from "@mui/icons-material/NotificationsActive";
 import AssignmentTurnedInIcon from "@mui/icons-material/AssignmentTurnedIn";
@@ -21,6 +20,7 @@ import AssessmentIcon from "@mui/icons-material/Assessment";
 import { useLocation, useNavigate } from "react-router-dom";
 import { collection, onSnapshot } from "firebase/firestore";
 import { db } from "../firebase";
+import styles from "./HomePage.module.css";
 
 type HomeLocationState = {
   loginSuccess?: boolean;
@@ -61,12 +61,12 @@ const initialRegister: RegisterForm = {
 };
 
 function isValidIsraeliID(id: string) {
-  // בסיסי: רק 9 ספרות (לא אלגוריתם ספרת ביקורת כדי לא להכביד)
+  // Basic: 9 digits only (no checksum)
   return /^\d{9}$/.test(id);
 }
 
 function isValidPhone(phone: string) {
-  // בסיסי ישראלי: 05X + 7 ספרות (מאפשר גם מקפים/רווחים אם תרצי להרחיב)
+  // Basic Israeli mobile: 05X + 7 digits
   return /^05\d{8}$/.test(phone);
 }
 
@@ -228,7 +228,7 @@ function HomePage() {
   };
 
   return (
-    <Container maxWidth="lg" sx={{ mt: 6, mb: 6 }} dir="rtl">
+    <Container maxWidth="lg" className={styles.container} dir="rtl">
       <Snackbar
         open={showToast}
         autoHideDuration={2500}
@@ -244,144 +244,95 @@ function HomePage() {
             if (showLoginToast) navigate(location.pathname, { replace: true, state: {} });
           }}
           severity="success"
-          sx={{ width: "100%" }}
+          className={styles.toastAlert}
         >
           {currentToastText}
         </Alert>
       </Snackbar>
 
-      {/* כרטיס ברוכים הבאים */}
-      <Card
-        sx={{
-          mb: 4,
-          borderRadius: 3,
-          boxShadow: 4,
-          background: (theme) =>
-            `linear-gradient(135deg, ${theme.palette.success.dark} 0%, ${theme.palette.success.main} 100%)`,
-          color: "success.contrastText",
-        }}
-      >
-        <CardContent sx={{ py: 4, textAlign: "center" }}>
-          <Typography variant="h4" sx={{ fontWeight: 700, mb: 1 }}>
+      <Card className={styles.welcomeCard}>
+        <CardContent className={styles.welcomeCardContent}>
+          <Typography variant="h4" className={styles.welcomeTitle}>
             ברוכים הבאים!
           </Typography>
           <Typography variant="body1">
             כאן תוכלו למצוא את כל המידע הדרוש על תהליך הקבלה למחלקה למדעי המחשב:
-            הרשמה, תנאי קבלה, קורסים ומידע נוסף שיסייע לכם לקבל החלטה.
+            הרשמה, תנאי קבלה, קורסים ומידע נוסף שיסייע לכם לקבל החלטה זו.
           </Typography>
         </CardContent>
       </Card>
 
-      {/* ארבעת הכרטיסים */}
-      <Grid container spacing={3} mb={4}>
+      <Grid container spacing={3} className={styles.featureGrid}>
         <Grid item xs={12} md={6}>
-          <Card
-            sx={{
-              borderRadius: 3,
-              boxShadow: "0 2px 8px rgba(0,0,0,0.08)",
-              cursor: "pointer",
-              "&:hover": { boxShadow: "0 4px 12px rgba(0,0,0,0.12)" },
-            }}
-            onClick={() => navigate("/help")}
-          >
-            <CardContent
-              sx={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}
-            >
-              <Box sx={{ textAlign: "right" }}>
+          <Card className={styles.featureCard} onClick={() => navigate("/help")}>
+            <CardContent className={styles.featureCardContent}>
+              <Box className={styles.featureText}>
                 <Typography variant="subtitle1" fontWeight={700}>
                   הודעות חשובות
                 </Typography>
                 <Typography variant="body2" color="text.secondary">
-                  עדכונים ומידע חדש מהמכללה
+                  עדכונים ומידע חדש מהמכללה הזו.
                 </Typography>
               </Box>
-              <NotificationsActiveIcon sx={{ fontSize: 36, color: "success.main", ml: 1 }} />
+              <NotificationsActiveIcon className={styles.featureIcon} />
             </CardContent>
           </Card>
         </Grid>
 
         <Grid item xs={12} md={6}>
-          <Card
-            sx={{
-              borderRadius: 3,
-              boxShadow: "0 2px 8px rgba(0,0,0,0.08)",
-              cursor: "pointer",
-              "&:hover": { boxShadow: "0 4px 12px rgba(0,0,0,0.12)" },
-            }}
-            onClick={() => navigate("/forms")}
-          >
-            <CardContent
-              sx={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}
-            >
-              <Box sx={{ textAlign: "right" }}>
+          <Card className={styles.featureCard} onClick={() => navigate("/forms")}>
+            <CardContent className={styles.featureCardContent}>
+              <Box className={styles.featureText}>
                 <Typography variant="subtitle1" fontWeight={700}>
-                  סטטוס הרשמה
+                  סטטוס ההרשמה
                 </Typography>
                 <Typography variant="body2" color="text.secondary">
-                  בדיקת מצב הבקשה שלך להרשמה
+                  בדיקת מצב הבקשה שלך להרשמה.
                 </Typography>
               </Box>
-              <AssignmentTurnedInIcon sx={{ fontSize: 36, color: "success.main", ml: 1 }} />
+              <AssignmentTurnedInIcon className={styles.featureIcon} />
             </CardContent>
           </Card>
         </Grid>
 
         <Grid item xs={12} md={6}>
-          <Card
-            sx={{
-              borderRadius: 3,
-              boxShadow: "0 2px 8px rgba(0,0,0,0.08)",
-              cursor: "pointer",
-              "&:hover": { boxShadow: "0 4px 12px rgba(0,0,0,0.12)" },
-            }}
-            onClick={() => navigate("/management")}
-          >
-            <CardContent
-              sx={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}
-            >
-              <Box sx={{ textAlign: "right" }}>
+          <Card className={styles.featureCard} onClick={() => navigate("/management")}>
+            <CardContent className={styles.featureCardContent}>
+              <Box className={styles.featureText}>
                 <Typography variant="subtitle1" fontWeight={700}>
                   קורסים שמתאימים עבורך
                 </Typography>
                 <Typography variant="body2" color="text.secondary">
-                  צפייה בקורסים ונתוני המסלול במחלקה
+                  צפייה בקורסים ונתוני המסלול במחלקה.
                 </Typography>
               </Box>
-              <MenuBookIcon sx={{ fontSize: 36, color: "success.main", ml: 1 }} />
+              <MenuBookIcon className={styles.featureIcon} />
             </CardContent>
           </Card>
         </Grid>
 
         <Grid item xs={12} md={6}>
           <Card
-            sx={{
-              borderRadius: 3,
-              boxShadow: "0 2px 8px rgba(0,0,0,0.08)",
-              cursor: "pointer",
-              "&:hover": { boxShadow: "0 4px 12px rgba(0,0,0,0.12)" },
-            }}
+            className={styles.featureCard}
             onClick={() => navigate("/admission-calculator")}
           >
-            <CardContent
-              sx={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}
-            >
-              <Box sx={{ textAlign: "right" }}>
+            <CardContent className={styles.featureCardContent}>
+              <Box className={styles.featureText}>
                 <Typography variant="subtitle1" fontWeight={700}>
                   בדיקת סיכוי קבלה
                 </Typography>
                 <Typography variant="body2" color="text.secondary">
-                  הערכת סיכויי הקבלה על בסיס הנתונים שלך
+                  הערכת סיכויי הקבלה על בסיס הנתונים שלך.
                 </Typography>
               </Box>
-              <AssessmentIcon sx={{ fontSize: 36, color: "success.main", ml: 1 }} />
+              <AssessmentIcon className={styles.featureIcon} />
             </CardContent>
           </Card>
         </Grid>
       </Grid>
 
-      {/* ------- טופס הרשמה מרכזי ------- */}
-      <Box id="register-form" mb={2} textAlign="center">
-        <Typography variant="h5" sx={{ fontWeight: 700, color: "success.main", mb: 1 }}>
+      <Box id="register-form" className={styles.registerHeader}>
+        <Typography variant="h5" className={styles.registerTitle}>
           טופס הרשמה לתואר במדעי המחשב
         </Typography>
         <Typography variant="body2" color="text.secondary">
@@ -389,27 +340,15 @@ function HomePage() {
         </Typography>
       </Box>
 
-      <Card
-        sx={{
-          maxWidth: 700,
-          mx: "auto",
-          borderRadius: 3,
-          boxShadow: "0 4px 15px rgba(0,0,0,0.10)",
-          borderTop: "5px solid",
-          borderTopColor: "success.main",
-        }}
-      >
+      <Card className={styles.registerCard}>
         <CardContent>
-          <Typography
-            variant="h6"
-            sx={{ fontWeight: 700, mb: 3, textAlign: "center", color: "success.main" }}
-          >
+          <Typography variant="h6" className={styles.registerCardTitle}>
             טופס הרשמה
           </Typography>
 
           <Grid container spacing={2}>
             <Grid item xs={12}>
-              <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 0.5 }}>
+              <Typography variant="subtitle2" className={styles.sectionLabel}>
                 פרטים אישיים
               </Typography>
             </Grid>
@@ -490,8 +429,8 @@ function HomePage() {
               />
             </Grid>
 
-            <Grid item xs={12} mt={1}>
-              <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 0.5 }}>
+            <Grid item xs={12} className={styles.sectionSpacer}>
+              <Typography variant="subtitle2" className={styles.sectionLabel}>
                 העדפות לימוד
               </Typography>
             </Grid>
@@ -560,16 +499,25 @@ function HomePage() {
             </Grid>
           </Grid>
 
-          <Box mt={3} display="flex" justifyContent="space-between" flexWrap="wrap" gap={1}>
+          <Box className={styles.actionsRow}>
             <Button variant="text" color="inherit" onClick={handleReset}>
               נקה טופס
             </Button>
 
-            <Box display="flex" gap={1}>
-              <Button variant="outlined" color="success" onClick={() => navigate("/forms")}>
+            <Box className={styles.actionsGroup}>
+              <Button
+                variant="outlined"
+                color="success"
+                onClick={() => navigate("/forms")}
+              >
                 מעבר למסך הטפסים
               </Button>
-              <Button variant="contained" color="success" sx={{ px: 4 }} onClick={handleRegisterSubmit}>
+              <Button
+                variant="contained"
+                color="success"
+                className={styles.submitButton}
+                onClick={handleRegisterSubmit}
+              >
                 הרשמה
               </Button>
             </Box>
@@ -581,3 +529,5 @@ function HomePage() {
 }
 
 export default HomePage;
+
+

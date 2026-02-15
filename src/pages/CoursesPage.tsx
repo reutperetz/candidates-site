@@ -1,4 +1,4 @@
-// src/pages/CoursesPage.tsx
+﻿// src/pages/CoursesPage.tsx
 import {
   Box,
   Container,
@@ -20,11 +20,11 @@ import {
   Chip,
   LinearProgress,
 } from "@mui/material";
-import { alpha } from "@mui/material/styles";
 import MenuBookIcon from "@mui/icons-material/MenuBook";
 import { useEffect, useState } from "react";
 import { collection, getDocs } from "firebase/firestore";
 import { db } from "../firebase";
+import styles from "./CoursesPage.module.css";
 
 type Course = {
   docId: string;
@@ -111,64 +111,42 @@ function CoursesPage() {
   });
 
   return (
-    <Container maxWidth="lg" sx={{ mt: 6, mb: 6 }} dir="rtl">
+    <Container maxWidth="lg" className={styles.page} dir="rtl">
       {/* כותרת עליונה */}
-      <Box textAlign="center" mb={4}>
+      <Box className={styles.header}>
         <Typography
           variant="h4"
           component="h1"
-          sx={{ color: "success.main", fontWeight: 700, mb: 1 }}
+          className={styles.title}
         >
           קורסים – רשימת הקורסים בתואר
         </Typography>
-        <Typography variant="body1" sx={{ maxWidth: 900, mx: "auto" }}>
+        <Typography variant="body1" className={styles.subtitle}>
           מסך זה מציג רשימה מרוכזת של כל קורסי מדעי המחשב, כולל שנה, סמסטר,
           נק״ז וסוג (חובה/בחירה). ניתן לבצע חיפוש וסינון לפי סמסטר וסוג קורס.
         </Typography>
       </Box>
 
       {/* כרטיס ראשי של טבלת הקורסים */}
-      <Card
-        sx={{
-          borderRadius: 3,
-          boxShadow: 2,
-          borderTop: "4px solid",
-          borderTopColor: "success.main",
-        }}
-      >
+      <Card className={styles.card}>
         <CardContent>
-          {isLoading && <LinearProgress sx={{ mb: 2 }} />}
+          {isLoading && <LinearProgress className={styles.loadingBar} />}
           {/* כותרת + פילטרים */}
-          <Box
-            display="flex"
-            alignItems="center"
-            justifyContent="space-between"
-            flexWrap="wrap"
-            gap={2}
-            mb={3}
+          <Box className={styles.filtersRow}
           >
-            <Box display="flex" alignItems="center" gap={1.5}>
-              <MenuBookIcon sx={{ color: "success.main" }} />
-              <Typography variant="h6" fontWeight={600}>
+            <Box className={styles.headingRow}>
+              <MenuBookIcon className={styles.headingIcon} />
+              <Typography variant="h6" className={styles.headingTitle}>
                 רשימת הקורסים במחלקה למדעי המחשב
               </Typography>
               <Chip
                 label={`${filteredCourses.length} מתוך ${activeCourses.length} קורסים`}
                 size="small"
-                sx={(theme) => ({
-                  bgcolor: alpha(theme.palette.success.main, 0.15),
-                  color: theme.palette.success.main,
-                })}
+                className={styles.countChip}
               />
             </Box>
 
-            <Box
-              display="flex"
-              flexWrap="wrap"
-              gap={2}
-              alignItems="center"
-              justifyContent="flex-end"
-            >
+            <Box className={styles.filters}>
               <TextField
                 size="small"
                 label="חיפוש"
@@ -177,7 +155,7 @@ function CoursesPage() {
                 onChange={(e) => setSearch(e.target.value)}
               />
 
-              <FormControl size="small" sx={{ minWidth: 130 }}>
+              <FormControl size="small" className={styles.filterControl}>
                 <InputLabel id="semester-label">סמסטר</InputLabel>
                 <Select
                   labelId="semester-label"
@@ -193,7 +171,7 @@ function CoursesPage() {
                 </Select>
               </FormControl>
 
-              <FormControl size="small" sx={{ minWidth: 130 }}>
+              <FormControl size="small" className={styles.filterControl}>
                 <InputLabel id="type-label">סוג קורס</InputLabel>
                 <Select
                   labelId="type-label"
@@ -214,7 +192,7 @@ function CoursesPage() {
           </Box>
 
           {/* טבלה */}
-          <TableContainer component={Paper} sx={{ borderRadius: 2 }}>
+          <TableContainer component={Paper} className={styles.tableContainer}>
             <Table size="small">
               <TableHead>
                 <TableRow>
@@ -237,12 +215,7 @@ function CoursesPage() {
                       <Chip
                         label={course.type}
                         size="small"
-                        sx={{
-                          backgroundColor:
-                            course.type === "חובה" ? "success.light" : "info.light",
-                          color:
-                            course.type === "חובה" ? "success.main" : "info.main",
-                        }}
+                        className={course.type === "חובה" ? styles.typeChipRequired : styles.typeChipElective}
                       />
                     </TableCell>
                     <TableCell align="right">{course.year}</TableCell>
@@ -256,7 +229,7 @@ function CoursesPage() {
                     <TableCell
                       colSpan={7}
                       align="center"
-                      sx={{ py: 4, color: "text.secondary" }}
+                      className={styles.emptyCell}
                     >
                       לא נמצאו קורסים התואמים לסינון הנוכחי.
                     </TableCell>
@@ -272,3 +245,5 @@ function CoursesPage() {
 }
 
 export default CoursesPage;
+
+

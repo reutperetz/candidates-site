@@ -1,0 +1,118 @@
+.pageSection {
+  background-color: #f5f5f5;
+  padding-top: 48px;
+  padding-bottom: 48px;
+}
+
+.header {
+  text-align: center;
+  margin-bottom: 32px;
+}
+
+.progress {
+  margin-bottom: 16px;
+}
+
+.headerChip {
+  margin-bottom: 16px;
+  background-color: #c8e6c9;
+  color: #2e7d32;
+  font-weight: 600;
+}
+
+.headerTitle {
+  color: #2e7d32;
+  font-weight: 700;
+  margin-bottom: 8px;
+}
+
+.headerSubtitle {
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+.cardBase {
+  height: 100%;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+  border-radius: 12px;
+  overflow: hidden;
+  background-color: #ffffff;
+}
+
+.cardTopSuccess {
+  border-top: 4px solid #2e7d32;
+  margin-bottom: 32px;
+}
+
+.cardTopDark {
+  border-top: 4px solid #1b5e20;
+}
+
+.cardTopLight {
+  border-top: 4px solid #81c784;
+}
+
+.cardTopMain {
+  border-top: 4px solid #2e7d32;
+}
+
+.cardContentRtl {
+  direction: rtl;
+  text-align: right;
+}
+
+.formHeaderRow,
+.infoHeaderRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.iconSuccess {
+  color: #2e7d32;
+}
+
+.iconDark {
+  color: #1b5e20;
+}
+
+.iconLight {
+  color: #81c784;
+}
+
+.formDescription,
+.infoDescription {
+  color: #6b6b6b;
+  margin-bottom: 16px;
+}
+
+.submitRow {
+  margin-top: 24px;
+  display: flex;
+  justify-content: flex-start;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.infoGrid {
+  margin-bottom: 32px;
+}
+
+.quickLinks {
+  margin-top: 16px;
+}
+
+.quickLinksDivider {
+  margin-bottom: 24px;
+}
+
+.quickLinksTitle {
+  margin-bottom: 16px;
+  font-weight: 700;
+  color: #2e7d32;
+}
+
+.snackAlert {
+  width: 100%;
+}

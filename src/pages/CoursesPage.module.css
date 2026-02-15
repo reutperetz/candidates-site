@@ -1,0 +1,90 @@
+.page {
+  margin-top: 48px;
+  margin-bottom: 48px;
+}
+
+.header {
+  text-align: center;
+  margin-bottom: 32px;
+}
+
+.title {
+  color: #2e7d32;
+  font-weight: 700;
+  margin-bottom: 8px;
+}
+
+.subtitle {
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+.card {
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+  border-top: 4px solid #2e7d32;
+}
+
+.loadingBar {
+  margin-bottom: 16px;
+}
+
+.filtersRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.headingRow {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.headingIcon {
+  color: #2e7d32;
+}
+
+.headingTitle {
+  font-weight: 600;
+}
+
+.countChip {
+  background-color: rgba(46, 125, 50, 0.15);
+  color: #2e7d32;
+}
+
+.filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  align-items: center;
+  justify-content: flex-end;
+}
+
+.filterControl {
+  min-width: 130px;
+}
+
+.tableContainer {
+  border-radius: 8px;
+}
+
+.typeChipRequired {
+  background-color: #c8e6c9;
+  color: #2e7d32;
+}
+
+.typeChipElective {
+  background-color: #b3e5fc;
+  color: #0288d1;
+}
+
+.emptyCell {
+  padding-top: 32px;
+  padding-bottom: 32px;
+  color: #6b6b6b;
+}

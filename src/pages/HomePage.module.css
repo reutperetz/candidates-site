@@ -1,0 +1,111 @@
+.container {
+  margin-top: 48px;
+  margin-bottom: 48px;
+}
+
+.toastAlert {
+  width: 100%;
+}
+
+.welcomeCard {
+  margin-bottom: 32px;
+  border-radius: 12px;
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.18);
+  background: linear-gradient(135deg, #1b5e20 0%, #2e7d32 100%);
+  color: #ffffff;
+}
+
+.welcomeCardContent {
+  padding-top: 32px;
+  padding-bottom: 32px;
+  text-align: center;
+}
+
+.welcomeTitle {
+  font-weight: 700;
+  margin-bottom: 8px;
+}
+
+.featureGrid {
+  margin-bottom: 32px;
+}
+
+.featureCard {
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  cursor: pointer;
+  transition: box-shadow 0.2s ease;
+}
+
+.featureCard:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+}
+
+.featureCardContent {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.featureText {
+  text-align: right;
+}
+
+.featureIcon {
+  font-size: 36px;
+  color: #2e7d32;
+  margin-left: 8px;
+}
+
+.registerHeader {
+  text-align: center;
+  margin-bottom: 16px;
+}
+
+.registerTitle {
+  font-weight: 700;
+  color: #2e7d32;
+  margin-bottom: 8px;
+}
+
+.registerCard {
+  max-width: 700px;
+  margin: 0 auto;
+  border-radius: 12px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+  border-top: 5px solid #2e7d32;
+}
+
+.registerCardTitle {
+  font-weight: 700;
+  margin-bottom: 24px;
+  text-align: center;
+  color: #2e7d32;
+}
+
+.sectionLabel {
+  font-weight: 700;
+  margin-bottom: 4px;
+}
+
+.sectionSpacer {
+  margin-top: 8px;
+}
+
+.actionsRow {
+  margin-top: 24px;
+  display: flex;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.actionsGroup {
+  display: flex;
+  gap: 8px;
+}
+
+.submitButton {
+  padding-left: 32px;
+  padding-right: 32px;
+}
