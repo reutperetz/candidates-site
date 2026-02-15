@@ -1,4 +1,4 @@
-// src/App.tsx
+﻿// src/App.tsx
 import { Suspense, lazy, useEffect, useState, type ReactNode } from "react";
 import { Routes, Route } from "react-router-dom";
 import { Box, LinearProgress, Typography, useMediaQuery } from "@mui/material";
