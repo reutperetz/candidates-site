@@ -21,6 +21,8 @@ import { useThemeMode } from "../theme/themeContext";
 import Tooltip from "@mui/material/Tooltip";
 import DarkModeIcon from "@mui/icons-material/DarkMode";
 import LightModeIcon from "@mui/icons-material/LightMode";
+import { onAuthStateChanged, signOut } from "firebase/auth";
+import { auth } from "../firebase";
 
 type UserMode = "candidate" | "admin";
 
@@ -55,19 +57,31 @@ interface HeaderProps {
 
 function Header({ userMode, onChangeMode }: HeaderProps) {
   const [drawerOpen, setDrawerOpen] = useState(false);
-  const [authUser, setAuthUser] = useState<string | null>(localStorage.getItem("authUser"));
+  const [authUser, setAuthUser] = useState<string | null>(
+    localStorage.getItem("authUser")
+  );
 
   const navigate = useNavigate();
   const location = useLocation();
   const { mode, toggleMode: toggleColorMode } = useThemeMode();
 
   useEffect(() => {
-    const sync = () => setAuthUser(localStorage.getItem("authUser"));
-    window.addEventListener("auth-changed", sync);
-    window.addEventListener("storage", sync);
+    const unsub = onAuthStateChanged(auth, (user) => {
+      const label = user
+        ? user.email ?? (user.isAnonymous ? "אורח" : user.uid)
+        : null;
+      setAuthUser(label);
+      if (label) {
+        localStorage.setItem("authUser", label);
+      } else {
+        localStorage.removeItem("authUser");
+        localStorage.removeItem("authRole");
+      }
+      window.dispatchEvent(new Event("auth-changed"));
+    });
+
     return () => {
-      window.removeEventListener("auth-changed", sync);
-      window.removeEventListener("storage", sync);
+      unsub();
     };
   }, []);
 
@@ -90,7 +104,8 @@ function Header({ userMode, onChangeMode }: HeaderProps) {
     setDrawerOpen(false);
   };
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    await signOut(auth);
     localStorage.removeItem("authUser");
     localStorage.removeItem("authRole");
     setAuthUser(null);
@@ -101,6 +116,7 @@ function Header({ userMode, onChangeMode }: HeaderProps) {
   return (
     <>
       <AppBar
+        component="header"
         position="static"
         sx={(theme) => ({
           background: `linear-gradient(135deg, ${theme.palette.primary.dark} 0%, ${theme.palette.secondary.main} 100%)`,
@@ -108,7 +124,7 @@ function Header({ userMode, onChangeMode }: HeaderProps) {
           boxShadow: theme.shadows[4],
         })}
       >
-        <Toolbar sx={{ direction: "rtl" }}>
+        <Toolbar component="nav" sx={{ direction: "rtl" }}>
           <IconButton
             edge="start"
             onClick={handleOpenDrawer}
@@ -135,7 +151,6 @@ function Header({ userMode, onChangeMode }: HeaderProps) {
             Ono Academic College – Candidates Site
           </Typography>
 
-          {/* אינדיקציה שהמשתמש מחובר + התנתקות */}
           <Stack direction="row" spacing={1} alignItems="center" sx={{ mr: 1 }}>
             {authUser && (
               <>
@@ -159,7 +174,6 @@ function Header({ userMode, onChangeMode }: HeaderProps) {
             )}
           </Stack>
 
-          {/* כפתור Dark/Light גלובלי */}
           <Tooltip title={mode === "dark" ? "מצב בהיר" : "מצב כהה"}>
             <IconButton onClick={toggleColorMode} color="inherit" sx={{ mr: 1 }}>
               {mode === "dark" ? <LightModeIcon /> : <DarkModeIcon />}
@@ -199,7 +213,7 @@ function Header({ userMode, onChangeMode }: HeaderProps) {
         onClose={handleCloseDrawer}
         PaperProps={{ sx: { direction: "rtl" } }}
       >
-        <Box sx={{ width: 280 }} role="presentation" dir="rtl">
+        <Box component="nav" sx={{ width: 280 }} role="presentation" dir="rtl">
           <List>
             {navItems.map((item) => (
               <ListItemButton
@@ -207,7 +221,10 @@ function Header({ userMode, onChangeMode }: HeaderProps) {
                 selected={location.pathname === item.path}
                 onClick={() => handleNavigate(item.path)}
               >
-                <ListItemText primary={item.label} primaryTypographyProps={{ sx: { textAlign: "right" } }} />
+                <ListItemText
+                  primary={item.label}
+                  primaryTypographyProps={{ sx: { textAlign: "right" } }}
+                />
               </ListItemButton>
             ))}
           </List>

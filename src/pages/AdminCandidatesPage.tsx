@@ -31,6 +31,7 @@ import Grid from "@mui/material/GridLegacy";
 import AddIcon from "@mui/icons-material/Add";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
+import styles from "../styles/adminShared.module.css";
 
 // Firestore
 import {
@@ -112,6 +113,340 @@ const emptyForm: FormState = {
   preferredTrackId: "",
   status: "",
 };
+
+type CandidatesListProps = {
+  filtered: Candidate[];
+  totalCount: number;
+  query: string;
+  onQueryChange: (value: string) => void;
+  onAddNew: () => void;
+  onEdit: (candidate: Candidate) => void;
+  onDelete: (candidate: Candidate) => void;
+  getTrackLabel: (candidate: Candidate) => string;
+};
+
+const CandidatesList = ({
+  filtered,
+  totalCount,
+  query,
+  onQueryChange,
+  onAddNew,
+  onEdit,
+  onDelete,
+  getTrackLabel,
+}: CandidatesListProps) => (
+  <Box>
+    <Box
+      mb={2}
+      display="flex"
+      justifyContent="space-between"
+      alignItems="center"
+      flexWrap="wrap"
+      gap={2}
+    >
+      <Typography variant="h5" fontWeight={600}>
+        רשימת מועמדים
+      </Typography>
+
+      <Stack direction="row" spacing={2} alignItems="center">
+      <Button
+        variant="contained"
+        startIcon={<AddIcon />}
+        className={styles.roundButton}
+        onClick={onAddNew}
+      >
+        הוספת מועמד חדש
+      </Button>
+        <TextField
+          size="small"
+          value={query}
+          onChange={(e) => onQueryChange(e.target.value)}
+          placeholder="חיפוש לפי שם / ת.ז / סטטוס..."
+        />
+      </Stack>
+    </Box>
+
+    <Typography variant="body2" color="text.secondary" mb={2}>
+      מספר המועמדים במערכת: {totalCount}
+    </Typography>
+
+    <Paper elevation={0} className={styles.tablePaper} sx={{ bgcolor: "background.paper" }}>
+      <Table>
+        <TableHead>
+          <TableRow>
+            <TableCell>פעולות</TableCell>
+            <TableCell>סטטוס</TableCell>
+            <TableCell>מסלול מועדף</TableCell>
+            <TableCell>אנגלית (יח׳)</TableCell>
+            <TableCell>מתמטיקה (יח׳)</TableCell>
+            <TableCell>ממוצע בגרות</TableCell>
+            <TableCell>פסיכומטרי</TableCell>
+            <TableCell>שם מלא</TableCell>
+            <TableCell>ת.ז</TableCell>
+          </TableRow>
+        </TableHead>
+
+        <TableBody>
+          {filtered.map((c) => (
+            <TableRow key={c.docId} hover>
+              <TableCell>
+                <Stack direction="row" spacing={1}>
+                  <Button
+                    size="small"
+                    variant="outlined"
+                    color="primary"
+                    startIcon={<EditIcon fontSize="small" />}
+                    onClick={() => onEdit(c)}
+                  >
+                    עריכה
+                  </Button>
+                  <Button
+                    size="small"
+                    variant="outlined"
+                    color="error"
+                    startIcon={<DeleteOutlineIcon fontSize="small" />}
+                    onClick={() => onDelete(c)}
+                  >
+                    מחיקה
+                  </Button>
+                </Stack>
+              </TableCell>
+              <TableCell>{statusChip(c.status)}</TableCell>
+              <TableCell>{getTrackLabel(c)}</TableCell>
+              <TableCell>{c.englishUnits}</TableCell>
+              <TableCell>{c.mathUnits}</TableCell>
+              <TableCell>{c.bagrutAverage || "-"}</TableCell>
+              <TableCell>{c.psychometric || "-"}</TableCell>
+              <TableCell>{c.fullName}</TableCell>
+              <TableCell>{c.idNumber}</TableCell>
+            </TableRow>
+          ))}
+
+          {filtered.length === 0 && (
+            <TableRow>
+              <TableCell colSpan={9}>
+                <Typography align="center" color="text.secondary">
+                  אין תוצאות להצגה.
+                </Typography>
+              </TableCell>
+            </TableRow>
+          )}
+        </TableBody>
+      </Table>
+    </Paper>
+  </Box>
+);
+
+type CandidateFormProps = {
+  form: FormState;
+  formErrors: Partial<Record<keyof FormState, string>>;
+  formTouched: Record<string, boolean>;
+  tracksLoading: boolean;
+  activeTracks: StudyTrack[];
+  canSave: boolean;
+  onChangeForm: (field: keyof FormState) => (e: React.ChangeEvent<HTMLInputElement>) => void;
+  onSetForm: React.Dispatch<React.SetStateAction<FormState>>;
+  onSetTouched: React.Dispatch<React.SetStateAction<Record<string, boolean>>>;
+  onAddCandidate: () => void;
+  onReset: () => void;
+  onBackToList: () => void;
+};
+
+const CandidateFormSection = ({
+  form,
+  formErrors,
+  formTouched,
+  tracksLoading,
+  activeTracks,
+  canSave,
+  onChangeForm,
+  onSetForm,
+  onSetTouched,
+  onAddCandidate,
+  onReset,
+  onBackToList,
+}: CandidateFormProps) => (
+  <Box>
+    <Typography variant="h5" fontWeight={600} mb={2}>
+      הוספת מועמד חדש
+    </Typography>
+
+    <Typography variant="body2" color="text.secondary" mb={3}>
+      שדות חובה: שם מלא, ת.ז, מסלול מועדף, סטטוס. שאר השדות אופציונליים אך חייבים להיות
+      בטווח אם הוזנו.
+    </Typography>
+
+    <Grid container spacing={2}>
+      <Grid item xs={12} md={6}>
+        <TextField
+          fullWidth
+          required
+          label="שם מלא"
+          value={form.fullName}
+          onChange={onChangeForm("fullName")}
+          error={!!formErrors.fullName && !!formTouched.fullName}
+          helperText={formTouched.fullName ? formErrors.fullName : " "}
+        />
+      </Grid>
+
+      <Grid item xs={12} md={6}>
+        <TextField
+          fullWidth
+          required
+          label="תעודת זהות (9 ספרות)"
+          value={form.idNumber}
+          onChange={(e) => {
+            const onlyDigits = e.target.value.replace(/[^\d]/g, "");
+            onSetForm((p) => ({ ...p, idNumber: onlyDigits }));
+            onSetTouched((t) => ({ ...t, idNumber: true }));
+          }}
+          inputProps={{ inputMode: "numeric", maxLength: 9 }}
+          error={!!formErrors.idNumber && !!formTouched.idNumber}
+          helperText={formTouched.idNumber ? formErrors.idNumber : " "}
+        />
+      </Grid>
+
+      <Grid item xs={12} md={6}>
+        <TextField
+          fullWidth
+          label="ציון פסיכומטרי (200–800)"
+          value={form.psychometric}
+          onChange={(e) => {
+            const onlyDigits = e.target.value.replace(/[^\d]/g, "");
+            onSetForm((p) => ({ ...p, psychometric: onlyDigits }));
+            onSetTouched((t) => ({ ...t, psychometric: true }));
+          }}
+          inputProps={{ inputMode: "numeric" }}
+          error={!!formErrors.psychometric && !!formTouched.psychometric}
+          helperText={formTouched.psychometric ? formErrors.psychometric : " "}
+        />
+      </Grid>
+
+      <Grid item xs={12} md={6}>
+        <TextField
+          fullWidth
+          label="ממוצע בגרות (60–120)"
+          value={form.bagrutAverage}
+          onChange={(e) => {
+            const onlyDigits = e.target.value.replace(/[^\d]/g, "");
+            onSetForm((p) => ({ ...p, bagrutAverage: onlyDigits }));
+            onSetTouched((t) => ({ ...t, bagrutAverage: true }));
+          }}
+          inputProps={{ inputMode: "numeric" }}
+          error={!!formErrors.bagrutAverage && !!formTouched.bagrutAverage}
+          helperText={formTouched.bagrutAverage ? formErrors.bagrutAverage : " "}
+        />
+      </Grid>
+
+      <Grid item xs={12} md={3}>
+        <TextField
+          select
+          fullWidth
+          label="יחידות מתמטיקה"
+          value={form.mathUnits}
+          onChange={onChangeForm("mathUnits")}
+          error={!!formErrors.mathUnits && !!formTouched.mathUnits}
+          helperText={formTouched.mathUnits ? formErrors.mathUnits : " "}
+        >
+          <MenuItem value="">לא נבחר</MenuItem>
+          <MenuItem value="3">3</MenuItem>
+          <MenuItem value="4">4</MenuItem>
+          <MenuItem value="5">5</MenuItem>
+        </TextField>
+      </Grid>
+
+      <Grid item xs={12} md={3}>
+        <TextField
+          select
+          fullWidth
+          label="יחידות אנגלית"
+          value={form.englishUnits}
+          onChange={onChangeForm("englishUnits")}
+          error={!!formErrors.englishUnits && !!formTouched.englishUnits}
+          helperText={formTouched.englishUnits ? formErrors.englishUnits : " "}
+        >
+          <MenuItem value="">לא נבחר</MenuItem>
+          <MenuItem value="3">3</MenuItem>
+          <MenuItem value="4">4</MenuItem>
+          <MenuItem value="5">5</MenuItem>
+        </TextField>
+      </Grid>
+
+      <Grid item xs={12} md={3}>
+        <TextField
+          select
+          fullWidth
+          required
+          label="מסלול מועדף"
+          value={form.preferredTrackId}
+          onChange={onChangeForm("preferredTrackId")}
+          error={!!formErrors.preferredTrackId && !!formTouched.preferredTrackId}
+          helperText={
+            formTouched.preferredTrackId
+              ? formErrors.preferredTrackId
+              : tracksLoading
+                ? "טוען מסלולים..."
+                : activeTracks.length === 0
+                  ? "אין מסלולים פעילים - יש ליצור מסלול"
+                  : " "
+          }
+          disabled={tracksLoading || activeTracks.length === 0}
+        >
+          <MenuItem value="">בחרי</MenuItem>
+          {activeTracks.map((track) => (
+            <MenuItem key={track.docId} value={track.docId}>
+              {track.name}
+            </MenuItem>
+          ))}
+        </TextField>
+      </Grid>
+
+      <Grid item xs={12} md={3}>
+        <TextField
+          select
+          fullWidth
+          required
+          label="סטטוס הרשמה"
+          value={form.status}
+          onChange={onChangeForm("status")}
+          error={!!formErrors.status && !!formTouched.status}
+          helperText={formTouched.status ? formErrors.status : " "}
+        >
+          <MenuItem value="">בחרי</MenuItem>
+          <MenuItem value="accepted">התקבל</MenuItem>
+          <MenuItem value="pending">בדיקה</MenuItem>
+          <MenuItem value="rejected">נדחה</MenuItem>
+        </TextField>
+      </Grid>
+    </Grid>
+
+    {!canSave && (
+      <Box mt={2}>
+        <Alert severity="info">
+          כדי לשמור: ודאי ששם מלא כולל לפחות 2 מילים, ת.ז 9 ספרות, ושדות חובה נבחרו.
+        </Alert>
+      </Box>
+    )}
+
+    <Box mt={4} display="flex" justifyContent="center" gap={2} flexWrap="wrap">
+      <Button
+        variant="contained"
+        color="success"
+        className={styles.roundButtonWide}
+        onClick={onAddCandidate}
+        disabled={!canSave}
+      >
+        שמירה
+      </Button>
+      <Button variant="outlined" className={styles.roundButtonWide} onClick={onReset}>
+        ניקוי שדות
+      </Button>
+      <Button variant="text" className={styles.roundButton} onClick={onBackToList}>
+        חזרה לרשימה
+      </Button>
+    </Box>
+  </Box>
+);
 
 function isHebrewNameLike(fullName: string) {
   const trimmed = fullName.trim().replace(/\s+/g, " ");
@@ -614,7 +949,11 @@ const AdminCandidatesPage = () => {
           מערכת ניהול – מועמדים
         </Typography>
 
-        <Paper elevation={3} sx={{ borderRadius: 3, p: 3, bgcolor: "background.paper" }}>
+        <Paper
+          elevation={3}
+          className={styles.sectionPaper}
+          sx={{ bgcolor: "background.paper" }}
+        >
           {(isLoading || tracksLoading) && <LinearProgress sx={{ mb: 2 }} />}
           {!!missingCandidateId && (
             <Alert severity="error" sx={{ mb: 2 }}>
@@ -633,289 +972,34 @@ const AdminCandidatesPage = () => {
 
           {/* ===== TAB 0: LIST ===== */}
           {tab === 0 && (
-            <Box>
-              <Box
-                mb={2}
-                display="flex"
-                justifyContent="space-between"
-                alignItems="center"
-                flexWrap="wrap"
-                gap={2}
-              >
-                <Typography variant="h5" fontWeight={600}>
-                  רשימת מועמדים
-                </Typography>
-
-                <Stack direction="row" spacing={2} alignItems="center">
-                  <Button
-                    variant="contained"
-                    startIcon={<AddIcon />}
-                    sx={{ borderRadius: 999, px: 3 }}
-                    onClick={() => setTab(1)}
-                  >
-                    הוספת מועמד חדש
-                  </Button>
-                  <TextField
-                    size="small"
-                    value={query}
-                    onChange={(e) => setQuery(e.target.value)}
-                    placeholder="חיפוש לפי שם / ת.ז / סטטוס..."
-                  />
-                </Stack>
-              </Box>
-
-              <Typography variant="body2" color="text.secondary" mb={2}>
-                מספר המועמדים במערכת: {candidates.length}
-              </Typography>
-
-              <Paper elevation={0} sx={{ borderRadius: 3, overflow: "hidden", bgcolor: "background.paper" }}>
-                <Table>
-                  <TableHead>
-                    <TableRow>
-                      <TableCell>פעולות</TableCell>
-                      <TableCell>סטטוס</TableCell>
-                      <TableCell>מסלול מועדף</TableCell>
-                      <TableCell>אנגלית (יח׳)</TableCell>
-                      <TableCell>מתמטיקה (יח׳)</TableCell>
-                      <TableCell>ממוצע בגרות</TableCell>
-                      <TableCell>פסיכומטרי</TableCell>
-                      <TableCell>שם מלא</TableCell>
-                      <TableCell>ת.ז</TableCell>
-                    </TableRow>
-                  </TableHead>
-
-                  <TableBody>
-                    {filtered.map((c) => (
-                      <TableRow key={c.docId} hover>
-                        <TableCell>
-                          <Stack direction="row" spacing={1}>
-                            <Button
-                              size="small"
-                              variant="outlined"
-                              color="primary"
-                              startIcon={<EditIcon fontSize="small" />}
-                              onClick={() => openEdit(c)}
-                            >
-                              עריכה
-                            </Button>
-                            <Button
-                              size="small"
-                              variant="outlined"
-                              color="error"
-                              startIcon={<DeleteOutlineIcon fontSize="small" />}
-                              onClick={() => openDelete(c)}
-                            >
-                              מחיקה
-                            </Button>
-                          </Stack>
-                        </TableCell>
-                        <TableCell>{statusChip(c.status)}</TableCell>
-                        <TableCell>{getTrackLabel(c)}</TableCell>
-                        <TableCell>{c.englishUnits}</TableCell>
-                        <TableCell>{c.mathUnits}</TableCell>
-                        <TableCell>{c.bagrutAverage || "-"}</TableCell>
-                        <TableCell>{c.psychometric || "-"}</TableCell>
-                        <TableCell>{c.fullName}</TableCell>
-                        <TableCell>{c.idNumber}</TableCell>
-                      </TableRow>
-                    ))}
-
-                    {filtered.length === 0 && (
-                      <TableRow>
-                        <TableCell colSpan={9}>
-                          <Typography align="center" color="text.secondary">
-                            אין תוצאות להצגה.
-                          </Typography>
-                        </TableCell>
-                      </TableRow>
-                    )}
-                  </TableBody>
-                </Table>
-              </Paper>
-            </Box>
+            <CandidatesList
+              filtered={filtered}
+              totalCount={candidates.length}
+              query={query}
+              onQueryChange={setQuery}
+              onAddNew={() => setTab(1)}
+              onEdit={openEdit}
+              onDelete={openDelete}
+              getTrackLabel={getTrackLabel}
+            />
           )}
 
           {/* ===== TAB 1: ADD ===== */}
           {tab === 1 && (
-            <Box>
-              <Typography variant="h5" fontWeight={600} mb={2}>
-                הוספת מועמד חדש
-              </Typography>
-
-              <Typography variant="body2" color="text.secondary" mb={3}>
-                שדות חובה: שם מלא, ת.ז, מסלול מועדף, סטטוס. שאר השדות אופציונליים אך חייבים להיות בטווח אם הוזנו.
-              </Typography>
-
-              <Grid container spacing={2}>
-                <Grid item xs={12} md={6}>
-                  <TextField
-                    fullWidth
-                    required
-                    label="שם מלא"
-                    value={form.fullName}
-                    onChange={onChangeForm("fullName")}
-                    error={!!formErrors.fullName && !!formTouched.fullName}
-                    helperText={formTouched.fullName ? formErrors.fullName : " "}
-                  />
-                </Grid>
-
-                <Grid item xs={12} md={6}>
-                  <TextField
-                    fullWidth
-                    required
-                    label="תעודת זהות (9 ספרות)"
-                    value={form.idNumber}
-                    onChange={(e) => {
-                      const onlyDigits = e.target.value.replace(/[^\d]/g, "");
-                      setForm((p) => ({ ...p, idNumber: onlyDigits }));
-                      setFormTouched((t) => ({ ...t, idNumber: true }));
-                    }}
-                    inputProps={{ inputMode: "numeric", maxLength: 9 }}
-                    error={!!formErrors.idNumber && !!formTouched.idNumber}
-                    helperText={formTouched.idNumber ? formErrors.idNumber : " "}
-                  />
-                </Grid>
-
-                <Grid item xs={12} md={6}>
-                  <TextField
-                    fullWidth
-                    label="ציון פסיכומטרי (200–800)"
-                    value={form.psychometric}
-                    onChange={(e) => {
-                      const onlyDigits = e.target.value.replace(/[^\d]/g, "");
-                      setForm((p) => ({ ...p, psychometric: onlyDigits }));
-                      setFormTouched((t) => ({ ...t, psychometric: true }));
-                    }}
-                    inputProps={{ inputMode: "numeric" }}
-                    error={!!formErrors.psychometric && !!formTouched.psychometric}
-                    helperText={formTouched.psychometric ? formErrors.psychometric : " "}
-                  />
-                </Grid>
-
-                <Grid item xs={12} md={6}>
-                  <TextField
-                    fullWidth
-                    label="ממוצע בגרות (60–120)"
-                    value={form.bagrutAverage}
-                    onChange={(e) => {
-                      const onlyDigits = e.target.value.replace(/[^\d]/g, "");
-                      setForm((p) => ({ ...p, bagrutAverage: onlyDigits }));
-                      setFormTouched((t) => ({ ...t, bagrutAverage: true }));
-                    }}
-                    inputProps={{ inputMode: "numeric" }}
-                    error={!!formErrors.bagrutAverage && !!formTouched.bagrutAverage}
-                    helperText={formTouched.bagrutAverage ? formErrors.bagrutAverage : " "}
-                  />
-                </Grid>
-
-                <Grid item xs={12} md={3}>
-                  <TextField
-                    select
-                    fullWidth
-                    label="יחידות מתמטיקה"
-                    value={form.mathUnits}
-                    onChange={onChangeForm("mathUnits")}
-                    error={!!formErrors.mathUnits && !!formTouched.mathUnits}
-                    helperText={formTouched.mathUnits ? formErrors.mathUnits : " "}
-                  >
-                    <MenuItem value="">לא נבחר</MenuItem>
-                    <MenuItem value="3">3</MenuItem>
-                    <MenuItem value="4">4</MenuItem>
-                    <MenuItem value="5">5</MenuItem>
-                  </TextField>
-                </Grid>
-
-                <Grid item xs={12} md={3}>
-                  <TextField
-                    select
-                    fullWidth
-                    label="יחידות אנגלית"
-                    value={form.englishUnits}
-                    onChange={onChangeForm("englishUnits")}
-                    error={!!formErrors.englishUnits && !!formTouched.englishUnits}
-                    helperText={formTouched.englishUnits ? formErrors.englishUnits : " "}
-                  >
-                    <MenuItem value="">לא נבחר</MenuItem>
-                    <MenuItem value="3">3</MenuItem>
-                    <MenuItem value="4">4</MenuItem>
-                    <MenuItem value="5">5</MenuItem>
-                  </TextField>
-                </Grid>
-
-                <Grid item xs={12} md={3}>
-                  <TextField
-                    select
-                    fullWidth
-                    required
-                    label="מסלול מועדף"
-                    value={form.preferredTrackId}
-                    onChange={onChangeForm("preferredTrackId")}
-                    error={!!formErrors.preferredTrackId && !!formTouched.preferredTrackId}
-                    helperText={
-                      formTouched.preferredTrackId
-                        ? formErrors.preferredTrackId
-                        : tracksLoading
-                          ? "טוען מסלולים..."
-                          : activeTracks.length === 0
-                            ? "אין מסלולים פעילים - יש ליצור מסלול"
-                            : " "
-                    }
-                    disabled={tracksLoading || activeTracks.length === 0}
-                  >
-                    <MenuItem value="">בחרי</MenuItem>
-                    {activeTracks.map((track) => (
-                      <MenuItem key={track.docId} value={track.docId}>
-                        {track.name}
-                      </MenuItem>
-                    ))}
-                  </TextField>
-                </Grid>
-
-                <Grid item xs={12} md={3}>
-                  <TextField
-                    select
-                    fullWidth
-                    required
-                    label="סטטוס הרשמה"
-                    value={form.status}
-                    onChange={onChangeForm("status")}
-                    error={!!formErrors.status && !!formTouched.status}
-                    helperText={formTouched.status ? formErrors.status : " "}
-                  >
-                    <MenuItem value="">בחרי</MenuItem>
-                    <MenuItem value="accepted">התקבל</MenuItem>
-                    <MenuItem value="pending">בדיקה</MenuItem>
-                    <MenuItem value="rejected">נדחה</MenuItem>
-                  </TextField>
-                </Grid>
-              </Grid>
-
-              {!canSave && (
-                <Box mt={2}>
-                  <Alert severity="info">
-                    כדי לשמור: ודאי ששם מלא כולל לפחות 2 מילים, ת.ז 9 ספרות, ושדות חובה נבחרו.
-                  </Alert>
-                </Box>
-              )}
-
-              <Box mt={4} display="flex" justifyContent="center" gap={2} flexWrap="wrap">
-                <Button
-                  variant="contained"
-                  color="success"
-                  sx={{ borderRadius: 999, px: 4 }}
-                  onClick={handleAddCandidate}
-                  disabled={!canSave}
-                >
-                  שמירה
-                </Button>
-                <Button variant="outlined" sx={{ borderRadius: 999, px: 4 }} onClick={handleReset}>
-                  ניקוי שדות
-                </Button>
-                <Button variant="text" sx={{ borderRadius: 999 }} onClick={() => setTab(0)}>
-                  חזרה לרשימה
-                </Button>
-              </Box>
-            </Box>
+            <CandidateFormSection
+              form={form}
+              formErrors={formErrors}
+              formTouched={formTouched}
+              tracksLoading={tracksLoading}
+              activeTracks={activeTracks}
+              canSave={canSave}
+              onChangeForm={onChangeForm}
+              onSetForm={setForm}
+              onSetTouched={setFormTouched}
+              onAddCandidate={handleAddCandidate}
+              onReset={handleReset}
+              onBackToList={() => setTab(0)}
+            />
           )}
         </Paper>
       </Container>

@@ -1,4 +1,4 @@
-// src/pages/AdminAdmissionRequirementsPage.tsx
+﻿// src/pages/AdminAdmissionRequirementsPage.tsx
 import { useEffect, useRef, useState } from "react";
 import { useParams } from "react-router-dom";
 import {
@@ -32,6 +32,7 @@ import Grid from "@mui/material/GridLegacy";
 import AddIcon from "@mui/icons-material/Add";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
+import styles from "../styles/adminShared.module.css";
 
 import {
   addDoc,
@@ -53,21 +54,18 @@ interface AdmissionRequirement {
   track: TrackType;
   trackName: string;
 
-  // ציונים / תנאים (אופציונלי בהתאם למסלול)
-  minPsycho?: number; // פסיכומטרי (כללי/כמותי לפי איך את מגדירה)
-  minAverage?: number; // ממוצע בגרות
-  minMath?: number; // ציון מתמטיקה
-  minEnglish?: number; // ציון אנגלית
-  mathUnits?: number; // יחידות מתמטיקה
-  englishUnits?: number; // יחידות אנגלית
+  minPsycho?: number; // Psychometric (or quantitative score if used)
+  minAverage?: number; // Bagrut average
+  minMath?: number; // Math score
+  minEnglish?: number; // English score
+  mathUnits?: number; // Math units
+  englishUnits?: number; // English units
 
   status: RequirementStatus;
   createdAt?: Timestamp;
 }
 
 type RequirementDoc = Omit<AdmissionRequirement, "docId">;
-
-// נתוני דמה התחלתיים
 
 const statusChip = (status: RequirementStatus) => {
   switch (status) {
@@ -124,11 +122,11 @@ function isNumInRange(n: number | undefined, min: number, max: number) {
 function validateForm(form: FormState): FormErrors {
   const errors: FormErrors = {};
 
-  // חובה
+  // Required
   if (!form.track) errors.track = "חובה לבחור מסלול";
   if (!form.trackName.trim()) errors.trackName = "חובה למלא שם מסלול";
 
-  // המרות
+  // Conversions
   const minPsycho = toNumberOrUndef(form.minPsycho);
   const minAverage = toNumberOrUndef(form.minAverage);
   const minMath = toNumberOrUndef(form.minMath);
@@ -136,7 +134,7 @@ function validateForm(form: FormState): FormErrors {
   const mathUnits = toNumberOrUndef(form.mathUnits);
   const englishUnits = toNumberOrUndef(form.englishUnits);
 
-  // בדיקות “מספר בלבד”
+  // Numeric-only checks
   const numericFields: Array<[keyof FormState, number | undefined, string]> = [
     ["minPsycho", minPsycho, "חייב להיות מספר"],
     ["minAverage", minAverage, "חייב להיות מספר"],
@@ -152,18 +150,18 @@ function validateForm(form: FormState): FormErrors {
     }
   }
 
-  // טווחים (את יכולה לשנות לפי הדרישות שלכם)
-  // פסיכומטרי: 200–800 (אם את משתמשת בשדה כמותי 50–150, תשני כאן בהתאם)
+  // Ranges
+  // Psychometric: 200–800
   if (minPsycho !== undefined && !isNumInRange(minPsycho, 200, 800)) {
     errors.minPsycho = "טווח לא תקין (לדוגמה 200–800)";
   }
 
-  // ממוצע בגרות: 0–120
+  // Bagrut average: 0–120
   if (minAverage !== undefined && !isNumInRange(minAverage, 0, 120)) {
     errors.minAverage = "טווח לא תקין (0–120)";
   }
 
-  // ציוני מתמטיקה/אנגלית: 0–100
+  // Math/English: 0–100
   if (minMath !== undefined && !isNumInRange(minMath, 0, 100)) {
     errors.minMath = "טווח לא תקין (0–100)";
   }
@@ -171,15 +169,15 @@ function validateForm(form: FormState): FormErrors {
     errors.minEnglish = "טווח לא תקין (0–100)";
   }
 
-  // יח"ל: 3–5 מספר שלם
+  // Units: 3–5
   if (form.mathUnits.trim() && !isIntInRange(mathUnits, 3, 5)) {
-    errors.mathUnits = "יח\"ל מתמטיקה חייב להיות 3–5";
+    errors.mathUnits = 'יח"ל מתמטיקה חייב להיות 3–5';
   }
   if (form.englishUnits.trim() && !isIntInRange(englishUnits, 3, 5)) {
-    errors.englishUnits = "יח\"ל אנגלית חייב להיות 3–5";
+    errors.englishUnits = 'יח"ל אנגלית חייב להיות 3–5';
   }
 
-  // חובה לפי מסלול (כמו הדרישה שלך “לא לקבל מה שלא תקין”)
+  // Track-specific requirements
   if (form.track === "A") {
     if (minPsycho === undefined) errors.minPsycho = "במסלול א' חובה פסיכומטרי מינימלי";
   }
@@ -188,13 +186,170 @@ function validateForm(form: FormState): FormErrors {
     if (minPsycho === undefined) errors.minPsycho = "במסלול ב' חובה פסיכומטרי/כמותי מינימלי";
     if (minAverage === undefined) errors.minAverage = "במסלול ב' חובה ממוצע בגרות מינימלי";
     if (minMath === undefined) errors.minMath = "במסלול ב' חובה ציון מתמטיקה מינימלי";
-    if (!isIntInRange(mathUnits, 3, 5)) errors.mathUnits = "במסלול ב' חובה יח\"ל מתמטיקה (3–5)";
+    if (!isIntInRange(mathUnits, 3, 5)) errors.mathUnits = 'במסלול ב\' חובה יח"ל מתמטיקה (3–5)';
   }
 
-  // מסלול C (אופציונלי) – לא מכריחים כרגע
+  // Track C is optional for now
 
   return errors;
 }
+
+type RequirementsListProps = {
+  requirements: AdmissionRequirement[];
+  onAddNew: () => void;
+  onEdit: (req: AdmissionRequirement) => void;
+  onDelete: (req: AdmissionRequirement) => void;
+};
+
+const RequirementsListSection = ({
+  requirements,
+  onAddNew,
+  onEdit,
+  onDelete,
+}: RequirementsListProps) => (
+  <Box>
+    <Box
+      mb={2}
+      display="flex"
+      justifyContent="space-between"
+      alignItems="center"
+      flexWrap="wrap"
+      gap={2}
+    >
+      <Typography variant="h5" fontWeight={600}>
+        רשימת תנאי קבלה
+      </Typography>
+
+      <Button
+        variant="contained"
+        startIcon={<AddIcon />}
+        className={styles.roundButton}
+        onClick={onAddNew}
+      >
+        הוספת תנאי קבלה חדש
+      </Button>
+    </Box>
+
+    <Typography variant="body2" color="text.secondary" mb={2}>
+      מספר תנאי הקבלה במערכת: {requirements.length}
+    </Typography>
+
+    <Paper elevation={0} className={styles.tablePaper} sx={{ bgcolor: "background.paper" }}>
+      <Table>
+        <TableHead>
+          <TableRow>
+            <TableCell>פעולות</TableCell>
+            <TableCell>סטטוס</TableCell>
+            <TableCell>יח' אנגלית</TableCell>
+            <TableCell>יח' מתמטיקה</TableCell>
+            <TableCell>ממוצע בגרות מינימלי</TableCell>
+            <TableCell>ציון אנגלית מינימלי</TableCell>
+            <TableCell>ציון מתמטיקה מינימלי</TableCell>
+            <TableCell>ציון פסיכומטרי מינימלי</TableCell>
+            <TableCell>מסלול</TableCell>
+          </TableRow>
+        </TableHead>
+
+        <TableBody>
+          {requirements.map((r) => (
+            <TableRow key={r.docId}>
+              <TableCell>
+                <Stack direction="row" spacing={1}>
+                  <Button
+                    size="small"
+                    variant="outlined"
+                    color="primary"
+                    startIcon={<EditIcon fontSize="small" />}
+                    onClick={() => onEdit(r)}
+                  >
+                    עריכה
+                  </Button>
+                  <Button
+                    size="small"
+                    variant="outlined"
+                    color="error"
+                    startIcon={<DeleteOutlineIcon fontSize="small" />}
+                    onClick={() => onDelete(r)}
+                  >
+                    מחיקה
+                  </Button>
+                </Stack>
+              </TableCell>
+              <TableCell>{statusChip(r.status)}</TableCell>
+              <TableCell>{r.englishUnits ?? "-"}</TableCell>
+              <TableCell>{r.mathUnits ?? "-"}</TableCell>
+              <TableCell>{r.minAverage ?? "-"}</TableCell>
+              <TableCell>{r.minEnglish ?? "-"}</TableCell>
+              <TableCell>{r.minMath ?? "-"}</TableCell>
+              <TableCell>{r.minPsycho ?? "-"}</TableCell>
+              <TableCell>{r.trackName}</TableCell>
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
+    </Paper>
+  </Box>
+);
+
+type RequirementAddProps = {
+  form: FormState;
+  errors: FormErrors;
+  saveError: string;
+  onChange: (
+    field: keyof FormState
+  ) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
+  onSave: () => void;
+  onReset: () => void;
+};
+
+const RequirementAddSection = ({
+  form,
+  errors,
+  saveError,
+  onChange,
+  onSave,
+  onReset,
+}: RequirementAddProps) => (
+  <Box>
+    <Typography variant="h5" fontWeight={600} mb={2}>
+      הוספת תנאי קבלה חדש
+    </Typography>
+    <Typography variant="body2" color="text.secondary" mb={3}>
+      אפשר לשמור רק אם כל השדות הנדרשים למסלול תקינים.
+    </Typography>
+
+    {renderFormFields(form, onChange, errors)}
+    {saveError && (
+      <Box mt={2}>
+        <Alert severity="error">{saveError}</Alert>
+      </Box>
+    )}
+
+    <Box mt={4} display="flex" justifyContent="center" gap={2} flexWrap="wrap">
+      <Button
+        variant="contained"
+        color="success"
+        className={styles.roundButtonWide}
+        onClick={onSave}
+      >
+        שמירה
+      </Button>
+      <Button
+        variant="outlined"
+        className={styles.roundButtonWide}
+        onClick={onReset}
+      >
+        ניקוי שדות
+      </Button>
+    </Box>
+
+    {Object.values(errors).some(Boolean) && (
+      <Box mt={3}>
+        <Alert severity="error">יש שדות לא תקינים — תקני את המסומן באדום.</Alert>
+      </Box>
+    )}
+  </Box>
+);
 
 const AdminAdmissionRequirementsPage = () => {
   const { requirementId } = useParams();
@@ -280,14 +435,14 @@ const AdminAdmissionRequirementsPage = () => {
     return () => unsub();
   }, []);
 
-// טופס הוספה
+  // Add form
   const [form, setForm] = useState<FormState>(emptyForm);
   const [errors, setErrors] = useState<FormErrors>({});
   const [saved, setSaved] = useState(false);
   const [missingRequirementId, setMissingRequirementId] = useState<string | null>(null);
   const lastHandledIdRef = useRef<string | null>(null);
 
-  // עריכה/מחיקה
+  // Edit/Delete
   const [editOpen, setEditOpen] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [selected, setSelected] = useState<AdmissionRequirement | null>(null);
@@ -592,7 +747,11 @@ const renderFormFields = (
           מערכת ניהול – תנאי קבלה
         </Typography>
 
-        <Paper elevation={3} sx={{ borderRadius: 3, p: 3, bgcolor: "background.paper" }}>
+        <Paper
+          elevation={3}
+          className={styles.sectionPaper}
+          sx={{ bgcolor: "background.paper" }}
+        >
           <Tabs
             value={tab}
             onChange={(_e, v) => setTab(v)}
@@ -613,137 +772,23 @@ const renderFormFields = (
 
           {/* ===== TAB 0: LIST ===== */}
           {tab === 0 && (
-            <Box>
-              <Box
-                mb={2}
-                display="flex"
-                justifyContent="space-between"
-                alignItems="center"
-                flexWrap="wrap"
-                gap={2}
-              >
-                <Typography variant="h5" fontWeight={600}>
-                  רשימת תנאי קבלה
-                </Typography>
-
-                <Button
-                  variant="contained"
-                  startIcon={<AddIcon />}
-                  sx={{ borderRadius: 999, px: 3 }}
-                  onClick={() => setTab(1)}
-                >
-                  הוספת תנאי קבלה חדש
-                </Button>
-              </Box>
-
-              <Typography variant="body2" color="text.secondary" mb={2}>
-                מספר תנאי הקבלה במערכת: {requirements.length}
-              </Typography>
-
-              <Paper elevation={0} sx={{ borderRadius: 3, overflow: "hidden", bgcolor: "background.paper" }}>
-                <Table>
-                  <TableHead>
-                    <TableRow>
-                      <TableCell>פעולות</TableCell>
-                      <TableCell>סטטוס</TableCell>
-                      <TableCell>יח&apos; אנגלית</TableCell>
-                      <TableCell>יח&apos; מתמטיקה</TableCell>
-                      <TableCell>ממוצע בגרות מינימלי</TableCell>
-                      <TableCell>ציון אנגלית מינימלי</TableCell>
-                      <TableCell>ציון מתמטיקה מינימלי</TableCell>
-                      <TableCell>ציון פסיכומטרי מינימלי</TableCell>
-                      <TableCell>מסלול</TableCell>
-                    </TableRow>
-                  </TableHead>
-
-                  <TableBody>
-                    {requirements.map((r) => (
-                      <TableRow key={r.docId}>
-                        <TableCell>
-                          <Stack direction="row" spacing={1}>
-                            <Button
-                              size="small"
-                              variant="outlined"
-                              color="primary"
-                              startIcon={<EditIcon fontSize="small" />}
-                              onClick={() => openEdit(r)}
-                            >
-                              עריכה
-                            </Button>
-                            <Button
-                              size="small"
-                              variant="outlined"
-                              color="error"
-                              startIcon={<DeleteOutlineIcon fontSize="small" />}
-                              onClick={() => openDelete(r)}
-                            >
-                              מחיקה
-                            </Button>
-                          </Stack>
-                        </TableCell>
-                        <TableCell>{statusChip(r.status)}</TableCell>
-                        <TableCell>{r.englishUnits ?? "-"}</TableCell>
-                        <TableCell>{r.mathUnits ?? "-"}</TableCell>
-                        <TableCell>{r.minAverage ?? "-"}</TableCell>
-                        <TableCell>{r.minEnglish ?? "-"}</TableCell>
-                        <TableCell>{r.minMath ?? "-"}</TableCell>
-                        <TableCell>{r.minPsycho ?? "-"}</TableCell>
-                        <TableCell>{r.trackName}</TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </Paper>
-
-              {saved && (
-                <Box mt={2}>
-                  <Alert severity="success">תנאי קבלה נשמר בהצלחה.</Alert>
-                </Box>
-              )}
-            </Box>
+            <RequirementsListSection
+              requirements={requirements}
+              onAddNew={() => setTab(1)}
+              onEdit={openEdit}
+              onDelete={openDelete}
+            />
           )}
-
-          {/* ===== TAB 1: ADD ===== */}
+{/* ===== TAB 1: ADD ===== */}
           {tab === 1 && (
-            <Box>
-              <Typography variant="h5" fontWeight={600} mb={2}>
-                הוספת תנאי קבלה חדש
-              </Typography>
-              <Typography variant="body2" color="text.secondary" mb={3}>
-                אפשר לשמור רק אם כל השדות הנדרשים למסלול תקינים.
-              </Typography>
-
-              {renderFormFields(form, handleChange, errors)}
-              {saveError && (
-                <Box mt={2}>
-                  <Alert severity="error">{saveError}</Alert>
-                </Box>
-              )}
-
-              <Box mt={4} display="flex" justifyContent="center" gap={2} flexWrap="wrap">
-                <Button
-                  variant="contained"
-                  color="success"
-                  sx={{ borderRadius: 999, px: 4 }}
-                  onClick={handleSave}
-                >
-                  שמירה
-                </Button>
-                <Button
-                  variant="outlined"
-                  sx={{ borderRadius: 999, px: 4 }}
-                  onClick={handleReset}
-                >
-                  ניקוי שדות
-                </Button>
-              </Box>
-
-              {Object.values(errors).some(Boolean) && (
-                <Box mt={3}>
-                  <Alert severity="error">יש שדות לא תקינים — תקני את המסומן באדום.</Alert>
-                </Box>
-              )}
-            </Box>
+            <RequirementAddSection
+              form={form}
+              errors={errors}
+              saveError={saveError}
+              onChange={handleChange}
+              onSave={handleSave}
+              onReset={handleReset}
+            />
           )}
         </Paper>
       </Container>
@@ -819,4 +864,6 @@ const renderFormFields = (
 };
 
 export default AdminAdmissionRequirementsPage;
+
+
 

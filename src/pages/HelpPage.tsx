@@ -10,12 +10,15 @@ import {
   AccordionDetails,
   Chip,
   LinearProgress,
+  Button,
+  Stack,
 } from "@mui/material";
 
 import HelpOutlineIcon from "@mui/icons-material/HelpOutline";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import ChatBubbleOutlineIcon from "@mui/icons-material/ChatBubbleOutline";
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { collection, getDocs } from "firebase/firestore";
 import { db } from "../firebase";
 
@@ -33,6 +36,7 @@ function HelpPage() {
   // רשימת השאלות לדוגמא – אפשר לערוך טקסטים חופשי
   const [faqs, setFaqs] = useState<FaqItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const navigate = useNavigate();
 
   useEffect(() => {
     let active = true;
@@ -213,6 +217,40 @@ function HelpPage() {
           >
             <ChatBubbleOutlineIcon sx={{ fontSize: 26 }} />
           </Box>
+        </CardContent>
+      </Card>
+
+      <Card
+        sx={{
+          mt: 3,
+          borderRadius: 3,
+          boxShadow: 2,
+          border: "1px solid",
+          borderColor: "divider",
+        }}
+      >
+        <CardContent>
+          <Typography variant="h6" fontWeight={700} sx={{ mb: 1 }}>
+            קישורים מהירים
+          </Typography>
+          <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+            מעבר מהיר למסכים מרכזיים במערכת.
+          </Typography>
+          <Stack direction="row" spacing={2} flexWrap="wrap">
+            <Button variant="contained" color="success" onClick={() => navigate("/forms")}>
+              טפסים
+            </Button>
+            <Button variant="outlined" color="success" onClick={() => navigate("/admission-requirements")}>
+              תנאי קבלה
+            </Button>
+            <Button variant="outlined" color="success" onClick={() => navigate("/courses")}>
+              קורסים
+            </Button>
+            <Button variant="outlined" color="success" onClick={() => navigate("/study-tracks")}>
+              מסלולי לימוד
+            </Button>
+          </Stack>
+
         </CardContent>
       </Card>
     </Container>

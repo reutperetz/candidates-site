@@ -1,0 +1,19 @@
+.sectionPaper {
+  border-radius: 12px;
+  padding: 24px;
+}
+
+.tablePaper {
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.roundButton {
+  border-radius: 999px;
+  padding-inline: 24px;
+}
+
+.roundButtonWide {
+  border-radius: 999px;
+  padding-inline: 32px;
+}

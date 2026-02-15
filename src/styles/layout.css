@@ -1,0 +1,14 @@
+.app-shell {
+  min-height: 100vh;
+}
+
+.app-content {
+  padding: 16px;
+}
+
+.admin-only {
+  margin: 32px auto;
+  padding: 32px;
+  border-radius: 12px;
+  text-align: center;
+}

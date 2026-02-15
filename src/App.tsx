@@ -1,8 +1,9 @@
 // src/App.tsx
-import { useEffect, useState, type ReactNode } from "react";
+import { Suspense, lazy, useEffect, useState, type ReactNode } from "react";
 import { Routes, Route } from "react-router-dom";
-import { Box, Typography, useMediaQuery } from "@mui/material";
+import { Box, LinearProgress, Typography, useMediaQuery } from "@mui/material";
 import { useTheme } from "@mui/material/styles";
+import "./styles/layout.css";
 
 // Header
 import Header from "./components/Header";
@@ -10,7 +11,6 @@ import Header from "./components/Header";
 // מועמד
 import HomePage from "./pages/HomePage";
 import FormsPage from "./pages/FormsPage";
-import HelpPage from "./pages/HelpPage";
 import CoursesPage from "./pages/CoursesPage";
 import AdmissionCalculatorPage from "./pages/AdmissionCalculatorPage";
 import AdmissionRequirementsPage from "./pages/AdmissionRequirementsPage";
@@ -23,10 +23,8 @@ import AdminHomePage from "./pages/AdminHomePage";
 import AdminCandidatesPage from "./pages/AdminCandidatesPage";
 import AdminCoursesPage from "./pages/AdminCoursesPage";
 import AdminAdmissionRequirementsPage from "./pages/AdminAdmissionRequirementsPage";
-import AdminUsersNewPage from "./pages/AdminUsersNewPage";
 import AdminNotificationsManagerPage from "./pages/AdminNotificationsManager";
 import AdminFaqManagerPage from "./pages/AdminFaqManager";
-import AdminHelpPage from "./pages/AdminHelpPage";
 import AdminStudyTracksPage from "./pages/AdminStudyTracksPage";
 
 // 🔹 טעינה ראשונית ל-Local Storage
@@ -44,12 +42,8 @@ const AdminOnly = ({ children, isDesktop }: AdminOnlyProps) =>
     <>{children}</>
   ) : (
     <Box
+      className="admin-only"
       sx={{
-        mt: 4,
-        mb: 4,
-        p: 4,
-        borderRadius: 3,
-        textAlign: "center",
         bgcolor: "background.paper",
         border: "1px solid",
         borderColor: "divider",
@@ -64,6 +58,10 @@ const AdminOnly = ({ children, isDesktop }: AdminOnlyProps) =>
     </Box>
   );
 
+const HelpPage = lazy(() => import("./pages/HelpPage"));
+const AdminHelpPage = lazy(() => import("./pages/AdminHelpPage"));
+const AdminUsersNewPage = lazy(() => import("./pages/AdminUsersNewPage"));
+
 function App() {
   const [userMode, setUserMode] = useState<UserMode>("candidate");
   const theme = useTheme();
@@ -75,11 +73,22 @@ function App() {
   }, []);
 
   return (
-    <Box dir="rtl" sx={{ minHeight: "100vh", bgcolor: "background.default" }}>
+    <Box
+      dir="rtl"
+      className="app-shell"
+      sx={{ bgcolor: "background.default" }}
+    >
       <Header userMode={userMode} onChangeMode={setUserMode} />
 
-      <Box sx={{ p: 2 }}>
-        <Routes>
+      <Box component="main" className="app-content">
+        <Suspense
+          fallback={
+            <Box sx={{ px: 3, py: 2 }}>
+              <LinearProgress />
+            </Box>
+          }
+        >
+          <Routes>
           {/* ===== מועמד ===== */}
           <Route path="/" element={<HomePage />} />
           <Route path="/forms" element={<FormsPage />} />
@@ -194,7 +203,8 @@ function App() {
               </AdminOnly>
             }
           />
-        </Routes>
+          </Routes>
+        </Suspense>
       </Box>
     </Box>
   );

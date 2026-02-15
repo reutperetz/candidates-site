@@ -1,4 +1,4 @@
-// src/pages/AdminUsersNewPage.tsx
+﻿// src/pages/AdminUsersNewPage.tsx
 import { useEffect, useMemo, useState } from "react";
 import {
   Alert,
@@ -39,7 +39,8 @@ import {
   updateDoc,
   type Timestamp,
 } from "firebase/firestore";
-import { db } from "../firebase";
+import { createUserWithEmailAndPassword } from "firebase/auth";
+import { db, getSecondaryAuth } from "../firebase";
 
 type UserRole = "admin" | "secretary" | "courses_manager";
 type UserStatus = "active" | "blocked";
@@ -77,6 +78,32 @@ const formatDateTimeIL = (d: Date) => {
 };
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+const getAuthCreateErrorMessage = (code: string) => {
+  switch (code) {
+    case "auth/email-already-in-use":
+      return "כתובת האימייל כבר קיימת ב-Authentication.";
+    case "auth/operation-not-allowed":
+      return "יש להפעיל התחברות עם אימייל/סיסמה ב-Firebase Authentication.";
+    case "auth/invalid-email":
+      return "האימייל שהוזן לא תקין.";
+    case "auth/unauthorized-domain":
+      return "הדומיין לא מורשה ב-Firebase Authentication.";
+    case "auth/network-request-failed":
+      return "בעיה ברשת. נסי שוב.";
+    default:
+      return `שגיאה ביצירת משתמש ב-Authentication (${code || "unknown"}). נסי שוב.`;
+  }
+};
+
+const generateTempPassword = () => {
+  const chars = "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789";
+  let out = "";
+  for (let i = 0; i < 10; i += 1) {
+    out += chars[Math.floor(Math.random() * chars.length)];
+  }
+  return `${out}!`;
+};
 
 const roleLabel = (role: UserRole) => {
   switch (role) {
@@ -227,20 +254,39 @@ const AdminUsersNewPage = () => {
     if (!canSave) return;
 
     try {
-      await addDoc(collection(db, "system_users"), {
-        fullName: form.fullName.trim(),
-        email: form.email.trim(),
-        role: form.role as UserRole,
-        status: form.status as UserStatus,
-        updatedAt: serverTimestamp(),
-      });
+      const tempPassword = generateTempPassword();
+      const secondaryAuth = getSecondaryAuth();
+      await createUserWithEmailAndPassword(
+        secondaryAuth,
+        form.email.trim(),
+        tempPassword
+      );
+
+      try {
+        await addDoc(collection(db, "system_users"), {
+          fullName: form.fullName.trim(),
+          email: form.email.trim(),
+          role: form.role as UserRole,
+          status: form.status as UserStatus,
+          updatedAt: serverTimestamp(),
+        });
+      } catch {
+        setSnack({ open: true, msg: "שגיאה בשמירת המשתמש במסד הנתונים." });
+        return;
+      }
 
       setForm(emptyForm);
       setFormTouched({});
-      setSnack({ open: true, msg: "המשתמש נשמר בהצלחה" });
+      setSnack({
+        open: true,
+        msg: `המשתמש נשמר ונוצר גם ב-Authentication. סיסמה זמנית: ${tempPassword}`,
+      });
       setTab(0);
-    } catch {
-      setSnack({ open: true, msg: "שגיאה בשמירה. נסי שוב." });
+    } catch (err) {
+      const code = (err as { code?: string }).code ?? "";
+      console.error("Auth create user failed:", err);
+      const msg = getAuthCreateErrorMessage(code);
+      setSnack({ open: true, msg });
     }
   };
 
@@ -618,3 +664,7 @@ const AdminUsersNewPage = () => {
 };
 
 export default AdminUsersNewPage;
+
+
+
+

@@ -27,6 +27,7 @@ import Grid from "@mui/material/GridLegacy";
 import AddIcon from "@mui/icons-material/Add";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
+import styles from "../styles/adminShared.module.css";
 
 import {
   addDoc,
@@ -403,7 +404,11 @@ const AdminCoursesPage = () => {
           מערכת ניהול – קורסים
         </Typography>
 
-        <Paper elevation={3} sx={{ borderRadius: 3, p: 3, bgcolor: "background.paper" }}>
+        <Paper
+          elevation={3}
+          className={styles.sectionPaper}
+          sx={{ bgcolor: "background.paper" }}
+        >
           <Tabs
             value={tab}
             onChange={(_e, v) => setTab(v)}
@@ -440,7 +445,7 @@ const AdminCoursesPage = () => {
                   <Button
                     variant="contained"
                     startIcon={<AddIcon />}
-                    sx={{ borderRadius: 999, px: 3 }}
+                    className={styles.roundButton}
                     onClick={startCreate}
                   >
                     הוספת קורס חדש
@@ -458,7 +463,7 @@ const AdminCoursesPage = () => {
                 מספר הקורסים במערכת: {filteredCourses.length}
               </Typography>
 
-              <Paper elevation={0} sx={{ borderRadius: 3, overflow: "hidden", bgcolor: "background.paper" }}>
+              <Paper elevation={0} className={styles.tablePaper} sx={{ bgcolor: "background.paper" }}>
                 <Table>
                   <TableHead>
                     <TableRow>
@@ -670,7 +675,7 @@ const AdminCoursesPage = () => {
                 <Button
                   variant="contained"
                   color="success"
-                  sx={{ borderRadius: 999, px: 4 }}
+                  className={styles.roundButtonWide}
                   onClick={handleSave}
                 >
                   שמירה
@@ -678,7 +683,7 @@ const AdminCoursesPage = () => {
 
                 <Button
                   variant="outlined"
-                  sx={{ borderRadius: 999, px: 4 }}
+                  className={styles.roundButtonWide}
                   onClick={resetForm}
                 >
                   ניקוי שדות
@@ -686,7 +691,7 @@ const AdminCoursesPage = () => {
 
                 <Button
                   variant="text"
-                  sx={{ borderRadius: 999, px: 2 }}
+                  className={styles.roundButton}
                   onClick={() => {
                     setTab(0);
                     navigate("/admin/courses");

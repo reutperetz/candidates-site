@@ -1,0 +1,12 @@
+{
+  "items": [
+    {
+      "title": "Client-side data fetching",
+      "body": "Axios is used to load these resources from a local JSON file."
+    },
+    {
+      "title": "Incremental knowledge",
+      "body": "Small, focused learning blocks help keep the onboarding process clear."
+    }
+  ]
+}

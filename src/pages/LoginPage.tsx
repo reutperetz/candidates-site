@@ -18,46 +18,65 @@ import LockOutlinedIcon from "@mui/icons-material/LockOutlined";
 import Visibility from "@mui/icons-material/Visibility";
 import VisibilityOff from "@mui/icons-material/VisibilityOff";
 import { useNavigate } from "react-router-dom";
+import {
+  signInAnonymously,
+  signInWithEmailAndPassword,
+  type AuthError,
+} from "firebase/auth";
+import { auth } from "../firebase";
+
+const getAuthErrorText = (err: AuthError) => {
+  switch (err.code) {
+    case "auth/invalid-credential":
+    case "auth/user-not-found":
+    case "auth/wrong-password":
+      return "פרטי ההתחברות שגויים.";
+    case "auth/too-many-requests":
+      return "ניסיון התחברות רב מדי. נסי שוב בעוד כמה דקות.";
+    default:
+      return "שגיאה בהתחברות. נסי שוב.";
+  }
+};
 
 const LoginPage = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [openSnack, setOpenSnack] = useState(false);
+  const [errorSnack, setErrorSnack] = useState<string | null>(null);
 
   const [identifier, setIdentifier] = useState("");
   const [password, setPassword] = useState("");
 
   const navigate = useNavigate();
 
-  const fireAuthChanged = () => window.dispatchEvent(new Event("auth-changed"));
+  const handleLogin = async () => {
+    if (!identifier.trim() || !password.trim()) {
+      setErrorSnack("נא למלא אימייל וסיסמה.");
+      return;
+    }
 
-  const handleLogin = () => {
-    // פה בעתיד תחברי API אמיתי. כרגע רק דמו:
-    localStorage.setItem("authUser", identifier || "candidate");
-    localStorage.setItem("authRole", "candidate");
-
-    setOpenSnack(true);
-    fireAuthChanged();
-
-    // אופציונלי: להעביר לדף בית אחרי התחברות
-    // setTimeout(() => navigate("/"), 700);
+    try {
+      await signInWithEmailAndPassword(auth, identifier.trim(), password);
+      setOpenSnack(true);
+      setErrorSnack(null);
+      setTimeout(() => navigate("/"), 400);
+    } catch (err) {
+      setErrorSnack(getAuthErrorText(err as AuthError));
+    }
   };
 
-  const handleGuest = () => {
-    localStorage.setItem("authUser", "guest");
-    localStorage.setItem("authRole", "guest");
-
-    setOpenSnack(true);
-    fireAuthChanged();
-
-    // אופציונלי: להעביר לדף בית
-    // setTimeout(() => navigate("/"), 700);
+  const handleGuest = async () => {
+    try {
+      await signInAnonymously(auth);
+      setOpenSnack(true);
+      setErrorSnack(null);
+      setTimeout(() => navigate("/"), 400);
+    } catch {
+      setErrorSnack("שגיאה בהתחברות כאורח. נסי שוב.");
+    }
   };
 
   const handleGoToRegister = () => {
-    // מעבר למסך הבית + גלילה לטופס הרשמה
     navigate("/");
-
-    // אם לטופס הרשמה במסך הבית יש id="register" זה יגלול אליו
     setTimeout(() => {
       const el = document.getElementById("register");
       if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
@@ -72,7 +91,7 @@ const LoginPage = () => {
           המחלקה למדעי המחשב
         </Typography>
         <Typography variant="body2" align="center" color="text.secondary" mb={3}>
-          מידע לסטודנטים – מחלקה למדעי המחשב
+          מידע לסטודנטים – המחלקה למדעי המחשב
         </Typography>
 
         <Paper elevation={3} sx={{ borderRadius: 3, overflow: "hidden" }}>
@@ -80,14 +99,16 @@ const LoginPage = () => {
             <Typography variant="h6" fontWeight={700}>
               התחברות למערכת
             </Typography>
-            <Typography variant="body2">מידע לסטודנטים – מחלקה למדעי המחשב</Typography>
+            <Typography variant="body2">
+              מידע לסטודנטים – המחלקה למדעי המחשב
+            </Typography>
           </Box>
 
           <Box sx={{ p: 3, bgcolor: "background.paper" }}>
             <TextField
               fullWidth
               margin="normal"
-              label="תעודת זהות / אימייל"
+              label="אימייל"
               variant="outlined"
               value={identifier}
               onChange={(e) => setIdentifier(e.target.value)}
@@ -148,7 +169,7 @@ const LoginPage = () => {
               sx={{ borderRadius: 999, py: 1.1 }}
               onClick={handleGuest}
             >
-              כניסה ללא הזדהות (אורח בלבד)
+              כניסה כאורח (ללא הזדהות)
             </Button>
 
             <Box mt={3} textAlign="center">
@@ -156,7 +177,6 @@ const LoginPage = () => {
                 עדיין לא נרשמת?
               </Typography>
 
-              {/* במקום href="#" — ניווט תקין */}
               <Button variant="text" onClick={handleGoToRegister} sx={{ mt: 0.5 }}>
                 הרשמה עכשיו
               </Button>
@@ -174,10 +194,20 @@ const LoginPage = () => {
             התחברת בהצלחה
           </Alert>
         </Snackbar>
+
+        <Snackbar
+          open={!!errorSnack}
+          autoHideDuration={2800}
+          onClose={() => setErrorSnack(null)}
+          anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
+        >
+          <Alert onClose={() => setErrorSnack(null)} severity="error" variant="filled">
+            {errorSnack}
+          </Alert>
+        </Snackbar>
       </Container>
     </Box>
   );
 };
 
 export default LoginPage;
-
