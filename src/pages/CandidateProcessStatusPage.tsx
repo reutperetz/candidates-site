@@ -17,6 +17,8 @@ import RadioButtonUncheckedIcon from "@mui/icons-material/RadioButtonUnchecked";
 import { collection, onSnapshot, query, where, type Timestamp } from "firebase/firestore";
 import { db } from "../firebase";
 
+import styles from "./CandidateProcessStatusPage.module.css";
+
 type StageType =
   | "הרשמה בוצעה"
   | "חישוב סיכויים"
@@ -197,7 +199,6 @@ const CandidateProcessStatusPage = () => {
   }, [candidateId, localRegisteredAt]);
 
   const displayed = current ?? derivedCurrent ?? derivedLocal;
-
   const currentStageIndex = displayed ? stageOrder.indexOf(displayed.stage) : -1;
 
   const handleCheck = () => {
@@ -211,16 +212,16 @@ const CandidateProcessStatusPage = () => {
 
   return (
     <Box dir="rtl">
-      <Container maxWidth="md" sx={{ mt: 4, mb: 6 }}>
+      <Container maxWidth="md" className={styles.content}>
         <Typography variant="h6" align="center" fontWeight={700} color="success.main">
           סטטוס תהליך מועמדות
         </Typography>
-        <Typography variant="body2" align="center" color="text.secondary" mb={3}>
+        <Typography variant="body2" align="center" color="text.secondary" className={styles.subtitle}>
           כאן ניתן לראות את ההתקדמות בשלבי הקבלה והקרבה להתקבל.
         </Typography>
 
-        <Paper elevation={3} sx={{ borderRadius: 3, p: 3, mb: 3, bgcolor: "background.paper" }}>
-          {isLoading && <LinearProgress sx={{ mb: 2 }} />}
+        <Paper elevation={3} className={styles.card}>
+          {isLoading && <LinearProgress className={styles.loadingBar} />}
           <Stack direction={{ xs: "column", sm: "row" }} spacing={2} alignItems="center">
             <TextField
               fullWidth
@@ -231,7 +232,12 @@ const CandidateProcessStatusPage = () => {
               helperText={error || 'הזיני ת"ז כדי לצפות בסטטוס'}
               inputProps={{ inputMode: "numeric", maxLength: 9 }}
             />
-            <Button variant="contained" color="success" onClick={handleCheck} sx={{ px: 4 }}>
+            <Button
+              variant="contained"
+              color="success"
+              onClick={handleCheck}
+              className={styles.checkButton}
+            >
               הצג סטטוס
             </Button>
           </Stack>
@@ -246,14 +252,14 @@ const CandidateProcessStatusPage = () => {
         )}
 
         {displayed && (
-          <Paper elevation={3} sx={{ borderRadius: 3, p: 3, bgcolor: "background.paper" }}>
+          <Paper elevation={3} className={styles.card}>
             <Stack spacing={2}>
               <Box>
                 <Typography variant="subtitle1" fontWeight={700}>
                   השלב הנוכחי: {displayed.stage}
                 </Typography>
                 <Typography variant="body2" color="text.secondary">
-                  אחוז התקדמות: {displayed.progressPercent}% (מקסימום לשלב:{" "}
+                  אחוז ההתקדמות: {displayed.progressPercent}% (מקסימום לשלב:{" "}
                   {stageMaxPercent[displayed.stage]}%)
                 </Typography>
               </Box>
@@ -262,7 +268,7 @@ const CandidateProcessStatusPage = () => {
                 <LinearProgress
                   variant="determinate"
                   value={Math.min(100, Math.max(0, displayed.progressPercent))}
-                  sx={{ height: 10, borderRadius: 6 }}
+                  className={styles.progressBar}
                 />
               </Box>
 
@@ -280,7 +286,11 @@ const CandidateProcessStatusPage = () => {
                         <Typography variant="body2" fontWeight={done ? 700 : 500}>
                           {stage}
                         </Typography>
-                        <Chip label={`עד ${stageMaxPercent[stage]}%`} size="small" variant="outlined" />
+                        <Chip
+                          label={`עד ${stageMaxPercent[stage]}%`}
+                          size="small"
+                          variant="outlined"
+                        />
                       </Stack>
                     </Grid>
                   );
@@ -317,7 +327,7 @@ const CandidateProcessStatusPage = () => {
 };
 
 const AlertBlock = ({ text }: { text: string }) => (
-  <Paper elevation={0} sx={{ borderRadius: 2, p: 2, bgcolor: "background.paper", mb: 2 }}>
+  <Paper elevation={0} className={styles.alertCard}>
     <Typography variant="body2" color="text.secondary" align="center">
       {text}
     </Typography>
@@ -325,8 +335,8 @@ const AlertBlock = ({ text }: { text: string }) => (
 );
 
 const InfoCard = ({ title, value }: { title: string; value: string }) => (
-  <Paper elevation={0} sx={{ borderRadius: 2, p: 2, bgcolor: "background.paper" }}>
-    <Typography variant="subtitle2" fontWeight={700} mb={0.5}>
+  <Paper elevation={0} className={styles.infoCard}>
+    <Typography variant="subtitle2" fontWeight={700} className={styles.infoTitle}>
       {title}
     </Typography>
     <Typography variant="body2" color="text.secondary">

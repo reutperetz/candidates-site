@@ -1,0 +1,46 @@
+.content {
+  margin-top: 32px;
+  margin-bottom: 48px;
+}
+
+.subtitle {
+  margin-bottom: 24px;
+}
+
+.card {
+  border-radius: 24px;
+  padding: 24px;
+  margin-bottom: 24px;
+  background-color: var(--mui-palette-background-paper, #ffffff);
+}
+
+.loadingBar {
+  margin-bottom: 16px;
+}
+
+.checkButton {
+  padding-left: 32px;
+  padding-right: 32px;
+}
+
+.progressBar {
+  height: 10px;
+  border-radius: 12px;
+}
+
+.alertCard {
+  border-radius: 16px;
+  padding: 16px;
+  margin-bottom: 16px;
+  background-color: var(--mui-palette-background-paper, #ffffff);
+}
+
+.infoCard {
+  border-radius: 16px;
+  padding: 16px;
+  background-color: var(--mui-palette-background-paper, #ffffff);
+}
+
+.infoTitle {
+  margin-bottom: 4px;
+}

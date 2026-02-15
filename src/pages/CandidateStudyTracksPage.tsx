@@ -20,6 +20,8 @@ import InfoOutlinedIcon from "@mui/icons-material/InfoOutlined";
 import { collection, onSnapshot, type Timestamp } from "firebase/firestore";
 import { db } from "../firebase";
 
+import styles from "./CandidateStudyTracksPage.module.css";
+
 type TrackStatus = "active" | "inactive";
 
 type StudyTrack = {
@@ -135,15 +137,9 @@ const CandidateStudyTracksPage = () => {
     return (
       <Card
         key={track.docId}
-        sx={{
-          height: "100%",
-          borderRadius: 3,
-          boxShadow: isSelected ? "0 6px 16px rgba(46,125,50,0.25)" : 2,
-          border: isSelected ? "1px solid" : "1px solid transparent",
-          borderColor: isSelected ? "success.main" : "transparent",
-        }}
+        className={`${styles.trackCard} ${isSelected ? styles.trackCardSelected : ""}`}
       >
-        <CardContent sx={{ display: "flex", flexDirection: "column", gap: 1.5 }}>
+        <CardContent className={styles.trackCardContent}>
           <Stack direction="row" justifyContent="space-between" alignItems="center">
             <Typography variant="h6" fontWeight={700}>
               {track.name || "מסלול ללא שם"}
@@ -159,7 +155,9 @@ const CandidateStudyTracksPage = () => {
             {track.code || "—"}
           </Typography>
 
-          <Typography variant="body2">{track.description || "אין תיאור מסלול."}</Typography>
+          <Typography variant="body2">
+            {track.description || "אין תיאור מסלול."}
+          </Typography>
 
           {track.notes && (
             <Alert icon={<InfoOutlinedIcon fontSize="small" />} severity="warning">
@@ -171,7 +169,7 @@ const CandidateStudyTracksPage = () => {
             עודכן: {track.updatedAt?.toDate ? formatDateTimeIL(track.updatedAt.toDate()) : "—"}
           </Typography>
 
-          <Box mt="auto" display="flex" justifyContent="space-between" alignItems="center">
+          <Box className={styles.trackCardActions}>
             {isSelected ? (
               <Chip icon={<CheckCircleIcon />} label="מסלול נבחר" color="success" />
             ) : (
@@ -193,18 +191,18 @@ const CandidateStudyTracksPage = () => {
 
   return (
     <Box dir="rtl">
-      <Container maxWidth="lg" sx={{ mt: 4, mb: 6 }}>
+      <Container maxWidth="lg" className={styles.content}>
         <Typography variant="h6" align="center" fontWeight={700} color="success.main">
           מסלולי לימוד
         </Typography>
-        <Typography variant="body2" align="center" color="text.secondary" mb={3}>
+        <Typography variant="body2" align="center" color="text.secondary" className={styles.subtitle}>
           כאן ניתן לבחור מסלול לימודים מועדף ולראות פרטים על כל מסלול.
         </Typography>
 
-        <Paper elevation={3} sx={{ borderRadius: 3, p: 3, bgcolor: "background.paper" }}>
-          {isLoading && <LinearProgress sx={{ mb: 2 }} />}
+        <Paper elevation={3} className={styles.card}>
+          {isLoading && <LinearProgress className={styles.loadingBar} />}
 
-          <Box mb={2}>
+          <Box className={styles.section}>
             <Typography variant="h6" fontWeight={700}>
               מסלולי לימוד פעילים
             </Typography>
@@ -214,12 +212,12 @@ const CandidateStudyTracksPage = () => {
           </Box>
 
           {activeTracks.length === 0 && !isLoading && (
-            <Alert severity="warning" sx={{ mb: 3 }}>
+            <Alert severity="warning" className={styles.sectionAlert}>
               אין מסלולים פעילים כרגע. ניתן לצפות במסלולים שאינם פעילים בלבד.
             </Alert>
           )}
 
-          <Grid container spacing={2} sx={{ mb: 4 }}>
+          <Grid container spacing={2} className={styles.sectionGrid}>
             {activeTracks.map((track) => (
               <Grid item xs={12} md={6} lg={4} key={track.docId}>
                 {renderTrackCard(track)}
@@ -227,7 +225,7 @@ const CandidateStudyTracksPage = () => {
             ))}
           </Grid>
 
-          <Box mb={2}>
+          <Box className={styles.section}>
             <Typography variant="h6" fontWeight={700}>
               מסלולים לא פעילים
             </Typography>

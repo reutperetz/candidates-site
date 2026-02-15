@@ -1,0 +1,56 @@
+.content {
+  margin-top: 32px;
+  margin-bottom: 48px;
+}
+
+.subtitle {
+  margin-bottom: 24px;
+}
+
+.card {
+  border-radius: 24px;
+  padding: 24px;
+  background-color: var(--mui-palette-background-paper, #ffffff);
+}
+
+.loadingBar {
+  margin-bottom: 16px;
+}
+
+.section {
+  margin-bottom: 16px;
+}
+
+.sectionAlert {
+  margin-bottom: 24px;
+}
+
+.sectionGrid {
+  margin-bottom: 32px;
+}
+
+.trackCard {
+  height: 100%;
+  border-radius: 24px;
+  border: 1px solid transparent;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.12);
+}
+
+.trackCardSelected {
+  border-color: var(--mui-palette-success-main, #2e7d32);
+  box-shadow: 0 6px 16px rgba(46, 125, 50, 0.25);
+}
+
+.trackCardContent {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  height: 100%;
+}
+
+.trackCardActions {
+  margin-top: auto;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}

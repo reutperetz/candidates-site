@@ -1,0 +1,58 @@
+.content {
+  margin-top: 32px;
+  margin-bottom: 32px;
+}
+
+.subtitle {
+  margin-bottom: 24px;
+}
+
+.card {
+  border-radius: 24px;
+  overflow: hidden;
+}
+
+.cardHeader {
+  background-color: var(--mui-palette-success-main, #2e7d32);
+  color: var(--mui-palette-success-contrastText, #ffffff);
+  padding: 24px;
+  text-align: center;
+}
+
+.cardBody {
+  padding: 24px;
+  background-color: var(--mui-palette-background-paper, #ffffff);
+}
+
+.loginButton {
+  margin-top: 16px;
+  border-radius: 999px;
+  padding-top: 9.6px;
+  padding-bottom: 9.6px;
+}
+
+.dividerRow {
+  margin: 20px 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.dividerLine {
+  flex: 1;
+}
+
+.guestButton {
+  border-radius: 999px;
+  padding-top: 8.8px;
+  padding-bottom: 8.8px;
+}
+
+.registerRow {
+  margin-top: 24px;
+  text-align: center;
+}
+
+.registerButton {
+  margin-top: 4px;
+}

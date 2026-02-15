@@ -25,6 +25,8 @@ import {
 } from "firebase/auth";
 import { auth } from "../firebase";
 
+import styles from "./LoginPage.module.css";
+
 const getAuthErrorText = (err: AuthError) => {
   switch (err.code) {
     case "auth/invalid-credential":
@@ -86,16 +88,16 @@ const LoginPage = () => {
 
   return (
     <Box dir="rtl">
-      <Container maxWidth="sm" sx={{ mt: 4, mb: 4 }}>
+      <Container maxWidth="sm" className={styles.content}>
         <Typography variant="h6" align="center" fontWeight={700} color="success.main">
           המחלקה למדעי המחשב
         </Typography>
-        <Typography variant="body2" align="center" color="text.secondary" mb={3}>
+        <Typography variant="body2" align="center" color="text.secondary" className={styles.subtitle}>
           מידע לסטודנטים – המחלקה למדעי המחשב
         </Typography>
 
-        <Paper elevation={3} sx={{ borderRadius: 3, overflow: "hidden" }}>
-          <Box sx={{ bgcolor: "success.main", color: "success.contrastText", p: 3, textAlign: "center" }}>
+        <Paper elevation={3} className={styles.card}>
+          <Box className={styles.cardHeader}>
             <Typography variant="h6" fontWeight={700}>
               התחברות למערכת
             </Typography>
@@ -104,7 +106,7 @@ const LoginPage = () => {
             </Typography>
           </Box>
 
-          <Box sx={{ p: 3, bgcolor: "background.paper" }}>
+          <Box className={styles.cardBody}>
             <TextField
               fullWidth
               margin="normal"
@@ -149,35 +151,35 @@ const LoginPage = () => {
               fullWidth
               variant="contained"
               startIcon={<LoginIcon />}
-              sx={{ mt: 2, borderRadius: 999, py: 1.2 }}
+              className={styles.loginButton}
               onClick={handleLogin}
             >
               כניסה
             </Button>
 
-            <Box sx={{ my: 2.5, display: "flex", alignItems: "center", gap: 1 }}>
-              <Divider sx={{ flex: 1 }} />
+            <Box className={styles.dividerRow}>
+              <Divider className={styles.dividerLine} />
               <Typography variant="body2" color="text.secondary">
                 או
               </Typography>
-              <Divider sx={{ flex: 1 }} />
+              <Divider className={styles.dividerLine} />
             </Box>
 
             <Button
               fullWidth
               variant="outlined"
-              sx={{ borderRadius: 999, py: 1.1 }}
+              className={styles.guestButton}
               onClick={handleGuest}
             >
               כניסה כאורח (ללא הזדהות)
             </Button>
 
-            <Box mt={3} textAlign="center">
+            <Box className={styles.registerRow}>
               <Typography variant="body2" color="text.secondary">
                 עדיין לא נרשמת?
               </Typography>
 
-              <Button variant="text" onClick={handleGoToRegister} sx={{ mt: 0.5 }}>
+              <Button variant="text" onClick={handleGoToRegister} className={styles.registerButton}>
                 הרשמה עכשיו
               </Button>
             </Box>
