@@ -1,0 +1,68 @@
+.appBar {
+  background: linear-gradient(
+    135deg,
+    var(--mui-palette-primary-dark, #1b5e20) 0%,
+    var(--mui-palette-secondary-main, #2e7d32) 100%
+  );
+  color: var(--mui-palette-primary-contrastText, #ffffff);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.toolbar {
+  direction: rtl;
+}
+
+.menuButton {
+  margin-left: 8px;
+}
+
+.brand {
+  flex-grow: 1;
+  color: inherit;
+  font-weight: 700;
+  cursor: pointer;
+  letter-spacing: 0.5px;
+  user-select: none;
+  text-align: right;
+}
+
+.authRow {
+  margin-right: 8px;
+}
+
+.authChip {
+  background-color: rgba(255, 255, 255, 0.18);
+  color: inherit;
+}
+
+.modeButton {
+  margin-right: 8px;
+}
+
+.modeToggle {
+  display: flex;
+}
+
+@media (max-width: 899px) {
+  .modeToggle {
+    display: none;
+  }
+}
+
+.drawerPaper {
+  direction: rtl;
+}
+
+.drawerNav {
+  width: 280px;
+}
+
+.drawerItemText {
+  text-align: right;
+}
+
+.drawerActions {
+  padding: 16px;
+  display: grid;
+  gap: 8px;
+}
