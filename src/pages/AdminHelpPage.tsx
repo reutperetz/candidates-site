@@ -10,7 +10,6 @@ import {
   ListItemText,
   Divider,
   Chip,
-  Stack,
   Link,
 } from "@mui/material";
 
@@ -19,12 +18,13 @@ import CheckCircleOutlineIcon from "@mui/icons-material/CheckCircleOutline";
 import InfoOutlinedIcon from "@mui/icons-material/InfoOutlined";
 import SupportAgentIcon from "@mui/icons-material/SupportAgent";
 
+import styles from "./AdminHelpPage.module.css";
+
 const AdminHelpPage = () => {
   return (
-    <Box dir="rtl" sx={{ bgcolor: "background.default", minHeight: "100vh", py: 4 }}>
+    <Box dir="rtl" className={styles.page}>
       <Container maxWidth="md">
-        {/* כותרת עליונה */}
-        <Box textAlign="center" mb={3}>
+        <Box className={styles.header}>
           <Typography variant="h5" fontWeight={700} color="success.main">
             המחלקה למדעי המחשב
           </Typography>
@@ -33,27 +33,22 @@ const AdminHelpPage = () => {
           </Typography>
         </Box>
 
-        {/* קופסת מדריך מנהל */}
-        <Paper
-          elevation={3}
-          sx={{ p: 3, mb: 3, borderRadius: 3, bgcolor: "background.paper" }}
-        >
-          <Stack direction="row" spacing={1} alignItems="center" mb={2}>
+        <Paper elevation={3} className={styles.card}>
+          <Box className={styles.sectionHeader}>
             <HelpOutlineIcon color="action" />
             <Typography variant="h6" fontWeight={600}>
               מדריך מנהל
             </Typography>
             <Chip label="טיפים והנחיות" size="small" color="success" />
-          </Stack>
+          </Box>
 
-          {/* ניהול קורסים */}
-          <Box mb={3}>
-            <Stack direction="row" spacing={1} alignItems="center" mb={1}>
+          <Box className={styles.section}>
+            <Box className={styles.sectionHeader}>
               <CheckCircleOutlineIcon color="success" fontSize="small" />
               <Typography variant="subtitle1" fontWeight={600}>
                 ניהול קורסים
               </Typography>
-            </Stack>
+            </Box>
             <List dense>
               <ListItem>
                 <ListItemIcon>
@@ -82,16 +77,15 @@ const AdminHelpPage = () => {
             </List>
           </Box>
 
-          <Divider sx={{ my: 2 }} />
+          <Divider className={styles.sectionDivider} />
 
-          {/* הגדרת תנאי קבלה */}
-          <Box mb={3}>
-            <Stack direction="row" spacing={1} alignItems="center" mb={1}>
+          <Box className={styles.section}>
+            <Box className={styles.sectionHeader}>
               <CheckCircleOutlineIcon color="success" fontSize="small" />
               <Typography variant="subtitle1" fontWeight={600}>
                 הגדרת תנאי קבלה
               </Typography>
-            </Stack>
+            </Box>
             <List dense>
               <ListItem>
                 <ListItemIcon>
@@ -120,16 +114,15 @@ const AdminHelpPage = () => {
             </List>
           </Box>
 
-          <Divider sx={{ my: 2 }} />
+          <Divider className={styles.sectionDivider} />
 
-          {/* בדיקת מועמדים */}
-          <Box mb={3}>
-            <Stack direction="row" spacing={1} alignItems="center" mb={1}>
+          <Box className={styles.section}>
+            <Box className={styles.sectionHeader}>
               <CheckCircleOutlineIcon color="success" fontSize="small" />
               <Typography variant="subtitle1" fontWeight={600}>
                 בדיקת מועמדים
               </Typography>
-            </Stack>
+            </Box>
             <List dense>
               <ListItem>
                 <ListItemIcon>
@@ -158,16 +151,15 @@ const AdminHelpPage = () => {
             </List>
           </Box>
 
-          <Divider sx={{ my: 2 }} />
+          <Divider className={styles.sectionDivider} />
 
-          {/* ניהול משתמשי מערכת */}
-          <Box mb={3}>
-            <Stack direction="row" spacing={1} alignItems="center" mb={1}>
+          <Box className={styles.section}>
+            <Box className={styles.sectionHeader}>
               <CheckCircleOutlineIcon color="success" fontSize="small" />
               <Typography variant="subtitle1" fontWeight={600}>
                 ניהול משתמשי מערכת
               </Typography>
-            </Stack>
+            </Box>
             <List dense>
               <ListItem>
                 <ListItemIcon>
@@ -196,16 +188,15 @@ const AdminHelpPage = () => {
             </List>
           </Box>
 
-          <Divider sx={{ my: 2 }} />
+          <Divider className={styles.sectionDivider} />
 
-          {/* התראות והודעות */}
-          <Box mb={3}>
-            <Stack direction="row" spacing={1} alignItems="center" mb={1}>
+          <Box className={styles.section}>
+            <Box className={styles.sectionHeader}>
               <InfoOutlinedIcon color="primary" fontSize="small" />
               <Typography variant="subtitle1" fontWeight={600}>
                 התראות והודעות
               </Typography>
-            </Stack>
+            </Box>
             <List dense>
               <ListItem>
                 <ListItemIcon>
@@ -228,16 +219,15 @@ const AdminHelpPage = () => {
             </List>
           </Box>
 
-          <Divider sx={{ my: 2 }} />
+          <Divider className={styles.sectionDivider} />
 
-          {/* טיפים לעבודה נכונה */}
-          <Box mb={3}>
-            <Stack direction="row" spacing={1} alignItems="center" mb={1}>
+          <Box className={styles.section}>
+            <Box className={styles.sectionHeader}>
               <InfoOutlinedIcon color="success" fontSize="small" />
               <Typography variant="subtitle1" fontWeight={600}>
                 טיפים לעבודה נכונה
               </Typography>
-            </Stack>
+            </Box>
             <List dense>
               <ListItem>
                 <ListItemIcon>
@@ -260,17 +250,16 @@ const AdminHelpPage = () => {
             </List>
           </Box>
 
-          <Divider sx={{ my: 2 }} />
+          <Divider className={styles.sectionDivider} />
 
-          {/* תמיכה טכנית */}
           <Box>
-            <Stack direction="row" spacing={1} alignItems="center" mb={1}>
+            <Box className={styles.sectionHeader}>
               <SupportAgentIcon color="primary" fontSize="small" />
               <Typography variant="subtitle1" fontWeight={600}>
                 תמיכה טכנית
               </Typography>
-            </Stack>
-            <Typography variant="body2" color="text.secondary" mb={1}>
+            </Box>
+            <Typography variant="body2" color="text.secondary" className={styles.supportText}>
               לשאלות ותקלות טכניות ניתן לפנות לצוות התמיכה:
             </Typography>
             <List dense>
@@ -293,7 +282,7 @@ const AdminHelpPage = () => {
                 <ListItemIcon>
                   <SupportAgentIcon color="primary" />
                 </ListItemIcon>
-                <ListItemText primary="שעות פעילות: א'–ה' 08:00–16:00" />
+                <ListItemText primary="שעות פעילות: א׳–ה׳ 08:00–16:00" />
               </ListItem>
             </List>
           </Box>
@@ -304,4 +293,3 @@ const AdminHelpPage = () => {
 };
 
 export default AdminHelpPage;
-

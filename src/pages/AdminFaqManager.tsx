@@ -1,4 +1,4 @@
-// src/pages/AdminFaqManager.tsx
+﻿// src/pages/AdminFaqManager.tsx
 import { useEffect, useRef, useState } from "react";
 import {
   Box,
@@ -27,6 +27,7 @@ import {
 import AddIcon from "@mui/icons-material/Add";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
+import styles from "./AdminFaqManager.module.css";
 
 import {
   addDoc,
@@ -264,26 +265,22 @@ export default function AdminFaqManager() {
 
   return (
     <Box dir="rtl">
-      <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
-        <Typography variant="h6" align="center" fontWeight={700} color="success.main">
+      <Container maxWidth="lg" className={styles.page}>
+        <Typography variant="h6" align="center" className={styles.pageTitle}>
           המחלקה למדעי המחשב
         </Typography>
-        <Typography variant="body2" align="center" color="text.secondary" mb={3}>
+        <Typography variant="body2" align="center" className={styles.pageSubtitle}>
           מערכת ניהול – שאלות נפוצות
         </Typography>
 
-        <Paper elevation={3} sx={{ borderRadius: 3, p: 2, mb: 3 }}>
+        <Paper elevation={3} className={styles.tabsPaper}>
           <Tabs
             value={tab}
             onChange={(_, v) => setTab(v)}
             centered
             textColor="primary"
             indicatorColor="primary"
-            sx={{
-              "& .MuiTab-root": { fontWeight: 600 },
-              "& .MuiTab-root.Mui-selected": { color: "success.main" },
-              "& .MuiTabs-indicator": { backgroundColor: "success.main" },
-            }}
+            className={styles.tabs}
           >
             <Tab label="רשימת שאלות נפוצות" />
             <Tab label="יצירת שאלה נפוצה חדשה" />
@@ -291,10 +288,10 @@ export default function AdminFaqManager() {
         </Paper>
 
         {tab === 0 && (
-          <Paper elevation={3} sx={{ p: 3, borderRadius: 3 }}>
-            {isLoading && <LinearProgress sx={{ mb: 2 }} />}
-            <Box mb={2} display="flex" justifyContent="space-between" alignItems="center" flexWrap="wrap" gap={2}>
-              <Typography variant="h5" fontWeight={600}>
+          <Paper elevation={3} className={styles.listPaper}>
+            {isLoading && <LinearProgress className={styles.loadingBar} />}
+            <Box className={styles.listHeader}>
+              <Typography variant="h5" className={styles.listTitle}>
                 רשימת שאלות נפוצות
               </Typography>
 
@@ -302,7 +299,7 @@ export default function AdminFaqManager() {
                 variant="contained"
                 color="success"
                 startIcon={<AddIcon />}
-                sx={{ borderRadius: 999 }}
+                className={styles.addButton}
                 onClick={() => {
                   resetForm();
                   setTab(1);
@@ -312,11 +309,11 @@ export default function AdminFaqManager() {
               </Button>
             </Box>
 
-            <Typography variant="body2" color="text.secondary" mb={2}>
+            <Typography variant="body2" className={styles.countText}>
               מספר השאלות במערכת: {faqs.length}
             </Typography>
 
-            <Paper elevation={0} sx={{ borderRadius: 3, overflow: "hidden", bgcolor: "background.paper" }}>
+            <Paper elevation={0} className={styles.tablePaper}>
               <Table>
                 <TableHead>
                   <TableRow>
@@ -354,10 +351,10 @@ export default function AdminFaqManager() {
                       </TableCell>
                       <TableCell>{statusChip(item.status)}</TableCell>
                       <TableCell>{formatDate(item.createdAt) || "-"}</TableCell>
-                      <TableCell sx={{ maxWidth: 400 }}>
+                      <TableCell className={styles.answerCell}>
                         <Typography noWrap>{item.answer}</Typography>
                       </TableCell>
-                      <TableCell sx={{ maxWidth: 300 }}>
+                      <TableCell className={styles.questionCell}>
                         <Typography noWrap>{item.question}</Typography>
                       </TableCell>
                     </TableRow>
@@ -369,16 +366,16 @@ export default function AdminFaqManager() {
         )}
 
         {tab === 1 && (
-          <Paper elevation={3} sx={{ p: 3, borderRadius: 3 }}>
-            <Typography variant="h5" fontWeight={600} mb={2}>
+          <Paper elevation={3} className={styles.formPaper}>
+            <Typography variant="h5" className={styles.formTitle}>
               יצירת שאלה נפוצה חדשה
             </Typography>
 
-            <Typography variant="body2" color="text.secondary" mb={3}>
+            <Typography variant="body2" className={styles.formSubtitle}>
               מלאי את שאלתך ואת התשובה שתוצג למועמדים.
             </Typography>
 
-            <Box display="flex" flexDirection="column" gap={3}>
+            <Box className={styles.formStack}>
               <TextField
                 label="שאלה *"
                 multiline
@@ -413,7 +410,7 @@ export default function AdminFaqManager() {
                 <option value="inactive">לא פעיל</option>
               </TextField>
 
-              <Box mt={2} display="flex" justifyContent="space-between" flexWrap="wrap" gap={2}>
+              <Box className={styles.formActions}>
                 <Button variant="text" color="success" onClick={() => setTab(0)}>
                   ⬅ חזרה לרשימת שאלות
                 </Button>
@@ -441,7 +438,7 @@ export default function AdminFaqManager() {
       <Dialog open={editOpen} onClose={() => setEditOpen(false)} fullWidth maxWidth="md">
         <DialogTitle>עריכת שאלה נפוצה</DialogTitle>
         <DialogContent>
-          <Box mt={1} display="flex" flexDirection="column" gap={2}>
+          <Box className={styles.dialogForm}>
             <TextField
               label="שאלה *"
               multiline
@@ -475,7 +472,7 @@ export default function AdminFaqManager() {
             </TextField>
           </Box>
         </DialogContent>
-        <DialogActions sx={{ px: 3, pb: 2 }}>
+        <DialogActions className={styles.dialogActions}>
           <Button onClick={() => setEditOpen(false)}>ביטול</Button>
           <Button variant="contained" color="success" onClick={saveEdit}>
             שמירה
@@ -491,7 +488,7 @@ export default function AdminFaqManager() {
             למחוק את השאלה <b>{selected?.question}</b>?
           </Typography>
         </DialogContent>
-        <DialogActions sx={{ px: 3, pb: 2 }}>
+        <DialogActions className={styles.dialogActions}>
           <Button onClick={() => setDeleteOpen(false)}>ביטול</Button>
           <Button variant="contained" color="error" onClick={confirmDelete}>
             מחיקה
@@ -505,11 +502,12 @@ export default function AdminFaqManager() {
         onClose={() => setSnack((s) => ({ ...s, open: false }))}
         anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
       >
-        <Alert severity={snack.severity} variant="filled" sx={{ width: "100%" }}>
+        <Alert severity={snack.severity} variant="filled" className={styles.snackAlert}>
           {snack.msg}
         </Alert>
       </Snackbar>
     </Box>
   );
 }
+
 

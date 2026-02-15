@@ -1,0 +1,121 @@
+.page {
+  margin-top: 32px;
+  margin-bottom: 32px;
+}
+
+.pageTitle {
+  font-weight: 700;
+  color: #2e7d32;
+}
+
+.pageSubtitle {
+  color: #6b6b6b;
+  margin-bottom: 24px;
+}
+
+.tabsPaper {
+  border-radius: 12px;
+  padding: 16px;
+  margin-bottom: 24px;
+}
+
+.tabs :global(.MuiTab-root) {
+  font-weight: 600;
+}
+
+.tabs :global(.MuiTab-root.Mui-selected) {
+  color: #2e7d32;
+}
+
+.tabs :global(.MuiTabs-indicator) {
+  background-color: #2e7d32;
+}
+
+.listPaper {
+  padding: 24px;
+  border-radius: 12px;
+}
+
+.loadingBar {
+  margin-bottom: 16px;
+}
+
+.listHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.listTitle {
+  font-weight: 600;
+}
+
+.addButton {
+  border-radius: 999px;
+}
+
+.countText {
+  color: #6b6b6b;
+  margin-bottom: 16px;
+}
+
+.tablePaper {
+  border-radius: 12px;
+  overflow: hidden;
+  background-color: #ffffff;
+}
+
+.answerCell {
+  max-width: 400px;
+}
+
+.questionCell {
+  max-width: 300px;
+}
+
+.formPaper {
+  padding: 24px;
+  border-radius: 12px;
+}
+
+.formTitle {
+  font-weight: 600;
+  margin-bottom: 16px;
+}
+
+.formSubtitle {
+  color: #6b6b6b;
+  margin-bottom: 24px;
+}
+
+.formStack {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.formActions {
+  margin-top: 16px;
+  display: flex;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.dialogForm {
+  margin-top: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.dialogActions {
+  padding: 0 24px 16px;
+}
+
+.snackAlert {
+  width: 100%;
+}

@@ -1,0 +1,102 @@
+.page {
+  margin-top: 32px;
+  margin-bottom: 32px;
+}
+
+.pageTitle {
+  font-weight: 700;
+  color: #2e7d32;
+}
+
+.pageSubtitle {
+  color: #6b6b6b;
+  margin-bottom: 24px;
+}
+
+.panel {
+  border-radius: 12px;
+  padding: 24px;
+  background-color: #ffffff;
+}
+
+.loadingBar {
+  margin-bottom: 16px;
+}
+
+.tabs {
+  margin-bottom: 24px;
+}
+
+.tabs :global(.MuiTab-root) {
+  font-weight: 600;
+}
+
+.listHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.listTitle {
+  font-weight: 600;
+}
+
+.addButton {
+  border-radius: 999px;
+  padding-left: 24px;
+  padding-right: 24px;
+}
+
+.countText {
+  color: #6b6b6b;
+  margin-bottom: 16px;
+}
+
+.tablePaper {
+  border-radius: 12px;
+  overflow: hidden;
+  background-color: #ffffff;
+}
+
+.infoBox {
+  margin-top: 16px;
+}
+
+.formActions {
+  margin-top: 32px;
+  display: flex;
+  justify-content: center;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.primaryButton {
+  border-radius: 999px;
+  padding-left: 32px;
+  padding-right: 32px;
+}
+
+.secondaryButton {
+  border-radius: 999px;
+  padding-left: 32px;
+  padding-right: 32px;
+}
+
+.textButton {
+  border-radius: 999px;
+}
+
+.dialogTitle {
+  font-weight: 700;
+}
+
+.dialogGrid {
+  margin-top: 4px;
+}
+
+.dialogActions {
+  padding: 16px;
+}

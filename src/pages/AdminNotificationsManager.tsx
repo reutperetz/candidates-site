@@ -1,4 +1,4 @@
-// src/pages/AdminNotificationsManager.tsx
+﻿// src/pages/AdminNotificationsManager.tsx
 import { useMemo, useState } from "react";
 import {
   Box,
@@ -26,6 +26,7 @@ import {
 import AddIcon from "@mui/icons-material/Add";
 import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
 import EditIcon from "@mui/icons-material/Edit";
+import styles from "./AdminNotificationsManager.module.css";
 
 interface NotificationItem {
   id: number;
@@ -146,25 +147,21 @@ export default function AdminNotificationsManager() {
   };
 
   return (
-    <Container maxWidth="lg" sx={{ mt: 4 }} dir="rtl">
-      <Typography variant="h5" textAlign="center" fontWeight={700} color="success.main">
+    <Container maxWidth="lg" className={styles.page} dir="rtl">
+      <Typography variant="h5" textAlign="center" className={styles.pageTitle}>
         המחלקה למדעי המחשב
       </Typography>
 
-      <Typography variant="body2" textAlign="center" mb={3} color="text.secondary">
+      <Typography variant="body2" textAlign="center" className={styles.pageSubtitle}>
         מערכת ניהול – הודעות
       </Typography>
 
-      <Paper elevation={3} sx={{ borderRadius: 3, p: 2, mb: 3 }}>
+      <Paper elevation={3} className={styles.tabsPaper}>
         <Tabs
           value={tab}
           onChange={(_, v) => setTab(v)}
           centered
-          sx={{
-            "& .MuiTabs-indicator": { bgcolor: "success.main" },
-            "& .MuiTab-root": { fontWeight: 600 },
-            "& .MuiTab-root.Mui-selected": { color: "success.main" },
-          }}
+          className={styles.tabs}
         >
           <Tab label="📢 יצירת הודעה חדשה" />
           <Tab label="📄 רשימת הודעות" />
@@ -173,12 +170,12 @@ export default function AdminNotificationsManager() {
 
       {/* יצירה */}
       {tab === 0 && (
-        <Paper elevation={3} sx={{ p: 4, borderRadius: 3 }}>
-          <Typography variant="h6" fontWeight={600} mb={3}>
+        <Paper elevation={3} className={styles.formPaper}>
+          <Typography variant="h6" className={styles.formTitle}>
             יצירת הודעה חדשה
           </Typography>
 
-          <Box display="flex" flexDirection="column" gap={3}>
+          <Box className={styles.formStack}>
             <TextField
               fullWidth
               label="כותרת *"
@@ -216,7 +213,7 @@ export default function AdminNotificationsManager() {
               <MenuItem value="inactive">לא פעיל</MenuItem>
             </TextField>
 
-            <Box display="flex" justifyContent="space-between" mt={2}>
+            <Box className={styles.formActions}>
               <Button variant="text" color="success" onClick={() => setTab(1)}>
                 ⬅ חזרה לרשימת הודעות
               </Button>
@@ -236,8 +233,8 @@ export default function AdminNotificationsManager() {
 
       {/* רשימה */}
       {tab === 1 && (
-        <Paper elevation={3} sx={{ p: 4, borderRadius: 3 }}>
-          <Box display="flex" justifyContent="flex-start" mb={3}>
+        <Paper elevation={3} className={styles.listPaper}>
+          <Box className={styles.listHeader}>
             <Button variant="contained" startIcon={<AddIcon />} color="success" onClick={() => setTab(0)}>
               יצירת הודעה
             </Button>
@@ -302,7 +299,7 @@ export default function AdminNotificationsManager() {
       <Dialog open={editId != null} onClose={() => setEditId(null)} fullWidth maxWidth="md">
         <DialogTitle>עריכת הודעה</DialogTitle>
         <DialogContent>
-          <Box display="flex" flexDirection="column" gap={2} sx={{ mt: 1 }}>
+          <Box className={styles.dialogForm}>
             <TextField
               fullWidth
               label="כותרת *"
@@ -373,4 +370,5 @@ export default function AdminNotificationsManager() {
     </Container>
   );
 }
+
 

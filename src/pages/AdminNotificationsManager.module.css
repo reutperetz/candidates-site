@@ -1,0 +1,71 @@
+.page {
+  margin-top: 32px;
+}
+
+.pageTitle {
+  font-weight: 700;
+  color: #2e7d32;
+}
+
+.pageSubtitle {
+  color: #6b6b6b;
+  margin-bottom: 24px;
+}
+
+.tabsPaper {
+  border-radius: 12px;
+  padding: 16px;
+  margin-bottom: 24px;
+}
+
+.tabs :global(.MuiTabs-indicator) {
+  background-color: #2e7d32;
+}
+
+.tabs :global(.MuiTab-root) {
+  font-weight: 600;
+}
+
+.tabs :global(.MuiTab-root.Mui-selected) {
+  color: #2e7d32;
+}
+
+.formPaper {
+  padding: 32px;
+  border-radius: 12px;
+}
+
+.formTitle {
+  font-weight: 600;
+  margin-bottom: 24px;
+}
+
+.formStack {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.formActions {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 16px;
+}
+
+.listPaper {
+  padding: 32px;
+  border-radius: 12px;
+}
+
+.listHeader {
+  display: flex;
+  justify-content: flex-start;
+  margin-bottom: 24px;
+}
+
+.dialogForm {
+  margin-top: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}

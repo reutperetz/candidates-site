@@ -1,4 +1,4 @@
-// src/pages/AdminCoursesPage.tsx
+﻿// src/pages/AdminCoursesPage.tsx
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import {
@@ -28,6 +28,7 @@ import AddIcon from "@mui/icons-material/Add";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
 import styles from "../styles/adminShared.module.css";
+import pageStyles from "./AdminCoursesPage.module.css";
 
 import {
   addDoc,
@@ -63,6 +64,22 @@ interface Course {
 type CourseDoc = Omit<Course, "docId">;
 
 // נתוני דמה התחלתיים (עכשיו נשמרים ב-state כדי לערוך/למחוק)
+
+const normalizeStatus = (raw: string | undefined): CourseStatus => {
+  if (!raw) return "active";
+  if (raw === "active" || raw === "not-active") return raw;
+  let value = raw;
+  if (value.includes("×")) {
+    try {
+      value = decodeURIComponent(escape(value));
+    } catch {
+      // Keep original value if decoding fails
+    }
+  }
+  if (value === "פעיל") return "active";
+  if (value === "לא פעיל") return "not-active";
+  return "active";
+};
 
 const statusChip = (status: CourseStatus) => {
   switch (status) {
@@ -138,7 +155,7 @@ function validateCourse(form: FormState, courses: Course[], editingDocId: string
     const p = Number(form.points);
     if (!Number.isFinite(p)) errors.points = 'נק"ז חייב להיות מספר';
     else if (!Number.isInteger(p)) errors.points = 'נק"ז חייב להיות מספר שלם';
-    else if (p < 1 || p > 10) errors.points = 'נק"ז חייב להיות בין 1 ל-10';
+    else if (p < 1 || p > 10) errors.points = '??"ז חייב להיות בין 1 ל-10';
   }
 
   if (desc.length > 500) errors.description = "תיאור יכול להיות עד 500 תווים";
@@ -304,7 +321,7 @@ const AdminCoursesPage = () => {
             year: data.year ?? "\u05d0",
             semester: data.semester ?? "\u05d0",
             points: Number(data.points ?? 0),
-            status: data.status ?? "active",
+            status: normalizeStatus(data.status as string | undefined),
             description: data.description ?? undefined,
             prerequisites: data.prerequisites ?? undefined,
             createdAt: data.createdAt,
@@ -396,32 +413,31 @@ const AdminCoursesPage = () => {
 
   return (
     <Box dir="rtl">
-      <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
-        <Typography variant="h6" align="center" fontWeight={700} color="success.main">
+      <Container maxWidth="lg" className={pageStyles.page}>
+        <Typography variant="h6" align="center" className={pageStyles.pageTitle}>
           המחלקה למדעי המחשב
         </Typography>
-        <Typography variant="body2" align="center" color="text.secondary" mb={3}>
+        <Typography variant="body2" align="center" className={pageStyles.pageSubtitle}>
           מערכת ניהול – קורסים
         </Typography>
 
         <Paper
           elevation={3}
-          className={styles.sectionPaper}
-          sx={{ bgcolor: "background.paper" }}
+          className={`${styles.sectionPaper} ${pageStyles.sectionPaper}`}
         >
           <Tabs
             value={tab}
             onChange={(_e, v) => setTab(v)}
             centered
-            sx={{ mb: 3, "& .MuiTab-root": { fontWeight: 600 } }}
+            className={pageStyles.tabs}
           >
             <Tab label="רשימת קורסים" />
             <Tab label={editingCode ? "עריכת קורס" : "הוספת קורס חדש"} />
           </Tabs>
 
-          {isLoading && <LinearProgress sx={{ mb: 2 }} />}
+          {isLoading && <LinearProgress className={pageStyles.loadingBar} />}
           {!!missingCourseId && (
-            <Alert severity="error" sx={{ mb: 2 }}>
+            <Alert severity="error" className={pageStyles.errorAlert}>
               קורס עם המזהה "{missingCourseId}" לא נמצא במערכת.
             </Alert>
           )}
@@ -463,7 +479,7 @@ const AdminCoursesPage = () => {
                 מספר הקורסים במערכת: {filteredCourses.length}
               </Typography>
 
-              <Paper elevation={0} className={styles.tablePaper} sx={{ bgcolor: "background.paper" }}>
+              <Paper elevation={0} className={`${styles.tablePaper} ${pageStyles.tablePaper}`}>
                 <Table>
                   <TableHead>
                     <TableRow>
@@ -519,7 +535,7 @@ const AdminCoursesPage = () => {
 
                     {filteredCourses.length === 0 && (
                       <TableRow>
-                        <TableCell colSpan={8} align="center" sx={{ py: 4, color: "text.secondary" }}>
+                        <TableCell colSpan={8} align="center" className={pageStyles.emptyCell}>
                           אין תוצאות לחיפוש.
                         </TableCell>
                       </TableRow>
@@ -533,11 +549,11 @@ const AdminCoursesPage = () => {
           {/* ================= טאב 2 – הוספה/עריכת קורס ================= */}
           {tab === 1 && (
             <Box>
-              <Typography variant="h5" fontWeight={600} mb={1}>
+              <Typography variant="h5" className={pageStyles.formTitle}>
                 {editingCode ? `עריכת קורס (${editingCode})` : "הוספת קורס חדש"}
               </Typography>
 
-              <Typography variant="body2" color="text.secondary" mb={3}>
+              <Typography variant="body2" className={pageStyles.formSubtitle}>
                 מלאי את פרטי הקורס. השמירה תתבצע רק אם כל הנתונים תקינים.
               </Typography>
 
@@ -666,12 +682,12 @@ const AdminCoursesPage = () => {
                     label="קורסי קדם"
                     value={form.prerequisites}
                     onChange={handleChangeForm("prerequisites")}
-                    helperText="אופציונלי. לדוגמה: CS101, מתמטיקה בדידה"
+                    helperText='אופציונלי. לדוגמה: CS101, מתמטיקה בדידה'
                   />
                 </Grid>
               </Grid>
 
-              <Box mt={4} display="flex" justifyContent="center" gap={2} flexWrap="wrap">
+              <Box className={pageStyles.formActions}>
                 <Button
                   variant="contained"
                   color="success"
@@ -702,18 +718,18 @@ const AdminCoursesPage = () => {
               </Box>
 
               {!!savedMsg && (
-                <Box mt={3}>
+                <Box className={pageStyles.noticeBox}>
                   <Alert severity="success">{savedMsg}</Alert>
                 </Box>
               )}
               {saveError && (
-                <Box mt={2}>
+                <Box className={pageStyles.noticeBox}>
                   <Alert severity="error">{saveError}</Alert>
                 </Box>
               )}
 
               {Object.keys(errors).length > 0 && (
-                <Box mt={2}>
+                <Box className={pageStyles.noticeBox}>
                   <Alert severity="error">
                     יש שדות לא תקינים. תקני את ההודעות האדומות ואז שמרי שוב.
                   </Alert>
@@ -734,7 +750,7 @@ const AdminCoursesPage = () => {
           onClose={handleSnackClose}
           severity={savedMsg ? "success" : "error"}
           variant="filled"
-          sx={{ width: "100%" }}
+          className={pageStyles.snackAlert}
         >
           {savedMsg || saveError}
         </Alert>
@@ -744,3 +760,8 @@ const AdminCoursesPage = () => {
 };
 
 export default AdminCoursesPage;
+
+
+
+
+

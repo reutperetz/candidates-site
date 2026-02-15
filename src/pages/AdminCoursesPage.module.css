@@ -1,0 +1,70 @@
+.page {
+  margin-top: 32px;
+  margin-bottom: 32px;
+}
+
+.pageTitle {
+  font-weight: 700;
+  color: #2e7d32;
+}
+
+.pageSubtitle {
+  color: #6b6b6b;
+  margin-bottom: 24px;
+}
+
+.sectionPaper {
+  background-color: #ffffff;
+}
+
+.tabs {
+  margin-bottom: 24px;
+}
+
+.tabs :global(.MuiTab-root) {
+  font-weight: 600;
+}
+
+.loadingBar {
+  margin-bottom: 16px;
+}
+
+.errorAlert {
+  margin-bottom: 16px;
+}
+
+.tablePaper {
+  background-color: #ffffff;
+}
+
+.emptyCell {
+  padding-top: 32px;
+  padding-bottom: 32px;
+  color: #6b6b6b;
+}
+
+.formTitle {
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+
+.formSubtitle {
+  color: #6b6b6b;
+  margin-bottom: 24px;
+}
+
+.formActions {
+  margin-top: 32px;
+  display: flex;
+  justify-content: center;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.noticeBox {
+  margin-top: 16px;
+}
+
+.snackAlert {
+  width: 100%;
+}

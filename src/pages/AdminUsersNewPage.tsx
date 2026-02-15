@@ -29,6 +29,7 @@ import Grid from "@mui/material/GridLegacy";
 import AddIcon from "@mui/icons-material/Add";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
+import styles from "./AdminUsersNewPage.module.css";
 import {
   addDoc,
   collection,
@@ -340,21 +341,21 @@ const AdminUsersNewPage = () => {
 
   return (
     <Box dir="rtl">
-      <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
-        <Typography variant="h6" align="center" fontWeight={700} color="success.main">
+      <Container maxWidth="lg" className={styles.page}>
+        <Typography variant="h6" align="center" className={styles.pageTitle}>
           המחלקה למדעי המחשב
         </Typography>
-        <Typography variant="body2" align="center" color="text.secondary" mb={3}>
+        <Typography variant="body2" align="center" className={styles.pageSubtitle}>
           מערכת ניהול – משתמשי מערכת
         </Typography>
 
-        <Paper elevation={3} sx={{ borderRadius: 3, p: 3, bgcolor: "background.paper" }}>
-          {isLoading && <LinearProgress sx={{ mb: 2 }} />}
+        <Paper elevation={3} className={styles.panel}>
+          {isLoading && <LinearProgress className={styles.loadingBar} />}
           <Tabs
             value={tab}
             onChange={(_e, v) => setTab(v)}
             centered
-            sx={{ mb: 3, "& .MuiTab-root": { fontWeight: 600 } }}
+            className={styles.tabs}
           >
             <Tab label="רשימת משתמשים" />
             <Tab label="הוספת משתמש חדש" />
@@ -370,7 +371,7 @@ const AdminUsersNewPage = () => {
                 flexWrap="wrap"
                 gap={2}
               >
-                <Typography variant="h5" fontWeight={600}>
+                <Typography variant="h5" className={styles.listTitle}>
                   רשימת משתמשים
                 </Typography>
 
@@ -378,7 +379,7 @@ const AdminUsersNewPage = () => {
                   <Button
                     variant="contained"
                     startIcon={<AddIcon />}
-                    sx={{ borderRadius: 999, px: 3 }}
+                    className={styles.addButton}
                     onClick={() => setTab(1)}
                   >
                     הוספת משתמש חדש
@@ -393,11 +394,11 @@ const AdminUsersNewPage = () => {
                 </Stack>
               </Box>
 
-              <Typography variant="body2" color="text.secondary" mb={2}>
+              <Typography variant="body2" className={styles.countText}>
                 מספר המשתמשים במערכת: {filtered.length}
               </Typography>
 
-              <Paper elevation={0} sx={{ borderRadius: 3, overflow: "hidden", bgcolor: "background.paper" }}>
+              <Paper elevation={0} className={styles.tablePaper}>
                 <Table>
                   <TableHead>
                     <TableRow>
@@ -447,7 +448,7 @@ const AdminUsersNewPage = () => {
                     {filtered.length === 0 && !isLoading && (
                       <TableRow>
                         <TableCell colSpan={6} align="center">
-                          <Typography variant="body2" color="text.secondary" sx={{ py: 3 }}>
+                          <Typography variant="body2" className={styles.emptyText}>
                             לא נמצאו תוצאות
                           </Typography>
                         </TableCell>
@@ -461,11 +462,11 @@ const AdminUsersNewPage = () => {
 
           {tab === 1 && (
             <Box>
-              <Typography variant="h5" fontWeight={600} mb={2}>
+              <Typography variant="h5" className={styles.formTitle}>
                 הוספת משתמש חדש
               </Typography>
 
-              <Typography variant="body2" color="text.secondary" mb={3}>
+              <Typography variant="body2" className={styles.formSubtitle}>
                 שדות חובה: שם מלא, אימייל, תפקיד, סטטוס.
               </Typography>
 
@@ -531,16 +532,16 @@ const AdminUsersNewPage = () => {
               </Grid>
 
               {!canSave && (
-                <Box mt={2}>
+                <Box className={styles.infoBox}>
                   <Alert severity="info">יש למלא שדות חובה לפני שמירה.</Alert>
                 </Box>
               )}
 
-              <Box mt={4} display="flex" justifyContent="center" gap={2} flexWrap="wrap">
+              <Box className={styles.formActions}>
                 <Button
                   variant="contained"
                   color="success"
-                  sx={{ borderRadius: 999, px: 4 }}
+                  className={styles.primaryButton}
                   onClick={handleAddUser}
                   disabled={!canSave}
                 >
@@ -548,7 +549,7 @@ const AdminUsersNewPage = () => {
                 </Button>
                 <Button
                   variant="outlined"
-                  sx={{ borderRadius: 999, px: 4 }}
+                  className={styles.secondaryButton}
                   onClick={() => {
                     setForm(emptyForm);
                     setFormTouched({});
@@ -556,7 +557,7 @@ const AdminUsersNewPage = () => {
                 >
                   ניקוי שדות
                 </Button>
-                <Button variant="text" sx={{ borderRadius: 999 }} onClick={() => setTab(0)}>
+                <Button variant="text" className={styles.textButton} onClick={() => setTab(0)}>
                   חזרה לרשימה
                 </Button>
               </Box>
@@ -566,9 +567,9 @@ const AdminUsersNewPage = () => {
       </Container>
 
       <Dialog open={editOpen} onClose={() => setEditOpen(false)} fullWidth maxWidth="md">
-        <DialogTitle sx={{ fontWeight: 700 }}>עריכת משתמש</DialogTitle>
+        <DialogTitle className={styles.dialogTitle}>עריכת משתמש</DialogTitle>
         <DialogContent>
-          <Grid container spacing={2} sx={{ mt: 0.5 }}>
+          <Grid container spacing={2} className={styles.dialogGrid}>
             <Grid item xs={12} md={6}>
               <TextField
                 fullWidth
@@ -630,7 +631,7 @@ const AdminUsersNewPage = () => {
           </Grid>
         </DialogContent>
 
-        <DialogActions sx={{ p: 2 }}>
+        <DialogActions className={styles.dialogActions}>
           <Button onClick={() => setEditOpen(false)}>ביטול</Button>
           <Button variant="contained" color="success" onClick={saveEdit} disabled={!canSaveEdit}>
             שמירה
@@ -639,13 +640,13 @@ const AdminUsersNewPage = () => {
       </Dialog>
 
       <Dialog open={deleteOpen} onClose={() => setDeleteOpen(false)} fullWidth maxWidth="xs">
-        <DialogTitle sx={{ fontWeight: 700 }}>מחיקת משתמש</DialogTitle>
+        <DialogTitle className={styles.dialogTitle}>מחיקת משתמש</DialogTitle>
         <DialogContent>
           <Typography>
             למחוק את המשתמש <b>{deleteTarget?.fullName}</b>?
           </Typography>
         </DialogContent>
-        <DialogActions sx={{ p: 2 }}>
+        <DialogActions className={styles.dialogActions}>
           <Button onClick={() => setDeleteOpen(false)}>ביטול</Button>
           <Button variant="contained" color="error" onClick={confirmDelete}>
             מחיקה

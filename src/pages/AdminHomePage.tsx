@@ -7,6 +7,7 @@ import GroupOutlinedIcon from "@mui/icons-material/GroupOutlined";
 import PersonOutlineIcon from "@mui/icons-material/PersonOutline";
 import AltRouteIcon from "@mui/icons-material/AltRoute";
 import { useNavigate } from "react-router-dom";
+import styles from "./AdminHomePage.module.css";
 
 type QuickCard = {
   title: string;
@@ -22,31 +23,31 @@ const AdminHomePage = () => {
     {
       title: "ניהול הודעות",
       subtitle: "יצירה, עריכה ומחיקה של הודעות",
-      icon: <NotificationsNoneIcon color="success" sx={{ fontSize: 34 }} />,
+      icon: <NotificationsNoneIcon color="success" className={styles.cardIcon} />,
       to: "/admin/notifications",
     },
     {
       title: "ניהול קורסים",
       subtitle: "רשימת קורסים והוספת קורס חדש",
-      icon: <MenuBookIcon color="success" sx={{ fontSize: 34 }} />,
+      icon: <MenuBookIcon color="success" className={styles.cardIcon} />,
       to: "/admin/courses",
     },
     {
       title: "ניהול מועמדים",
       subtitle: "צפייה ועדכון סטטוס מועמדים",
-      icon: <PersonOutlineIcon color="success" sx={{ fontSize: 34 }} />,
+      icon: <PersonOutlineIcon color="success" className={styles.cardIcon} />,
       to: "/admin/candidates",
     },
     {
       title: "ניהול מסלולי לימוד",
       subtitle: "הגדרה ותחזוקה של מסלולים (בוקר/ערב וכו')",
-      icon: <AltRouteIcon color="success" sx={{ fontSize: 34 }} />,
+      icon: <AltRouteIcon color="success" className={styles.cardIcon} />,
       to: "/admin/study-tracks",
     },
     {
       title: "משתמשי מערכת",
       subtitle: "ניהול משתמשים (מנהל/מזכירות וכו')",
-      icon: <GroupOutlinedIcon color="success" sx={{ fontSize: 34 }} />,
+      icon: <GroupOutlinedIcon color="success" className={styles.cardIcon} />,
       to: "/admin/users",
     },
   ];
@@ -55,40 +56,26 @@ const AdminHomePage = () => {
 
   return (
     <Box dir="rtl">
-      <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
+      <Container maxWidth="lg" className={styles.page}>
         {/* כותרת עליונה */}
-        <Typography variant="h6" align="center" fontWeight={700} color="success.main">
+        <Typography variant="h6" align="center" className={styles.pageTitle}>
           המחלקה למדעי המחשב
         </Typography>
-        <Typography variant="body2" align="center" color="text.secondary" mb={3}>
+        <Typography variant="body2" align="center" className={styles.pageSubtitle}>
           מערכת ניהול – משתמשים, מועמדים, קורסים ותנאי קבלה
         </Typography>
 
         {/* מסגרת ראשית */}
         <Paper
           elevation={3}
-          sx={{
-            borderRadius: 3,
-            overflow: "hidden",
-            bgcolor: "background.paper",
-            p: { xs: 2, md: 3 },
-          }}
+          className={styles.panel}
         >
           {/* באנר ירוק */}
-          <Box
-            sx={{
-              bgcolor: "success.main",
-              color: "success.contrastText",
-              borderRadius: 3,
-              p: 3,
-              textAlign: "center",
-              mb: 4,
-            }}
-          >
-            <Typography variant="h5" fontWeight={700} gutterBottom>
+          <Box className={styles.banner}>
+            <Typography variant="h5" className={styles.bannerTitle} gutterBottom>
               שלום מנהל/ת!
             </Typography>
-            <Typography variant="body2">
+            <Typography variant="body2" className={styles.bannerSubtitle}>
               ברוכים הבאים למערכת הניהול של המחלקה למדעי המחשב
             </Typography>
           </Box>
@@ -104,30 +91,16 @@ const AdminHomePage = () => {
                   onKeyDown={(e) => {
                     if (e.key === "Enter" || e.key === " ") handleGo(item.to);
                   }}
-                  sx={{
-                    borderRadius: 3,
-                    bgcolor: "background.paper",
-                    cursor: "pointer",
-                    boxShadow: 2,
-                    transition: "0.2s",
-                    outline: "none",
-                    "&:hover": {
-                      boxShadow: 6,
-                      transform: "translateY(-2px)",
-                    },
-                    "&:focus-visible": {
-                      boxShadow: 6,
-                    },
-                  }}
+                  className={styles.card}
                 >
-                  <CardContent sx={{ textAlign: "center", py: 3 }}>
-                    <Box mb={1}>{item.icon}</Box>
+                  <CardContent className={styles.cardContent}>
+                    <Box className={styles.cardIconWrap}>{item.icon}</Box>
 
-                    <Typography variant="subtitle1" fontWeight={800} sx={{ mb: 0.5 }}>
+                    <Typography variant="subtitle1" className={styles.cardTitle}>
                       {item.title}
                     </Typography>
 
-                    <Typography variant="body2" color="text.secondary">
+                    <Typography variant="body2" className={styles.cardSubtitle}>
                       {item.subtitle}
                     </Typography>
                   </CardContent>

@@ -1,4 +1,4 @@
-// src/pages/AdminStudyTracksPage.tsx
+﻿// src/pages/AdminStudyTracksPage.tsx
 import { useEffect, useMemo, useState } from "react";
 import {
   Alert,
@@ -29,6 +29,7 @@ import Grid from "@mui/material/GridLegacy";
 import AddIcon from "@mui/icons-material/Add";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
+import styles from "./AdminStudyTracksPage.module.css";
 
 import {
   addDoc,
@@ -314,21 +315,21 @@ const AdminStudyTracksPage = () => {
 
   return (
     <Box dir="rtl">
-      <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
-        <Typography variant="h6" align="center" fontWeight={700} color="success.main">
+      <Container maxWidth="lg" className={styles.page}>
+        <Typography variant="h6" align="center" className={styles.pageTitle}>
           המחלקה למדעי המחשב
         </Typography>
-        <Typography variant="body2" align="center" color="text.secondary" mb={3}>
+        <Typography variant="body2" align="center" className={styles.pageSubtitle}>
           מערכת ניהול – מסלולי לימוד
         </Typography>
 
-        <Paper elevation={3} sx={{ borderRadius: 3, p: 3, bgcolor: "background.paper" }}>
-          {isLoading && <LinearProgress sx={{ mb: 2 }} />}
+        <Paper elevation={3} className={styles.panel}>
+          {isLoading && <LinearProgress className={styles.loadingBar} />}
           <Tabs
             value={tab}
             onChange={(_, v) => setTab(v)}
             centered
-            sx={{ mb: 3, "& .MuiTab-root": { fontWeight: 600 } }}
+            className={styles.tabs}
           >
             <Tab label="רשימת מסלולים" />
             <Tab label="הוספת מסלול חדש" />
@@ -336,32 +337,25 @@ const AdminStudyTracksPage = () => {
 
           {tab === 0 && (
             <Box>
-              <Box
-                mb={2}
-                display="flex"
-                justifyContent="space-between"
-                alignItems="center"
-                flexWrap="wrap"
-                gap={2}
-              >
-                <Typography variant="h5" fontWeight={600}>
+              <Box className={styles.listHeader}>
+                <Typography variant="h5" className={styles.listTitle}>
                   רשימת מסלולים
                 </Typography>
                 <Button
                   variant="contained"
                   startIcon={<AddIcon />}
-                  sx={{ borderRadius: 999, px: 3 }}
+                  className={styles.addButton}
                   onClick={() => setTab(1)}
                 >
                   הוספת מסלול חדש
                 </Button>
               </Box>
 
-              <Typography variant="body2" color="text.secondary" mb={2}>
+              <Typography variant="body2" className={styles.countText}>
                 מספר המסלולים במערכת: {tracks.length}
               </Typography>
 
-              <Paper elevation={0} sx={{ borderRadius: 3, overflow: "hidden", bgcolor: "background.paper" }}>
+              <Paper elevation={0} className={styles.tablePaper}>
                 <Table>
                   <TableHead>
                     <TableRow>
@@ -514,16 +508,16 @@ const AdminStudyTracksPage = () => {
               </Grid>
 
               {!canSave && (
-                <Box mt={2}>
+                <Box className={styles.infoBox}>
                   <Alert severity="info">יש למלא שדות חובה ולתקן שגיאות לפני שמירה.</Alert>
                 </Box>
               )}
 
-              <Box mt={4} display="flex" justifyContent="center" gap={2} flexWrap="wrap">
+              <Box className={styles.formActions}>
                 <Button
                   variant="contained"
                   color="success"
-                  sx={{ borderRadius: 999, px: 4 }}
+                  className={styles.primaryButton}
                   onClick={handleAddTrack}
                   disabled={!canSave}
                 >
@@ -531,7 +525,7 @@ const AdminStudyTracksPage = () => {
                 </Button>
                 <Button
                   variant="outlined"
-                  sx={{ borderRadius: 999, px: 4 }}
+                  className={styles.secondaryButton}
                   onClick={() => {
                     setForm(emptyForm);
                     setFormTouched({});
@@ -539,7 +533,7 @@ const AdminStudyTracksPage = () => {
                 >
                   ניקוי שדות
                 </Button>
-                <Button variant="text" sx={{ borderRadius: 999 }} onClick={() => setTab(0)}>
+                <Button variant="text" className={styles.textButton} onClick={() => setTab(0)}>
                   חזרה לרשימה
                 </Button>
               </Box>
@@ -549,9 +543,9 @@ const AdminStudyTracksPage = () => {
       </Container>
 
       <Dialog open={editOpen} onClose={() => setEditOpen(false)} fullWidth maxWidth="md">
-        <DialogTitle sx={{ fontWeight: 700 }}>עריכת מסלול</DialogTitle>
+        <DialogTitle className={styles.dialogTitle}>עריכת מסלול</DialogTitle>
         <DialogContent>
-          <Grid container spacing={2} sx={{ mt: 0.5 }}>
+          <Grid container spacing={2} className={styles.dialogGrid}>
             <Grid item xs={12} md={6}>
               <TextField
                 fullWidth
@@ -633,7 +627,7 @@ const AdminStudyTracksPage = () => {
           </Grid>
         </DialogContent>
 
-        <DialogActions sx={{ p: 2 }}>
+        <DialogActions className={styles.dialogActions}>
           <Button onClick={() => setEditOpen(false)}>ביטול</Button>
           <Button variant="contained" color="success" onClick={saveEdit} disabled={!canSaveEdit}>
             שמירה
@@ -642,13 +636,13 @@ const AdminStudyTracksPage = () => {
       </Dialog>
 
       <Dialog open={deleteOpen} onClose={() => setDeleteOpen(false)} fullWidth maxWidth="xs">
-        <DialogTitle sx={{ fontWeight: 700 }}>מחיקת מסלול</DialogTitle>
+        <DialogTitle className={styles.dialogTitle}>מחיקת מסלול</DialogTitle>
         <DialogContent>
           <Typography>
             למחוק את המסלול עם קוד: <b>{deleteTarget?.code}</b> ?
           </Typography>
         </DialogContent>
-        <DialogActions sx={{ p: 2 }}>
+        <DialogActions className={styles.dialogActions}>
           <Button onClick={() => setDeleteOpen(false)}>ביטול</Button>
           <Button variant="contained" color="error" onClick={confirmDelete}>
             מחיקה
@@ -667,3 +661,4 @@ const AdminStudyTracksPage = () => {
 };
 
 export default AdminStudyTracksPage;
+

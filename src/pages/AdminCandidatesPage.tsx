@@ -32,6 +32,7 @@ import AddIcon from "@mui/icons-material/Add";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
 import styles from "../styles/adminShared.module.css";
+import pageStyles from "./AdminCandidatesPage.module.css";
 
 // Firestore
 import {
@@ -170,7 +171,7 @@ const CandidatesList = ({
       מספר המועמדים במערכת: {totalCount}
     </Typography>
 
-    <Paper elevation={0} className={styles.tablePaper} sx={{ bgcolor: "background.paper" }}>
+    <Paper elevation={0} className={`${styles.tablePaper} ${pageStyles.tablePaper}`}>
       <Table>
         <TableHead>
           <TableRow>
@@ -941,22 +942,21 @@ const AdminCandidatesPage = () => {
 
   return (
     <Box dir="rtl">
-      <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
-        <Typography variant="h6" align="center" fontWeight={700} color="success.main">
+      <Container maxWidth="lg" className={pageStyles.page}>
+        <Typography variant="h6" align="center" className={pageStyles.pageTitle}>
           המחלקה למדעי המחשב
         </Typography>
-        <Typography variant="body2" align="center" color="text.secondary" mb={3}>
+        <Typography variant="body2" align="center" className={pageStyles.pageSubtitle}>
           מערכת ניהול – מועמדים
         </Typography>
 
         <Paper
           elevation={3}
-          className={styles.sectionPaper}
-          sx={{ bgcolor: "background.paper" }}
+          className={`${styles.sectionPaper} ${pageStyles.sectionPaper}`}
         >
-          {(isLoading || tracksLoading) && <LinearProgress sx={{ mb: 2 }} />}
+          {(isLoading || tracksLoading) && <LinearProgress className={pageStyles.loadingBar} />}
           {!!missingCandidateId && (
-            <Alert severity="error" sx={{ mb: 2 }}>
+            <Alert severity="error" className={pageStyles.errorAlert}>
               מועמד עם המזהה "{missingCandidateId}" לא נמצא במערכת.
             </Alert>
           )}
@@ -964,7 +964,7 @@ const AdminCandidatesPage = () => {
             value={tab}
             onChange={(_, v) => setTab(v)}
             centered
-            sx={{ mb: 3, "& .MuiTab-root": { fontWeight: 600 } }}
+            className={pageStyles.tabs}
           >
             <Tab label="רשימת מועמדים" />
             <Tab label="הוספת מועמד חדש" />
@@ -1006,9 +1006,9 @@ const AdminCandidatesPage = () => {
 
       {/* ========= Edit Dialog ========= */}
       <Dialog open={editOpen} onClose={() => setEditOpen(false)} fullWidth maxWidth="md">
-        <DialogTitle sx={{ fontWeight: 700 }}>עריכת מועמד</DialogTitle>
+        <DialogTitle className={pageStyles.dialogTitle}>עריכת מועמד</DialogTitle>
         <DialogContent>
-          <Grid container spacing={2} sx={{ mt: 0.5 }}>
+          <Grid container spacing={2} className={pageStyles.dialogGrid}>
             <Grid item xs={12} md={6}>
               <TextField
                 fullWidth
@@ -1150,7 +1150,7 @@ const AdminCandidatesPage = () => {
           </Grid>
         </DialogContent>
 
-        <DialogActions sx={{ p: 2 }}>
+        <DialogActions className={pageStyles.dialogActions}>
           <Button onClick={() => setEditOpen(false)}>ביטול</Button>
           <Button variant="contained" color="success" onClick={saveEdit} disabled={!canSaveEdit}>
             שמירה
@@ -1160,13 +1160,13 @@ const AdminCandidatesPage = () => {
 
       {/* ========= Delete Dialog ========= */}
       <Dialog open={deleteOpen} onClose={() => setDeleteOpen(false)} fullWidth maxWidth="xs">
-        <DialogTitle sx={{ fontWeight: 700 }}>מחיקת מועמד</DialogTitle>
+        <DialogTitle className={pageStyles.dialogTitle}>מחיקת מועמד</DialogTitle>
         <DialogContent>
           <Typography>
             למחוק את המועמד עם ת.ז: <b>{deleteTarget?.idNumber}</b> ?
           </Typography>
         </DialogContent>
-        <DialogActions sx={{ p: 2 }}>
+        <DialogActions className={pageStyles.dialogActions}>
           <Button onClick={() => setDeleteOpen(false)}>ביטול</Button>
           <Button variant="contained" color="error" onClick={confirmDelete}>
             מחיקה

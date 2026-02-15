@@ -1,0 +1,85 @@
+.page {
+  margin-top: 32px;
+  margin-bottom: 32px;
+}
+
+.pageTitle {
+  font-weight: 700;
+  color: #2e7d32;
+}
+
+.pageSubtitle {
+  color: #6b6b6b;
+  margin-bottom: 24px;
+}
+
+.panel {
+  border-radius: 12px;
+  overflow: hidden;
+  background-color: #ffffff;
+  padding: 24px;
+}
+
+@media (max-width: 899px) {
+  .panel {
+    padding: 16px;
+  }
+}
+
+.banner {
+  background-color: #2e7d32;
+  color: #ffffff;
+  border-radius: 12px;
+  padding: 24px;
+  text-align: center;
+  margin-bottom: 32px;
+}
+
+.bannerTitle {
+  font-weight: 700;
+}
+
+.bannerSubtitle {
+  color: inherit;
+}
+
+.card {
+  border-radius: 12px;
+  background-color: #ffffff;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  outline: none;
+}
+
+.card:hover {
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.18);
+  transform: translateY(-2px);
+}
+
+.card:focus-visible {
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.18);
+}
+
+.cardContent {
+  text-align: center;
+  padding-top: 24px;
+  padding-bottom: 24px;
+}
+
+.cardIconWrap {
+  margin-bottom: 8px;
+}
+
+.cardIcon {
+  font-size: 34px;
+}
+
+.cardTitle {
+  font-weight: 800;
+  margin-bottom: 4px;
+}
+
+.cardSubtitle {
+  color: #6b6b6b;
+}
