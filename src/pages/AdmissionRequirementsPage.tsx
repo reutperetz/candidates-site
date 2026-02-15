@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+﻿import { useEffect, useMemo, useState } from "react";
 import { Box, Container, Typography, Paper, Button, Divider, LinearProgress } from "@mui/material";
 import CheckCircleOutlineIcon from "@mui/icons-material/CheckCircleOutline";
 import ArrowForwardIosIcon from "@mui/icons-material/ArrowForwardIos";
@@ -6,6 +6,7 @@ import Grid from "@mui/material/GridLegacy";
 import { useNavigate } from "react-router-dom";
 import { collection, getDocs, type Timestamp } from "firebase/firestore";
 import { db } from "../firebase";
+import styles from "./AdmissionRequirementsPage.module.css";
 
 type RequirementDisplay = {
   label: string;
@@ -109,23 +110,12 @@ const AdmissionRequirementsPage = () => {
     <Paper
       key={r.label}
       elevation={0}
-      sx={{
-        p: 2,
-        borderRadius: 3,
-        border: "1px solid",
-        borderColor: "divider",
-        bgcolor: "background.paper",
-        textAlign: "center",
-        minHeight: 90,
-        display: "flex",
-        flexDirection: "column",
-        justifyContent: "center",
-      }}
+      className={styles.requirementBox}
     >
-      <Typography variant="body2" color="text.secondary" mb={0.5}>
+      <Typography variant="body2" className={styles.requirementLabel}>
         {r.label}
       </Typography>
-      <Typography variant="h6" fontWeight={700}>
+      <Typography variant="h6" className={styles.requirementValue}>
         {r.value}
       </Typography>
     </Paper>
@@ -133,26 +123,19 @@ const AdmissionRequirementsPage = () => {
 
   return (
     <Box dir="rtl">
-      <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
-        <Typography variant="h6" align="center" fontWeight={700} color="success.main">
+      <Container maxWidth="lg" className={styles.page}>
+        <Typography variant="h6" align="center" className={styles.pageTitle}>
           {"המחלקה למדעי המחשב"}
         </Typography>
-        <Typography variant="body2" align="center" color="text.secondary" mb={3}>
+        <Typography variant="body2" align="center" className={styles.pageSubtitle}>
           {"מידע למועמדים - תנאי קבלה והמסלולים האפשריים"}
         </Typography>
 
-        <Paper
-          elevation={2}
-          sx={{
-            borderRadius: 3,
-            overflow: "hidden",
-            bgcolor: "background.paper",
-          }}
-        >
+        <Paper elevation={2} className={styles.panel}>
           {isLoading && <LinearProgress />}
           {isLoading ? null : activeRequirements.length === 0 ? (
-            <Box sx={{ p: 3 }}>
-              <Typography variant="body2" color="text.secondary">
+            <Box className={styles.emptyBox}>
+              <Typography variant="body2" className={styles.mutedText}>
                 {"לא זמינים תנאי קבלה פעילים כרגע."}
               </Typography>
             </Box>
@@ -162,33 +145,26 @@ const AdmissionRequirementsPage = () => {
                 const items = buildDisplayItems(req);
                 return (
                   <Box key={req.docId}>
-                    <Box
-                      sx={{
-                        bgcolor: "success.main",
-                        color: "success.contrastText",
-                        p: 3,
-                        mt: index ? 2 : 0,
-                      }}
-                    >
-                      <Typography variant="h6" fontWeight={700}>
+                    <Box className={`${styles.trackHeader} ${index ? styles.trackHeaderSpaced : ""}`}>
+                      <Typography variant="h6" className={styles.trackTitle}>
                         {req.trackName}
                       </Typography>
                     </Box>
 
-                    <Box sx={{ p: 3, pb: 2 }}>
-                      <Box display="flex" alignItems="center" gap={1} mb={2}>
-                        <Typography variant="subtitle1" fontWeight={600}>
+                    <Box className={styles.trackBody}>
+                      <Box className={styles.requirementsRow}>
+                        <Typography variant="subtitle1" className={styles.requirementsTitle}>
                           {"דרישות:"}
                         </Typography>
                         <CheckCircleOutlineIcon color="success" fontSize="small" />
                       </Box>
 
-                      <Grid container spacing={2} mb={2}>
+                      <Grid container spacing={2} className={styles.requirementsGrid}>
                         {items.length ? (
                           items.map(renderRequirementBox)
                         ) : (
                           <Grid item xs={12}>
-                            <Typography variant="body2" color="text.secondary" align="center">
+                            <Typography variant="body2" className={styles.mutedText} align="center">
                               {"אין תנאים מינימליים מוגדרים למסלול זה."}
                             </Typography>
                           </Grid>
@@ -201,19 +177,9 @@ const AdmissionRequirementsPage = () => {
                 );
               })}
 
-              <Box sx={{ p: 3, pt: 0 }}>
-                <Paper
-                  elevation={0}
-                  sx={{
-                    mt: 1,
-                    p: 2,
-                    borderRadius: 2,
-                    bgcolor: "background.paper",
-                    border: "1px dashed",
-                    borderColor: "divider",
-                  }}
-                >
-                  <Typography variant="body2" color="text.secondary">
+              <Box className={styles.noticeWrapper}>
+                <Paper elevation={0} className={styles.noticePaper}>
+                  <Typography variant="body2" className={styles.mutedText}>
                     {"ניתן להתקבל גם לפי שקלול של בגרות ופסיכומטרי (לפי מדיניות הקבלה של המחלקה)."}
                   </Typography>
                 </Paper>
@@ -221,30 +187,17 @@ const AdmissionRequirementsPage = () => {
             </>
           )}
 
-          <Box
-            sx={{
-              px: 3,
-              pb: 3,
-              pt: 1,
-              display: "flex",
-              flexWrap: "wrap",
-              gap: 2,
-              justifyContent: "space-between",
-            }}
-          >
+          <Box className={styles.actions}>
             <Button
               variant="contained"
               endIcon={<ArrowForwardIosIcon />}
-              sx={{
-                borderRadius: 999,
-                px: 4,
-              }}
+              className={styles.primaryButton}
               onClick={() => navigate("/admission-calculator")}
             >
               {"מעבר למחשבון סיכוי קבלה"}
             </Button>
 
-            <Button variant="text" onClick={() => navigate("/")} sx={{ borderRadius: 999 }}>
+            <Button variant="text" onClick={() => navigate("/")} className={styles.secondaryButton}>
               {"חזרה למסך הבית"}
             </Button>
           </Box>
@@ -255,3 +208,4 @@ const AdmissionRequirementsPage = () => {
 };
 
 export default AdmissionRequirementsPage;
+

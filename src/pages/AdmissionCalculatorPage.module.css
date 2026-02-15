@@ -1,0 +1,58 @@
+.page {
+  margin-top: 32px;
+  margin-bottom: 32px;
+}
+
+.panel {
+  padding: 32px;
+  border-radius: 12px;
+}
+
+.title {
+  font-weight: 700;
+  margin-bottom: 8px;
+}
+
+.subtitle {
+  color: #6b6b6b;
+  margin-bottom: 24px;
+}
+
+.criteriaAlert {
+  margin-bottom: 24px;
+}
+
+.criteriaTitle {
+  font-weight: 700;
+  margin-bottom: 8px;
+}
+
+.criteriaList {
+  margin: 0;
+  padding-inline-start: 18px;
+}
+
+.sectionDivider {
+  margin-bottom: 24px;
+}
+
+.actions {
+  margin-top: 32px;
+  display: flex;
+  justify-content: center;
+  gap: 16px;
+}
+
+.primaryButton {
+  padding-left: 48px;
+  padding-right: 48px;
+  border-radius: 999px;
+}
+
+.resultBox {
+  margin-top: 24px;
+}
+
+.resultAlert {
+  white-space: pre-line;
+}

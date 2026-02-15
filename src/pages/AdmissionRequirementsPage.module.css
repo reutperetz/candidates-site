@@ -1,0 +1,114 @@
+.page {
+  margin-top: 32px;
+  margin-bottom: 32px;
+}
+
+.pageTitle {
+  font-weight: 700;
+  color: #2e7d32;
+}
+
+.pageSubtitle {
+  color: #6b6b6b;
+  margin-bottom: 24px;
+}
+
+.panel {
+  border-radius: 12px;
+  overflow: hidden;
+  background-color: #ffffff;
+}
+
+.emptyBox {
+  padding: 24px;
+}
+
+.mutedText {
+  color: #6b6b6b;
+}
+
+.trackHeader {
+  background-color: #2e7d32;
+  color: #ffffff;
+  padding: 24px;
+}
+
+.trackTitle {
+  font-weight: 700;
+}
+
+.trackHeaderSpaced {
+  margin-top: 16px;
+}
+
+.trackBody {
+  padding: 24px;
+  padding-bottom: 16px;
+}
+
+.requirementsRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.requirementsTitle {
+  font-weight: 600;
+}
+
+.requirementsGrid {
+  margin-bottom: 16px;
+}
+
+.requirementBox {
+  padding: 16px;
+  border-radius: 12px;
+  border: 1px solid #e0e0e0;
+  background-color: #ffffff;
+  text-align: center;
+  min-height: 90px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.requirementLabel {
+  color: #6b6b6b;
+  margin-bottom: 4px;
+}
+
+.requirementValue {
+  font-weight: 700;
+}
+
+.noticeWrapper {
+  padding: 24px;
+  padding-top: 0;
+}
+
+.noticePaper {
+  margin-top: 8px;
+  padding: 16px;
+  border-radius: 8px;
+  background-color: #ffffff;
+  border: 1px dashed #e0e0e0;
+}
+
+.actions {
+  padding: 8px 24px 24px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  justify-content: space-between;
+}
+
+.primaryButton {
+  border-radius: 999px;
+  padding-left: 32px;
+  padding-right: 32px;
+}
+
+.secondaryButton {
+  border-radius: 999px;
+}

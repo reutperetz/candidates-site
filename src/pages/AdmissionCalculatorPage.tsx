@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+﻿import { useMemo, useState } from "react";
 import {
   Box,
   Container,
@@ -11,6 +11,7 @@ import {
   Divider,
 } from "@mui/material";
 import Grid from "@mui/material/GridLegacy";
+import styles from "./AdmissionCalculatorPage.module.css";
 
 /**
  * תנאי קבלה (עדכני לפי פרסומי אונו במסלולי טכנולוגיה דומים).
@@ -29,7 +30,7 @@ const ADMISSION_RULES = {
 
 interface FormValues {
   psychometricTotal: string; // 200-800
-  bagrutAverage: string; // 55-120 (לפי נהוג בבגרות משוקללת)
+  bagrutAverage: string; // 55-120 (לפי נוהג בבגרות משוקללת)
   mathUnits: string; // "4" | "5"
   mathBagrutGrade: string; // 0-100
   englishUnits: string; // optional: "3" | "4" | "5"
@@ -61,7 +62,7 @@ const AdmissionCalculatorPage = () => {
     return [
       `ממוצע בגרות ${r.bagrutAvgMin}+`,
       `או פסיכומטרי כללי ${r.psychometricMin}+ (עם בגרות מלאה)`,
-      `בנוסף: מתמטיקה 4 יח"ל בציון ${r.math.units4MinGrade}+ / 5 יח"ל בציון ${r.math.units5MinGrade}+`,
+      `בנוסף: מתמטיקה 4 יח\"ל ${r.math.units4MinGrade}+ / 5 יח\"ל בציון ${r.math.units5MinGrade}+`,
     ];
   }, []);
 
@@ -88,7 +89,8 @@ const AdmissionCalculatorPage = () => {
     if (!values.bagrutAverage) {
       nextErrors.bagrutAverage = "חובה להזין ממוצע בגרות";
     } else if (!/^\d+(\.\d{1,2})?$/.test(values.bagrutAverage)) {
-      nextErrors.bagrutAverage = "ממוצע בגרות חייב להיות מספר (אפשר עם עד 2 ספרות אחרי נקודה)";
+      nextErrors.bagrutAverage =
+        "ממוצע בגרות חייב להיות מספר (אפשר עם עד 2 ספרות אחרי נקודה)";
     } else {
       const b = Number(values.bagrutAverage);
       if (Number.isNaN(b) || b < 55 || b > 120) {
@@ -138,12 +140,14 @@ const AdmissionCalculatorPage = () => {
       meetsMath && (b >= direct.bagrutAvgMin || p >= direct.psychometricMin);
 
     if (meetsDirect) {
-      setResult("✅ לפי הנתונים שהזנת – את עומדת בתנאי הקבלה הישירה (על פי הכללים שהוגדרו במחשבון).");
+      setResult(
+        "✅ לפי הנתונים שהזנת – את עומדת בתנאי הקבלה הישירה (על פי הכללים שהוגדרו במחשבון)."
+      );
     } else {
       const reasons: string[] = [];
       if (!meetsMath) {
         reasons.push(
-          `מתמטיקה: נדרש 4 יח"ל ${direct.math.units4MinGrade}+ או 5 יח"ל ${direct.math.units5MinGrade}+`
+          `מתמטיקה: נדרש 4 יח\"ל ${direct.math.units4MinGrade}+ או 5 יח\"ל ${direct.math.units5MinGrade}+`
         );
       }
       if (!(b >= direct.bagrutAvgMin || p >= direct.psychometricMin)) {
@@ -168,29 +172,29 @@ const AdmissionCalculatorPage = () => {
 
   return (
     <Box dir="rtl">
-      <Container maxWidth="md" sx={{ mt: 4, mb: 4 }}>
-        <Paper elevation={3} sx={{ p: 4, borderRadius: 3 }}>
-          <Typography variant="h5" align="center" fontWeight={700} gutterBottom>
+      <Container maxWidth="md" className={styles.page}>
+        <Paper elevation={3} className={styles.panel}>
+          <Typography variant="h5" align="center" className={styles.title}>
             מחשבון סיכויי קבלה
           </Typography>
 
-          <Typography variant="body2" align="center" color="text.secondary" mb={3}>
+          <Typography variant="body2" align="center" className={styles.subtitle}>
             הזינו נתונים אמיתיים (מספרים בלבד). הכפתור “חשב כעת” יפעל רק כשהכול תקין.
           </Typography>
 
           {/* תנאי קבלה גלויים וברורים */}
-          <Alert severity="success" sx={{ mb: 3 }}>
-            <Typography fontWeight={700} sx={{ mb: 1 }}>
+          <Alert severity="success" className={styles.criteriaAlert}>
+            <Typography className={styles.criteriaTitle}>
               תנאי קבלה (קבלה ישירה) – לפי הכללים שהוגדרו במחשבון
             </Typography>
-            <ul style={{ margin: 0, paddingInlineStart: 18 }}>
+            <ul className={styles.criteriaList}>
               {criteriaText.map((t) => (
                 <li key={t}>{t}</li>
               ))}
             </ul>
           </Alert>
 
-          <Divider sx={{ mb: 3 }} />
+          <Divider className={styles.sectionDivider} />
 
           <Grid container spacing={2}>
             <Grid item xs={12} md={6}>
@@ -276,12 +280,12 @@ const AdmissionCalculatorPage = () => {
             </Grid>
           </Grid>
 
-          <Box mt={4} display="flex" justifyContent="center" gap={2}>
+          <Box className={styles.actions}>
             <Button
               variant="contained"
               size="large"
               onClick={handleCalculate}
-              sx={{ px: 6, borderRadius: 999 }}
+              className={styles.primaryButton}
             >
               חשב כעת
             </Button>
@@ -291,8 +295,8 @@ const AdmissionCalculatorPage = () => {
           </Box>
 
           {result && (
-            <Box mt={3}>
-              <Alert severity={result.startsWith("✅") ? "success" : "info"} sx={{ whiteSpace: "pre-line" }}>
+            <Box className={styles.resultBox}>
+              <Alert severity={result.startsWith("✅") ? "success" : "info"} className={styles.resultAlert}>
                 {result}
               </Alert>
             </Box>
@@ -304,3 +308,5 @@ const AdmissionCalculatorPage = () => {
 };
 
 export default AdmissionCalculatorPage;
+
+
