@@ -1,4 +1,4 @@
-// src/components/Header.tsx
+﻿// src/components/Header.tsx
 import { useEffect, useMemo, useState } from "react";
 import {
   AppBar,
@@ -14,7 +14,6 @@ import {
   Stack,
   Chip,
 } from "@mui/material";
-import { alpha } from "@mui/material/styles";
 import MenuIcon from "@mui/icons-material/Menu";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useThemeMode } from "../theme/themeContext";
@@ -23,6 +22,7 @@ import DarkModeIcon from "@mui/icons-material/DarkMode";
 import LightModeIcon from "@mui/icons-material/LightMode";
 import { onAuthStateChanged, signOut } from "firebase/auth";
 import { auth } from "../firebase";
+import styles from "./Header.module.css";
 
 type UserMode = "candidate" | "admin";
 
@@ -115,22 +115,14 @@ function Header({ userMode, onChangeMode }: HeaderProps) {
 
   return (
     <>
-      <AppBar
-        component="header"
-        position="static"
-        sx={(theme) => ({
-          background: `linear-gradient(135deg, ${theme.palette.primary.dark} 0%, ${theme.palette.secondary.main} 100%)`,
-          color: theme.palette.primary.contrastText,
-          boxShadow: theme.shadows[4],
-        })}
-      >
-        <Toolbar component="nav" sx={{ direction: "rtl" }}>
+      <AppBar component="header" position="static" className={styles.appBar}>
+        <Toolbar component="nav" className={styles.toolbar}>
           <IconButton
             edge="start"
             onClick={handleOpenDrawer}
             color="inherit"
             aria-label="menu"
-            sx={{ ml: 1 }}
+            className={styles.menuButton}
           >
             <MenuIcon />
           </IconButton>
@@ -138,29 +130,18 @@ function Header({ userMode, onChangeMode }: HeaderProps) {
           <Typography
             variant="h6"
             onClick={() => handleNavigate(userMode === "admin" ? "/admin" : "/")}
-            sx={{
-              flexGrow: 1,
-              color: "inherit",
-              fontWeight: 700,
-              cursor: "pointer",
-              letterSpacing: "0.5px",
-              userSelect: "none",
-              textAlign: "right",
-            }}
+            className={styles.brand}
           >
             Ono Academic College – Candidates Site
           </Typography>
 
-          <Stack direction="row" spacing={1} alignItems="center" sx={{ mr: 1 }}>
+          <Stack direction="row" spacing={1} alignItems="center" className={styles.authRow}>
             {authUser && (
               <>
                 <Chip
                   label={`מחובר/ת: ${authUser}`}
                   size="small"
-                  sx={(theme) => ({
-                    bgcolor: alpha(theme.palette.common.white, 0.18),
-                    color: "inherit",
-                  })}
+                  className={styles.authChip}
                 />
                 <Button
                   variant="outlined"
@@ -172,15 +153,29 @@ function Header({ userMode, onChangeMode }: HeaderProps) {
                 </Button>
               </>
             )}
+            {!authUser && (
+              <Button
+                variant="outlined"
+                color="secondary"
+                size="small"
+                onClick={() => handleNavigate("/login")}
+              >
+                התחברות
+              </Button>
+            )}
           </Stack>
 
           <Tooltip title={mode === "dark" ? "מצב בהיר" : "מצב כהה"}>
-            <IconButton onClick={toggleColorMode} color="inherit" sx={{ mr: 1 }}>
+            <IconButton
+              onClick={toggleColorMode}
+              color="inherit"
+              className={styles.modeButton}
+            >
               {mode === "dark" ? <LightModeIcon /> : <DarkModeIcon />}
             </IconButton>
           </Tooltip>
 
-          <Stack direction="row" spacing={1} sx={{ display: { xs: "none", md: "flex" } }}>
+          <Stack direction="row" spacing={1} className={styles.modeToggle}>
             <Button
               variant={userMode === "candidate" ? "contained" : "outlined"}
               color="secondary"
@@ -211,9 +206,9 @@ function Header({ userMode, onChangeMode }: HeaderProps) {
         anchor="right"
         open={drawerOpen}
         onClose={handleCloseDrawer}
-        PaperProps={{ sx: { direction: "rtl" } }}
+        PaperProps={{ className: styles.drawerPaper }}
       >
-        <Box component="nav" sx={{ width: 280 }} role="presentation" dir="rtl">
+        <Box component="nav" className={styles.drawerNav} role="presentation" dir="rtl">
           <List>
             {navItems.map((item) => (
               <ListItemButton
@@ -223,13 +218,13 @@ function Header({ userMode, onChangeMode }: HeaderProps) {
               >
                 <ListItemText
                   primary={item.label}
-                  primaryTypographyProps={{ sx: { textAlign: "right" } }}
+                  primaryTypographyProps={{ className: styles.drawerItemText }}
                 />
               </ListItemButton>
             ))}
           </List>
 
-          <Box sx={{ p: 2, display: "grid", gap: 1 }}>
+          <Box className={styles.drawerActions}>
             <Button fullWidth variant="outlined" onClick={toggleMode} size="small">
               מעבר ל־{userMode === "candidate" ? "מצב Admin" : "מצב מועמד"}
             </Button>
@@ -237,6 +232,17 @@ function Header({ userMode, onChangeMode }: HeaderProps) {
             {authUser && (
               <Button fullWidth variant="outlined" color="secondary" onClick={handleLogout} size="small">
                 התנתקות
+              </Button>
+            )}
+            {!authUser && (
+              <Button
+                fullWidth
+                variant="outlined"
+                color="secondary"
+                onClick={() => handleNavigate("/login")}
+                size="small"
+              >
+                התחברות
               </Button>
             )}
           </Box>
@@ -247,3 +253,4 @@ function Header({ userMode, onChangeMode }: HeaderProps) {
 }
 
 export default Header;
+
