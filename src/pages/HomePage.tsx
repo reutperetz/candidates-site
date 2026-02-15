@@ -296,7 +296,7 @@ function HomePage() {
         </Grid>
 
         <Grid item xs={12} md={6}>
-          <Card className={styles.featureCard} onClick={() => navigate("/management")}>
+          <Card className={styles.featureCard} onClick={() => navigate("/courses")}>
             <CardContent className={styles.featureCardContent}>
               <Box className={styles.featureText}>
                 <Typography variant="subtitle1" fontWeight={700}>
